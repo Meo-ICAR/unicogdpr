@@ -92,10 +92,14 @@ class RemediationSeeder extends Seeder
             ],
         ];
 
-        foreach ($remediations as $remediation) {
-            Remediation::create($remediation);
+        // Prefer inserting into the default connection if the table exists there.
+        if (\Illuminate\Support\Facades\Schema::hasTable('remediations')) {
+            // Use insertOrIgnore to avoid duplicate primary key errors when the table
+            // already contains some rows (or exists on an external DB).
+            \Illuminate\Support\Facades\DB::table('remediations')->insertOrIgnore($remediations);
+            $this->command->info(count($remediations) . ' remediation records inserted (default connection).');
+        } else {
+            $this->command->info('Table `remediations` not found on default connection; skipping remediation seed to avoid touching external DB.');
         }
-
-        $this->command->info(count($remediations) . ' remediation records created.');
     }
 }

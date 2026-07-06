@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\RegistroTrattamentiItem;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class RegistroTrattamentiItemSeeder extends Seeder
 {
@@ -13,9 +14,25 @@ class RegistroTrattamentiItemSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get the first company UUID for seeding
-        $company = DB::connection('mysql_proforma')->table('companies')->first();
-        $companyId = $company ? $company->id : '5c044917-15b3-4471-90c9-38061fcca754';
+        // Get the first company UUID for seeding.
+        // Try the external `mysql_proforma` connection if configured, then default connection, otherwise use a fallback UUID.
+        $companyId = '5c044917-15b3-4471-90c9-38061fcca754';
+
+        if (config('database.connections.mysql_proforma')) {
+            try {
+                $company = DB::connection('mysql_proforma')->table('companies')->first();
+                if ($company) {
+                    $companyId = $company->id;
+                }
+            } catch (\Exception $e) {
+                // ignore and fallback
+            }
+        } elseif (Schema::hasTable('companies')) {
+            $company = DB::table('companies')->first();
+            if ($company) {
+                $companyId = $company->id;
+            }
+        }
 
         $treatments = [
             [

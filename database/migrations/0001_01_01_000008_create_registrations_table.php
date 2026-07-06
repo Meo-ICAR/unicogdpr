@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('registrations', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('company_id')->constrained('companies')->cascadeOnDelete();
+            // Companies may live in a different database; create the column without
+            // forcing a foreign key constraint unless the table exists here.
+            $table->uuid('company_id');
             $table->string('name')->nullable();
             // Sostituisce: $table->unsignedBigInteger('client_id')->index();
             $table->nullableUuidMorphs('registrable');
@@ -28,6 +30,12 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
+        if (Schema::hasTable('companies')) {
+            Schema::table('registrations', function (Blueprint $table) {
+                $table->foreign('company_id')->references('id')->on('companies')->cascadeOnDelete();
+            });
+        }
     }
 
     /**

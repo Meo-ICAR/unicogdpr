@@ -15,7 +15,7 @@ class PrivacyRetentionSeeder extends Seeder
     public function run(): void
     {
         // Truncate table to avoid duplicates
-        DB::table('privacy_retention')->truncate();
+        DB::table('privacy_retentions')->truncate();
 
         $retentionPolicies = [
             // Dati Personali Base

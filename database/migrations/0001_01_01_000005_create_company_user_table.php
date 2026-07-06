@@ -13,12 +13,21 @@ return new class extends Migration
     {
         Schema::create('company_user', function (Blueprint $table) {
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignUuid('company_id')->constrained('companies')->cascadeOnDelete();
+            // Companies may live in a different database/connection; create the column
+            // but only add a foreign key constraint if the companies table exists
+            $table->uuid('company_id');
             $table->string('role')->default('user');
             $table->timestamps();
             $table->softDeletes();
             $table->primary(['user_id', 'company_id']);
         });
+
+        // If the companies table exists on the current connection, add the FK constraint.
+        if (Schema::hasTable('companies')) {
+            Schema::table('company_user', function (Blueprint $table) {
+                $table->foreign('company_id')->references('id')->on('companies')->cascadeOnDelete();
+            });
+        }
     }
 
     /**

@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\PrivacyLegalBasis;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\PrivacyLegalBase;
 use Illuminate\Database\Seeder;
 
 class PrivacyLegalBasisSeeder extends Seeder
@@ -92,7 +91,7 @@ class PrivacyLegalBasisSeeder extends Seeder
         ];
 
         foreach ($legalBases as $basis) {
-            PrivacyLegalBasis::create($basis);
+            PrivacyLegalBase::create($basis);
         }
 
         $this->command->info('Privacy legal bases seeded successfully!');

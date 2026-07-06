@@ -24,6 +24,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('privacy_retention');
+        Schema::dropIfExists('privacy_retentions');
     }
 };

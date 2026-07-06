@@ -21,5 +21,20 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // GDPR-related seeders
+        $this->call([
+            PrivacyDataTypeSeeder::class,
+            PrivacyLegalBasisSeeder::class,
+            PrivacyRetentionSeeder::class,
+            PrivacySecuritySeeder::class,
+            PrivacySubjectSeeder::class,
+            RegistroTrattamentiItemSeeder::class,
+            RemediationSeeder::class,
+            DpiaSeeder::class,
+            DpiaImpactSeeder::class,
+            DpiaRiskSeeder::class,
+            DpiaItemSeeder::class,
+        ]);
     }
 }

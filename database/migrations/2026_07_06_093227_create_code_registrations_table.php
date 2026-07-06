@@ -8,20 +8,22 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('consent_logs', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('company_id')->index(); // Char(36) nel dump originale
-            $table->nullableUuidMorphs('registrable');
-            $table->string('ip_address', 45)->nullable();
-            $table->string('origin')->nullable()->comment('Source e.g. Facebook, Website');
-            $table->boolean('marketing_consent')->default(false);
-            $table->boolean('third_party_transfer_consent')->default(false);
-            $table->timestamps();
+        if (! Schema::hasTable('consent_logs')) {
+            Schema::create('consent_logs', function (Blueprint $table) {
+                $table->id();
+                $table->uuid('company_id')->index(); // Char(36) nel dump originale
+                $table->nullableUuidMorphs('registrable');
+                $table->string('ip_address', 45)->nullable();
+                $table->string('origin')->nullable()->comment('Source e.g. Facebook, Website');
+                $table->boolean('marketing_consent')->default(false);
+                $table->boolean('third_party_transfer_consent')->default(false);
+                $table->timestamps();
 
-            // Aggiungi le Foreign Key se le tabelle companies e clients esistono già nella tua app
-            // $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
-            // $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
-        });
+                // Aggiungi le Foreign Key se le tabelle companies e clients esistono già nella tua app
+                // $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
+                // $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
+            });
+        }
     }
 
     public function down(): void

@@ -12,6 +12,24 @@ class PrivacySecurity extends Model
 
     protected $table = 'privacy_security';
 
+    public const TYPE_TECHNICAL = 'technical';
+
+    public const TYPE_ORGANIZATIONAL = 'organizational';
+
+    public const STATUS_PLANNED = 'planned';
+
+    public const STATUS_IN_PROGRESS = 'in_progress';
+
+    public const STATUS_IMPLEMENTED = 'implemented';
+
+    public const STATUS_DEPRECATED = 'deprecated';
+
+    public const RISK_LOW = 'low';
+
+    public const RISK_MEDIUM = 'medium';
+
+    public const RISK_HIGH = 'high';
+
     protected $fillable = [
         'name',
         'description',
