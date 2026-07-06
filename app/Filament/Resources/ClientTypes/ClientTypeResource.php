@@ -15,13 +15,14 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class ClientTypeResource extends Resource
 {
     protected static ?string $model = ClientType::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
+    protected static UnitEnum|string|null $navigationGroup = 'System';
     public static function form(Schema $schema): Schema
     {
         return ClientTypeForm::configure($schema);

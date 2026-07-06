@@ -13,13 +13,14 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class PrivacyLegalBaseResource extends Resource
 {
     protected static ?string $model = PrivacyLegalBase::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
+   protected static UnitEnum|string|null $navigationGroup = 'System';
     public static function form(Schema $schema): Schema
     {
         return PrivacyLegalBaseForm::configure($schema);

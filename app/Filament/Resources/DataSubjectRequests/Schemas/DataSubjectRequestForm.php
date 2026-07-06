@@ -5,6 +5,7 @@ namespace App\Filament\Resources\DataSubjectRequests\Schemas;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\Toggle;
 
 class DataSubjectRequestForm
 {
@@ -26,7 +27,7 @@ class DataSubjectRequestForm
                 Textarea::make('request_description')->label('Descrizione richiesta')->rows(3)->required(),
                 Textarea::make('response_notes')->label('Note di risposta')->rows(3),
                 TextInput::make('rejection_reason')->label('Motivo rifiuto')->maxLength(255),
-                TextInput::make('identity_verified')->label('Identità verificata')->boolean(),
+                Toggle::make('identity_verified')->label('Identità verificata'),
                 TextInput::make('identity_verification_method')->label('Metodo verifica identità')->maxLength(255),
                 TextInput::make('channel')->label('Canale')->maxLength(255),
             ]);

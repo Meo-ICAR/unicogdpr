@@ -16,6 +16,7 @@ return new class extends Migration
             $table->integer('retention_years')->default(10)->index();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
