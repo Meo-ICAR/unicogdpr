@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\ClientTypes\Schemas;
 
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
 class ClientTypeForm
@@ -10,7 +12,8 @@ class ClientTypeForm
     {
         return $schema
             ->components([
-                //
+                TextInput::make('name')->label('Name')->maxLength(255),
+                Textarea::make('description')->label('Description')->rows(3),
             ]);
     }
 }

@@ -223,6 +223,6 @@ class RegistroTrattamentiItemSeeder extends Seeder
             RegistroTrattamentiItem::create($treatment);
         }
 
-        $this->command->info(count($treatments) . ' registro trattamenti items created.');
+        $this->command->info(count($treatments).' registro trattamenti items created.');
     }
 }

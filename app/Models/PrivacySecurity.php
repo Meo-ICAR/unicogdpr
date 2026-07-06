@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PrivacySecurity extends Model
@@ -45,4 +46,9 @@ class PrivacySecurity extends Model
         'last_reviewed_at' => 'datetime',
         'next_review_due' => 'datetime',
     ];
+
+    public function dpiaItems(): HasMany
+    {
+        return $this->hasMany(DpiaItem::class);
+    }
 }

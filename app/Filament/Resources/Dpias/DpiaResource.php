@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Dpias;
 use App\Filament\Resources\Dpias\Pages\CreateDpia;
 use App\Filament\Resources\Dpias\Pages\EditDpia;
 use App\Filament\Resources\Dpias\Pages\ListDpias;
+use App\Filament\Resources\Dpias\RelationManagers\DpiaItemsRelationManager;
 use App\Filament\Resources\Dpias\Schemas\DpiaForm;
 use App\Filament\Resources\Dpias\Tables\DpiasTable;
 use App\Models\Dpia;
@@ -35,7 +36,7 @@ class DpiaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            DpiaItemsRelationManager::class,
         ];
     }
 

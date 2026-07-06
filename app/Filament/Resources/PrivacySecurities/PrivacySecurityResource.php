@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PrivacySecurities;
 use App\Filament\Resources\PrivacySecurities\Pages\CreatePrivacySecurity;
 use App\Filament\Resources\PrivacySecurities\Pages\EditPrivacySecurity;
 use App\Filament\Resources\PrivacySecurities\Pages\ListPrivacySecurities;
+use App\Filament\Resources\PrivacySecurities\RelationManagers\DpiaItemsRelationManager;
 use App\Filament\Resources\PrivacySecurities\Schemas\PrivacySecurityForm;
 use App\Filament\Resources\PrivacySecurities\Tables\PrivacySecuritiesTable;
 use App\Models\PrivacySecurity;
@@ -35,7 +36,7 @@ class PrivacySecurityResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            DpiaItemsRelationManager::class,
         ];
     }
 

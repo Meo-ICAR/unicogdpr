@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Remediation;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class RemediationSeeder extends Seeder
 {
@@ -93,11 +94,11 @@ class RemediationSeeder extends Seeder
         ];
 
         // Prefer inserting into the default connection if the table exists there.
-        if (\Illuminate\Support\Facades\Schema::hasTable('remediations')) {
+        if (Schema::hasTable('remediations')) {
             // Use insertOrIgnore to avoid duplicate primary key errors when the table
             // already contains some rows (or exists on an external DB).
-            \Illuminate\Support\Facades\DB::table('remediations')->insertOrIgnore($remediations);
-            $this->command->info(count($remediations) . ' remediation records inserted (default connection).');
+            DB::table('remediations')->insertOrIgnore($remediations);
+            $this->command->info(count($remediations).' remediation records inserted (default connection).');
         } else {
             $this->command->info('Table `remediations` not found on default connection; skipping remediation seed to avoid touching external DB.');
         }
