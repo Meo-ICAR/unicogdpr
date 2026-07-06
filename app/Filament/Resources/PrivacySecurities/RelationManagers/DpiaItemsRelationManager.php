@@ -5,8 +5,9 @@ namespace App\Filament\Resources\PrivacySecurities\RelationManagers;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Resources\Tables\Table;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class DpiaItemsRelationManager extends RelationManager
 {

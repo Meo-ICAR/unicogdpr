@@ -1,11 +1,7 @@
 <?php
 
-namespace App\Models\PROFORMA;
+namespace App\Models;
 
-use App\Models\Branch;
-use App\Models\Document;
-use App\Models\OamCode;
-use App\Models\Website;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

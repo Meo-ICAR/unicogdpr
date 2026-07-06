@@ -2,18 +2,14 @@
 
 namespace App\Filament\Resources\SoftwareApplications\Schemas;
 
-use Filament\Schemas\Schema;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\BelongsToSelect;
+use Filament\Schemas\Schema;
 
 class SoftwareApplicationForm
 {
-    public static function configure(Schema ): Schema
+    public static function configure(Schema $schema): Schema
     {
-        return 
+        return $schema
             ->components([
                 TextInput::make('company_id')->label('Company Id')->maxLength(255),
                 TextInput::make('software_category_id')->label('Software Category Id')->maxLength(255),
