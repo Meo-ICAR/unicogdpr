@@ -11,13 +11,12 @@ class LeadReturnLogForm
     {
         return $schema
             ->components([
-                TextInput::make('company_id')->label('Company Id')->maxLength(255),
-                TextInput::make('purchaserable_type')->label('Purchaserable Type')->maxLength(255),
-                TextInput::make('purchaserable_id')->label('Purchaserable Id')->maxLength(255),
-                TextInput::make('leadable_type')->label('Leadable Type')->maxLength(255),
-                TextInput::make('leadable_id')->label('Leadable Id')->maxLength(255),
-                TextInput::make('status')->label('Status')->maxLength(255),
-                TextInput::make('reported_at')->label('Reported At')->maxLength(255),
+                TextInput::make('purchaserable_type')->label('Tipo acquirente')->maxLength(255),
+                TextInput::make('purchaserable_id')->label('ID acquirente')->maxLength(255),
+                TextInput::make('leadable_type')->label('Tipo lead')->maxLength(255),
+                TextInput::make('leadable_id')->label('ID lead')->maxLength(255),
+                TextInput::make('status')->label('Stato')->maxLength(255)->required(),
+                TextInput::make('reported_at')->label('Segnalato il')->type('datetime'),
             ]);
     }
 }

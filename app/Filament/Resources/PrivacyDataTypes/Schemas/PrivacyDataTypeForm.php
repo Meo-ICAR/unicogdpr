@@ -11,12 +11,12 @@ class PrivacyDataTypeForm
     {
         return $schema
             ->components([
-                TextInput::make('slug')->label('Slug')->maxLength(255),
-                TextInput::make('name')->label('Name')->maxLength(255),
-                TextInput::make('category')->label('Category')->maxLength(255),
-                TextInput::make('retention_years')->label('Retention Years')->maxLength(255),
-                TextInput::make('created_by')->label('Created By')->maxLength(255),
-                TextInput::make('updated_by')->label('Updated By')->maxLength(255),
+                TextInput::make('slug')->label('Slug')->maxLength(255)->required(),
+                TextInput::make('name')->label('Nome')->maxLength(255)->required(),
+                TextInput::make('category')->label('Categoria')->maxLength(255)->required(),
+                TextInput::make('retention_years')->label('Anni di conservazione')->numeric()->required(),
+                TextInput::make('created_by')->label('Creato da')->maxLength(255),
+                TextInput::make('updated_by')->label('Aggiornato da')->maxLength(255),
             ]);
     }
 }

@@ -12,13 +12,13 @@ class LeadTransferForm
         return $schema
             ->components([
 
-                TextInput::make('leadable_type')->label('Leadable Type')->maxLength(255),
-                TextInput::make('leadable_id')->label('Leadable Id')->maxLength(255),
-                TextInput::make('purchaserable_type')->label('Purchaserable Type')->maxLength(255),
-                TextInput::make('purchaserable_id')->label('Purchaserable Id')->maxLength(255),
-                TextInput::make('transferred_at')->label('Transferred At')->maxLength(255),
-                TextInput::make('price')->label('Price')->maxLength(255),
-                TextInput::make('transfer_method')->label('Transfer Method')->maxLength(255),
+                TextInput::make('leadable_type')->label('Tipo lead')->maxLength(255),
+                TextInput::make('leadable_id')->label('ID lead')->maxLength(255),
+                TextInput::make('purchaserable_type')->label('Tipo acquirente')->maxLength(255),
+                TextInput::make('purchaserable_id')->label('ID acquirente')->maxLength(255),
+                TextInput::make('transferred_at')->label('Trasferito il')->type('datetime')->required(),
+                TextInput::make('price')->label('Prezzo')->numeric()->prefix('€')->required(),
+                TextInput::make('transfer_method')->label('Metodo di trasferimento')->maxLength(255)->required(),
             ]);
     }
 }

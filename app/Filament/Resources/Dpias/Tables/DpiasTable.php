@@ -17,10 +17,11 @@ class DpiasTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('Titolo')->sortable()->searchable(),
-                TextColumn::make('company.name')->label('Company')->sortable()->searchable(),
+                TextColumn::make('name')->label('Nome')->sortable()->searchable(),
                 TextColumn::make('status')->label('Stato')->sortable(),
-                TextColumn::make('completion_date')->label('Completamento')->date(),
+                TextColumn::make('completion_date')->label('Data completamento')->date()->sortable(),
+                TextColumn::make('next_review_date')->label('Prossima revisione')->date()->sortable(),
+                TextColumn::make('created_at')->label('Creato il')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 TrashedFilter::make(),

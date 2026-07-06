@@ -11,14 +11,14 @@ class PrivacyRetentionForm
     {
         return $schema
             ->components([
-                TextInput::make('data_category')->label('Data Category')->maxLength(255),
-                TextInput::make('purpose')->label('Purpose')->maxLength(255),
-                TextInput::make('retention_value')->label('Retention Value')->maxLength(255),
-                TextInput::make('retention_unit')->label('Retention Unit')->maxLength(255),
-                TextInput::make('start_trigger')->label('Start Trigger')->maxLength(255),
-                TextInput::make('legal_basis')->label('Legal Basis')->maxLength(255),
-                TextInput::make('end_action')->label('End Action')->maxLength(255),
-                TextInput::make('legal_reference')->label('Legal Reference')->maxLength(255),
+                TextInput::make('data_category')->label('Categoria dati')->maxLength(255)->required(),
+                TextInput::make('purpose')->label('Scopo')->maxLength(255)->required(),
+                TextInput::make('retention_value')->label('Valore conservazione')->numeric()->required(),
+                TextInput::make('retention_unit')->label('Unità conservazione')->maxLength(255)->required(),
+                TextInput::make('start_trigger')->label('Attivatore di inizio')->maxLength(255)->required(),
+                TextInput::make('legal_basis')->label('Base legale')->maxLength(255)->required(),
+                TextInput::make('end_action')->label('Azione finale')->maxLength(255)->required(),
+                TextInput::make('legal_reference')->label('Riferimento legale')->maxLength(255)->required(),
             ]);
     }
 }

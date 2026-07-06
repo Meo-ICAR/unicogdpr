@@ -12,17 +12,16 @@ class DpiaForm
     {
         return $schema
             ->components([
-                TextInput::make('company_id')->label('Company Id')->maxLength(255),
-                TextInput::make('name')->label('Name')->maxLength(255),
-                TextInput::make('registro_trattamenti_item_id')->label('Registro Trattamenti Item Id')->maxLength(255),
-                Textarea::make('description_of_processing')->label('Description Of Processing')->rows(3),
-                TextInput::make('necessity_assessment')->label('Necessity Assessment')->maxLength(255),
-                TextInput::make('is_necessary')->label('Is Necessary')->maxLength(255),
-                TextInput::make('is_proportional')->label('Is Proportional')->maxLength(255),
-                TextInput::make('status')->label('Status')->maxLength(255),
-                TextInput::make('dpo_opinion')->label('Dpo Opinion')->maxLength(255),
-                TextInput::make('completion_date')->label('Completion Date')->maxLength(255),
-                TextInput::make('next_review_date')->label('Next Review Date')->maxLength(255),
+                TextInput::make('name')->label('Nome')->maxLength(255)->required(),
+                TextInput::make('registro_trattamenti_item_id')->label('ID voce registro trattamenti')->maxLength(255),
+                Textarea::make('description_of_processing')->label('Descrizione del trattamento')->rows(3)->required(),
+                Textarea::make('necessity_assessment')->label('Valutazione necessità')->rows(3),
+                TextInput::make('is_necessary')->label('È necessario')->boolean(),
+                TextInput::make('is_proportional')->label('È proporzionato')->boolean(),
+                TextInput::make('status')->label('Stato')->maxLength(255)->required(),
+                Textarea::make('dpo_opinion')->label('Parere RPD')->rows(3),
+                TextInput::make('completion_date')->label('Data completamento')->type('date'),
+                TextInput::make('next_review_date')->label('Prossima revisione')->type('date'),
             ]);
     }
 }

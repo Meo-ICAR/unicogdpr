@@ -12,14 +12,14 @@ class PrivacySecurityForm
     {
         return $schema
             ->components([
-                TextInput::make('name')->label('Name')->maxLength(255),
-                Textarea::make('description')->label('Description')->rows(3),
-                TextInput::make('type')->label('Type')->maxLength(255),
-                TextInput::make('status')->label('Status')->maxLength(255),
-                TextInput::make('risk_level')->label('Risk Level')->maxLength(255),
-                TextInput::make('owner')->label('Owner')->maxLength(255),
-                TextInput::make('last_reviewed_at')->label('Last Reviewed At')->maxLength(255),
-                TextInput::make('next_review_due')->label('Next Review Due')->maxLength(255),
+                TextInput::make('name')->label('Nome')->maxLength(255)->required(),
+                Textarea::make('description')->label('Descrizione')->rows(3)->required(),
+                TextInput::make('type')->label('Tipo')->maxLength(255)->required(),
+                TextInput::make('status')->label('Stato')->maxLength(255)->required(),
+                TextInput::make('risk_level')->label('Livello di rischio')->maxLength(255)->required(),
+                TextInput::make('owner')->label('Proprietario')->maxLength(255)->required(),
+                TextInput::make('last_reviewed_at')->label('Ultima revisione il')->type('date'),
+                TextInput::make('next_review_due')->label('Prossima revisione prevista')->type('date'),
             ]);
     }
 }

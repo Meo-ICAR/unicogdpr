@@ -12,9 +12,9 @@ class SoftwareCategoryForm
     {
         return $schema
             ->components([
-                TextInput::make('name')->label('Name')->maxLength(255),
-                TextInput::make('code')->label('Code')->maxLength(255),
-                Textarea::make('description')->label('Description')->rows(3),
+                TextInput::make('name')->label('Nome')->maxLength(255)->required(),
+                TextInput::make('code')->label('Codice')->maxLength(255)->required(),
+                Textarea::make('description')->label('Descrizione')->rows(3)->required(),
             ]);
     }
 }

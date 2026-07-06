@@ -18,52 +18,16 @@ class TrainingRecordsTable
     {
         return $table
             ->columns([
-                TextColumn::make('company.name')
-                    ->searchable(),
-                TextColumn::make('trainable_type')
-                    ->searchable(),
-                TextColumn::make('trainable_id')
-                    ->searchable(),
-                TextColumn::make('regulatory_framework')
-                    ->badge(),
-                TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('provider')
-                    ->searchable(),
-                TextColumn::make('trainer')
-                    ->searchable(),
-                TextColumn::make('delivery_mode')
-                    ->badge(),
-                TextColumn::make('training_date')
-                    ->date()
-                    ->sortable(),
-                TextColumn::make('expiry_date')
-                    ->date()
-                    ->sortable(),
-                TextColumn::make('hours')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('outcome')
-                    ->badge(),
-                TextColumn::make('score')
-                    ->numeric()
-                    ->sortable(),
-                IconColumn::make('certificate_issued')
-                    ->boolean(),
-                TextColumn::make('certificate_number')
-                    ->searchable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('course_name')->label('Nome corso')->sortable()->searchable(),
+                TextColumn::make('provider')->label('Fornitore')->searchable(),
+                TextColumn::make('trainer')->label('Formatore')->searchable(),
+                TextColumn::make('delivery_mode')->label('Modalità erogazione')->badge(),
+                TextColumn::make('training_date')->label('Data formazione')->date()->sortable(),
+                TextColumn::make('expiry_date')->label('Data scadenza')->date()->sortable(),
+                TextColumn::make('hours')->label('Ore')->numeric()->sortable(),
+                TextColumn::make('outcome')->label('Risultato')->badge(),
+                IconColumn::make('certificate_issued')->label('Certificato')->boolean(),
+                TextColumn::make('created_at')->label('Creato il')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 TrashedFilter::make(),

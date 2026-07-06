@@ -17,11 +17,14 @@ class PrivacySecuritiesTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('Name')->searchable()->sortable(),
-                TextColumn::make('type')->label('Type')->sortable(),
-                TextColumn::make('status')->label('Status')->sortable(),
-                TextColumn::make('risk_level')->label('Risk')->sortable(),
-                TextColumn::make('owner')->label('Owner')->limit(30),
+                TextColumn::make('name')->label('Nome')->sortable()->searchable(),
+                TextColumn::make('type')->label('Tipo')->sortable(),
+                TextColumn::make('status')->label('Stato')->sortable(),
+                TextColumn::make('risk_level')->label('Livello di rischio')->sortable(),
+                TextColumn::make('owner')->label('Proprietario')->limit(30)->searchable(),
+                TextColumn::make('last_reviewed_at')->label('Ultima revisione')->date()->sortable(),
+                TextColumn::make('next_review_due')->label('Prossima revisione')->date()->sortable(),
+                TextColumn::make('created_at')->label('Creato il')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 TrashedFilter::make(),

@@ -12,22 +12,21 @@ class TrainingRecordForm
     {
         return $schema
             ->components([
-                TextInput::make('company_id')->label('Company Id')->maxLength(255),
-                TextInput::make('ownerable_type')->label('Ownerable Type')->maxLength(255),
-                TextInput::make('ownerable_id')->label('Ownerable Id')->maxLength(255),
-                TextInput::make('course_name')->label('Course Name')->maxLength(255),
-                Textarea::make('course_description')->label('Course Description')->rows(3),
-                TextInput::make('provider')->label('Provider')->maxLength(255),
-                TextInput::make('trainer')->label('Trainer')->maxLength(255),
-                TextInput::make('delivery_mode')->label('Delivery Mode')->maxLength(255),
-                TextInput::make('training_date')->label('Training Date')->maxLength(255),
-                TextInput::make('expiry_date')->label('Expiry Date')->maxLength(255),
-                TextInput::make('hours')->label('Hours')->maxLength(255),
-                TextInput::make('outcome')->label('Outcome')->maxLength(255),
-                TextInput::make('score')->label('Score')->maxLength(255),
-                TextInput::make('certificate_issued')->label('Certificate Issued')->maxLength(255),
-                TextInput::make('certificate_number')->label('Certificate Number')->maxLength(255),
-                Textarea::make('notes')->label('Notes')->rows(3),
+                TextInput::make('ownerable_type')->label('Tipo proprietario')->maxLength(255),
+                TextInput::make('ownerable_id')->label('ID proprietario')->maxLength(255),
+                TextInput::make('course_name')->label('Nome corso')->maxLength(255)->required(),
+                Textarea::make('course_description')->label('Descrizione corso')->rows(3)->required(),
+                TextInput::make('provider')->label('Fornitore')->maxLength(255)->required(),
+                TextInput::make('trainer')->label('Formatore')->maxLength(255),
+                TextInput::make('delivery_mode')->label('Modalità erogazione')->maxLength(255)->required(),
+                TextInput::make('training_date')->label('Data formazione')->type('date')->required(),
+                TextInput::make('expiry_date')->label('Data scadenza')->type('date'),
+                TextInput::make('hours')->label('Ore')->numeric()->required(),
+                TextInput::make('outcome')->label('Risultato')->maxLength(255)->required(),
+                TextInput::make('score')->label('Punteggio')->numeric(),
+                TextInput::make('certificate_issued')->label('Certificato rilasciato')->boolean(),
+                TextInput::make('certificate_number')->label('Numero certificato')->maxLength(255),
+                Textarea::make('notes')->label('Note')->rows(3),
             ]);
     }
 }

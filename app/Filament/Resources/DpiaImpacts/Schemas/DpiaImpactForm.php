@@ -12,9 +12,9 @@ class DpiaImpactForm
     {
         return $schema
             ->components([
-                TextInput::make('name')->label('Name')->maxLength(255),
-                Textarea::make('description')->label('Description')->rows(3),
-                TextInput::make('extra_value')->label('Extra Value')->maxLength(255),
+                TextInput::make('name')->label('Nome')->maxLength(255)->required(),
+                Textarea::make('description')->label('Descrizione')->rows(3)->required(),
+                TextInput::make('extra_value')->label('Valore extra')->maxLength(255),
             ]);
     }
 }

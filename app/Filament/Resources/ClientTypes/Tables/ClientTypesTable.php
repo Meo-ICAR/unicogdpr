@@ -8,6 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class ClientTypesTable
@@ -16,7 +17,10 @@ class ClientTypesTable
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('name')->label('Nome')->sortable()->searchable(),
+                TextColumn::make('description')->label('Descrizione')->limit(50),
+                TextColumn::make('created_at')->label('Creato il')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('updated_at')->label('Aggiornato il')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 TrashedFilter::make(),
