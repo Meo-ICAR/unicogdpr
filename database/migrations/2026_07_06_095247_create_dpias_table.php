@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('dpias', function (Blueprint $table) {
             $table->id();
             $table->uuid('company_id')->index();
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->unsignedBigInteger('registro_trattamenti_item_id');
             $table->text('description_of_processing');
             $table->text('necessity_assessment');

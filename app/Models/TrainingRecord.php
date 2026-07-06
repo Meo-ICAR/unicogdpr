@@ -20,10 +20,9 @@ class TrainingRecord extends Model
 
     protected $fillable = [
         'company_id',
-        'trainable_type',
-        'trainable_id',
-        'regulatory_framework',
-        'course_title',
+        'ownerable_type',
+        'ownerable_id',
+        'course_name',
         'course_description',
         'provider',
         'trainer',
@@ -50,7 +49,7 @@ class TrainingRecord extends Model
      * Relazione polimorfica: recupera il modello associato al corso
      * (es. puo' essere un User, un Employee, un Consulente, ecc.)
      */
-    public function trainable(): MorphTo
+    public function ownerable(): MorphTo
     {
         return $this->morphTo();
     }

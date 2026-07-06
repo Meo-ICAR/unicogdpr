@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('privacy_retention', function (Blueprint $table) {
+        Schema::create('privacy_retentions', function (Blueprint $table) {
             $table->id();
             $table->string('data_category');
             $table->text('purpose');
