@@ -22,6 +22,11 @@ class DpiaImpactSeeder extends Seeder
             ['name' => 'Perdita di opportunità', 'description' => 'Mancata possibilità di accesso a servizi', 'extra_value' => '2'],
             ['name' => 'Impatto psicologico', 'description' => 'Stress, ansia o danni emotivi', 'extra_value' => '3'],
             ['name' => 'Impatto sulla privacy', 'description' => 'Diffusione non autorizzata di dati sensibili', 'extra_value' => '5'],
+            ['name' => 'Discriminazione', 'description' => 'Trattamento ingiusto basato su dati profilati', 'extra_value' => '5'],
+            ['name' => 'Limitazione diritti', 'description' => 'Restrizione dei diritti fondamentali degli interessati', 'extra_value' => '4'],
+            ['name' => 'Esclusione sociale', 'description' => 'Isolamento sociale derivante da trattamento dati', 'extra_value' => '3'],
+            ['name' => 'Perdita controllo dati', 'description' => 'Perdita di controllo sui propri dati personali', 'extra_value' => '4'],
+            ['name' => 'Danno fisico', 'description' => 'Possibile danno fisico derivante da trattamento', 'extra_value' => '5'],
         ];
 
         foreach ($impacts as $impact) {

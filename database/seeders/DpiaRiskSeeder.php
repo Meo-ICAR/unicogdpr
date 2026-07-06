@@ -24,6 +24,11 @@ class DpiaRiskSeeder extends Seeder
             ['name' => 'Rischio strategico: terze parti', 'description' => 'Dipendenza e mancata compliance di fornitori', 'extra_value' => 'weight:3,category:third_party'],
             ['name' => 'Rischio di phishing', 'description' => 'Tentativi di ingegneria sociale per compromettere account', 'extra_value' => 'weight:3,category:technical'],
             ['name' => 'Rischio di ransomware', 'description' => 'Crittografia dei dati con richiesta di riscatto', 'extra_value' => 'weight:5,category:technical'],
+            ['name' => 'Rischio di insider threat', 'description' => 'Abuso di accessi da parte di dipendenti', 'extra_value' => 'weight:4,category:operational'],
+            ['name' => 'Rischio di data leak', 'description' => 'Esposizione accidentale di dati sensibili', 'extra_value' => 'weight:4,category:technical'],
+            ['name' => 'Rischio di supply chain', 'description' => 'Compromissione di fornitori di servizi IT', 'extra_value' => 'weight:4,category:third_party'],
+            ['name' => 'Rischio di social engineering', 'description' => 'Manipolazione psicologica per ottenere dati', 'extra_value' => 'weight:3,category:operational'],
+            ['name' => 'Rischio di insufficient encryption', 'description' => 'Crittografia debole o assente su dati sensibili', 'extra_value' => 'weight:4,category:technical'],
         ];
 
         foreach ($risks as $risk) {
