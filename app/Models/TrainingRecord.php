@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -10,55 +9,30 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrainingRecord extends Model
 {
-    use HasFactory, SoftDeletes;
-
-    protected $connection = 'mysql_unicooam'; // Specifica la connessione al database "unicooam" per questo modello
-
-    protected $orderBy = 'expiry_date';
-
-    protected $orderDirection = 'asc';
+    use SoftDeletes;
 
     protected $fillable = [
-        'company_id',
-        'ownerable_type',
-        'ownerable_id',
-        'course_name',
-        'course_description',
-        'provider',
-        'trainer',
-        'delivery_mode',
-        'training_date',
-        'expiry_date',
-        'hours',
-        'outcome',
-        'score',
-        'certificate_issued',
-        'certificate_number',
-        'notes',
+        'company_id', 'ownerable_type', 'ownerable_id', 'course_name',
+        'course_description', 'provider', 'trainer', 'delivery_mode',
+        'training_date', 'expiry_date', 'hours', 'outcome', 'score',
+        'certificate_issued', 'certificate_number', 'notes',
     ];
 
     protected $casts = [
         'training_date' => 'date',
         'expiry_date' => 'date',
+        'certificate_issued' => 'boolean',
         'hours' => 'decimal:1',
         'score' => 'decimal:2',
-        'certificate_issued' => 'boolean',
     ];
 
-    /**
-     * Relazione polimorfica: recupera il modello associato al corso
-     * (es. puo' essere un User, un Employee, un Consulente, ecc.)
-     */
-    public function ownerable(): MorphTo
-    {
-        return $this->morphTo();
-    }
-
-    /**
-     * Relazione con l'Azienda
-     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function ownerable(): MorphTo
+    {
+        return $this->morphTo();
     }
 }

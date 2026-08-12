@@ -2,22 +2,15 @@
 
 namespace App\Models;
 
-use DutchCodingCompany\FilamentSocialite\Models\SocialiteUser as BaseSocialiteUser;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SocialiteUser extends BaseSocialiteUser
+class SocialiteUser extends Model
 {
-    protected $connection = 'mysql';
+    protected $fillable = ['user_id', 'provider', 'provider_id'];
 
-    protected $fillable = [
-        'user_id',
-        'provider',
-        'provider_id',
-        'email',
-        'avatar',
-        'is_personal',
-    ];
-
-    protected $casts = [
-        'is_personal' => 'boolean',
-    ];
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -2,26 +2,34 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model
 {
-    use HasFactory;
+    use HasUuids;
 
-    protected $connection = 'mysql_unicooam';
+    protected $fillable = ['name'];
 
-    protected $table = 'unicooam.companies';
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)->withPivot('role')->withTimestamps();
+    }
 
-    protected $fillable = [
-        'name',
-        'uuid',
-        'address',
-        'city',
-        'zip_code',
-        'province',
-        'country',
-        'email',
-        'phone',
-    ];
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Employee::class);
+    }
+
+    public function clients(): HasMany
+    {
+        return $this->hasMany(Client::class);
+    }
+
+    public function registroTrattamenti(): HasMany
+    {
+        return $this->hasMany(RegistroTrattamentiItem::class);
+    }
 }
