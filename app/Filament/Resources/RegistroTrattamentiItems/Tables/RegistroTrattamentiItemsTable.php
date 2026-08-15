@@ -7,6 +7,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class RegistroTrattamentiItemsTable
@@ -15,31 +16,38 @@ class RegistroTrattamentiItemsTable
     {
         return $table
             ->columns([
-                TextColumn::make('company.name')
-                    ->searchable(),
                 TextColumn::make('activity')
-                    ->searchable(),
+                    ->label('Attività')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
                 TextColumn::make('purpose')
-                    ->searchable(),
-                TextColumn::make('data_subjects')
-                    ->searchable(),
+                    ->label('Finalità')
+                    ->searchable()
+                    ->limit(35),
                 TextColumn::make('legal_basis')
+                    ->label('Base Giuridica')
+                    ->badge()
+                    ->color('info')
                     ->searchable(),
-                IconColumn::make('is_extra_eu_transfer')
-                    ->boolean(),
                 TextColumn::make('retention_period')
-                    ->searchable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->label('Conservazione')
+                    ->limit(25),
+                IconColumn::make('is_extra_eu_transfer')
+                    ->label('Extra-UE')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-globe-alt')
+                    ->falseIcon('heroicon-o-minus')
+                    ->trueColor('warning')
+                    ->falseColor('gray'),
             ])
             ->filters([
-                //
+                SelectFilter::make('is_extra_eu_transfer')
+                    ->label('Trasferimento Extra-UE')
+                    ->options([
+                        '1' => 'Sì (Extra-UE)',
+                        '0' => 'No (UE)',
+                    ]),
             ])
             ->recordActions([
                 EditAction::make(),

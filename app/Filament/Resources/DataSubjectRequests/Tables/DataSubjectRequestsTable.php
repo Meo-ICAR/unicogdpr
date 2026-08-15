@@ -52,14 +52,16 @@ class DataSubjectRequestsTable
                 BadgeColumn::make('status')
                     ->label('Stato')
                     ->colors([
-                        'warning' => 'pending',
+                        'warning' => 'received',
                         'info'    => 'in_progress',
+                        'primary' => 'extended',
                         'success' => 'completed',
                         'danger'  => 'rejected',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending'     => 'In attesa',
+                        'received'    => 'Ricevuta',
                         'in_progress' => 'In lavorazione',
+                        'extended'    => 'Prorogata',
                         'completed'   => 'Completata',
                         'rejected'    => 'Rifiutata',
                         default       => ucfirst($state),
@@ -72,7 +74,7 @@ class DataSubjectRequestsTable
                     ->label('Scadenza')
                     ->date('d/m/Y')
                     ->sortable()
-                    ->color(fn ($record) => $record?->deadline_at?->isPast() && $record->status === 'pending'
+                    ->color(fn ($record) => $record?->deadline_at?->isPast() && in_array($record->status, ['received', 'in_progress'])
                         ? 'danger'
                         : null),
                 IconColumn::make('identity_verified')
@@ -84,8 +86,9 @@ class DataSubjectRequestsTable
                 SelectFilter::make('status')
                     ->label('Stato')
                     ->options([
-                        'pending'     => 'In attesa',
+                        'received'    => 'Ricevuta',
                         'in_progress' => 'In lavorazione',
+                        'extended'    => 'Prorogata',
                         'completed'   => 'Completata',
                         'rejected'    => 'Rifiutata',
                     ]),

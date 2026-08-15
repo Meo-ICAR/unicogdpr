@@ -36,11 +36,12 @@ class DataSubjectRequestForm
                         Select::make('channel')
                             ->label('Canale di ricezione')
                             ->options([
-                                'email'    => '📧 Email',
-                                'pec'      => '📜 PEC',
-                                'paper'    => '📄 Cartaceo',
-                                'web_form' => '🌐 Web Form',
-                                'phone'    => '📞 Telefono',
+                                'email'       => '📧 Email',
+                                'pec'         => '📜 PEC',
+                                'letter'      => '📄 Lettera Cartacea',
+                                'online_form' => '🌐 Modulo Web / Form Online',
+                                'in_person'   => '👤 Di Persona',
+                                'other'       => '❓ Altro',
                             ])
                             ->default('email'),
                     ]),
@@ -65,10 +66,11 @@ class DataSubjectRequestForm
                         Select::make('status')
                             ->label('Stato')
                             ->required()
-                            ->default('pending')
+                            ->default('received')
                             ->options([
-                                'pending'     => '⏳ In attesa',
+                                'received'    => '⏳ Ricevuta (In attesa)',
                                 'in_progress' => '🔄 In lavorazione',
+                                'extended'    => '📅 Prorogata (+60 gg)',
                                 'completed'   => '✅ Completata',
                                 'rejected'    => '❌ Rifiutata',
                             ]),

@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use App\Models\EmailTemplate;
-use App\Services\EmailTemplateService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -17,15 +16,15 @@ class DynamicTemplateMail extends Mailable
         public array $placeholders
     ) {}
 
-    public function build(EmailTemplateService $service): static
+    public function build(): static
     {
-        // Sostituisce i placeholder {nome}, {scadenza}, ecc.
-        $rendered = $service->render($this->template, $this->placeholders);
+        // Chiamata diretta al metodo render del Model
+        $rendered = $this->template->render($this->placeholders);
 
         $mail = $this->subject($rendered['subject'])
-            ->html($rendered['body_html']);
+                     ->html($rendered['body_html']);
 
-        if (! empty($rendered['body_text'])) {
+        if (!empty($rendered['body_text'])) {
             $mail->text($rendered['body_text']);
         }
 

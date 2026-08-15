@@ -14,25 +14,11 @@ class RegistroTrattamentiItemSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get the first company UUID for seeding.
-        // Try the external `mysql_proforma` connection if configured, then default connection, otherwise use a fallback UUID.
-        $companyId = '5c044917-15b3-4471-90c9-38061fcca754';
-
-        if (config('database.connections.mysql_proforma')) {
-            try {
-                $company = DB::connection('mysql_proforma')->table('companies')->first();
-                if ($company) {
-                    $companyId = $company->id;
-                }
-            } catch (\Exception $e) {
-                // ignore and fallback
-            }
-        } elseif (Schema::hasTable('companies')) {
-            $company = DB::table('companies')->first();
-            if ($company) {
-                $companyId = $company->id;
-            }
+        $company = \App\Models\Company::first();
+        if (! $company) {
+            $company = \App\Models\Company::create(['name' => 'Acme Corporation S.r.l.']);
         }
+        $companyId = $company->id;
 
         $treatments = [
             [
@@ -220,7 +206,18 @@ class RegistroTrattamentiItemSeeder extends Seeder
         ];
 
         foreach ($treatments as $treatment) {
-            RegistroTrattamentiItem::create($treatment);
+            RegistroTrattamentiItem::create([
+                'company_id'           => $treatment['company_id'] ?? $companyId,
+                'activity'             => $treatment['activity'] ?? $treatment['Attivita'] ?? 'Trattamento Generico',
+                'purpose'              => $treatment['purpose'] ?? $treatment['Finalita'] ?? 'Finalità Privacy',
+                'data_subjects'        => $treatment['data_subjects'] ?? $treatment['Interessati'] ?? null,
+                'data_categories'      => $treatment['data_categories'] ?? $treatment['Dati'] ?? null,
+                'legal_basis'          => $treatment['legal_basis'] ?? $treatment['Giuridica'] ?? 'Consenso',
+                'recipients'           => $treatment['recipients'] ?? $treatment['Destinatari'] ?? null,
+                'is_extra_eu_transfer' => $treatment['is_extra_eu_transfer'] ?? $treatment['extraEU'] ?? false,
+                'retention_period'     => $treatment['retention_period'] ?? $treatment['Conservazione'] ?? null,
+                'security_measures'    => $treatment['security_measures'] ?? $treatment['Sicurezza'] ?? null,
+            ]);
         }
 
         $this->command->info(count($treatments).' registro trattamenti items created.');

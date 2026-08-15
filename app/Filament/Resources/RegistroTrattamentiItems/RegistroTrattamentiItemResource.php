@@ -18,7 +18,20 @@ class RegistroTrattamentiItemResource extends Resource
 {
     protected static ?string $model = RegistroTrattamentiItem::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
+
+    protected static ?string $navigationLabel = 'Registro Trattamenti (Art. 30)';
+
+    protected static ?int $navigationSort = 5;
+
+    protected static ?string $modelLabel = 'Trattamento';
+
+    protected static ?string $pluralModelLabel = 'Registro dei Trattamenti';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Gestione GDPR';
+    }
 
     public static function form(Schema $schema): Schema
     {

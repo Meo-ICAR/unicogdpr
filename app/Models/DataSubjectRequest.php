@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class DataSubjectRequest extends Model
+class DataSubjectRequest extends Model implements HasMedia
 {
-    use SoftDeletes, LogsActivity;
+    use SoftDeletes, LogsActivity, InteractsWithMedia, HasFactory;
 
     protected $fillable = [
         'company_id', 'registrable_type', 'registrable_id', 'requester_name',
@@ -22,10 +25,10 @@ class DataSubjectRequest extends Model
     ];
 
     protected $casts = [
-        'received_at'      => 'date',
-        'deadline_at'      => 'date',
-        'extended_until'   => 'date',
-        'completed_at'     => 'date',
+        'received_at'       => 'date',
+        'deadline_at'       => 'date',
+        'extended_until'    => 'date',
+        'completed_at'      => 'date',
         'identity_verified' => 'boolean',
     ];
 
@@ -36,6 +39,12 @@ class DataSubjectRequest extends Model
             ->logOnlyDirty()
             ->setDescriptionForEvent(fn (string $eventName) => "DSAR {$eventName}: {$this->requester_name}")
             ->useLogName('dsar');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('dsar_attachments')
+            ->useDisk('private');
     }
 
     public function company(): BelongsTo
@@ -53,12 +62,12 @@ class DataSubjectRequest extends Model
      */
     public static function createRequest(array $data): static
     {
-        $receivedAt = now();
+        $receivedAt = $data['received_at'] ?? now();
 
         return static::create(array_merge([
             'received_at' => $receivedAt,
-            'deadline_at' => $receivedAt->copy()->addDays(30),
-            'status'      => 'pending',
+            'deadline_at' => \Illuminate\Support\Carbon::parse($receivedAt)->copy()->addDays(30),
+            'status'      => 'received',
         ], $data));
     }
 
@@ -68,7 +77,7 @@ class DataSubjectRequest extends Model
     public function isExpiringSoon(int $days = 7): bool
     {
         return $this->deadline_at
-            && $this->status === 'pending'
+            && in_array($this->status, ['received', 'in_progress'])
             && $this->deadline_at->diffInDays(now(), false) >= -$days
             && $this->deadline_at->isFuture();
     }

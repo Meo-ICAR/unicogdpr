@@ -20,7 +20,20 @@ class EmailTemplateResource extends Resource
 {
     protected static ?string $model = EmailTemplate::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
+
+    protected static ?string $navigationLabel = 'Template Email';
+
+    protected static ?int $navigationSort = 10;
+
+    protected static ?string $modelLabel = 'Template Email';
+
+    protected static ?string $pluralModelLabel = 'Template Email';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Configurazione & Template';
+    }
 
     public static function form(Schema $schema): Schema
     {

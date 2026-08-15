@@ -20,7 +20,20 @@ class TrainingRecordResource extends Resource
 {
     protected static ?string $model = TrainingRecord::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
+
+    protected static ?string $navigationLabel = 'Formazione Personale';
+
+    protected static ?int $navigationSort = 7;
+
+    protected static ?string $modelLabel = 'Registro Formazione';
+
+    protected static ?string $pluralModelLabel = 'Registri Formazione';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Organizzazione & Formazione';
+    }
 
     public static function form(Schema $schema): Schema
     {
