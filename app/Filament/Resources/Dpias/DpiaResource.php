@@ -21,7 +21,20 @@ class DpiaResource extends Resource
 {
     protected static ?string $model = Dpia::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
+
+    protected static ?string $navigationLabel = 'Valutazioni DPIA';
+
+    protected static ?int $navigationSort = 3;
+
+    protected static ?string $modelLabel = 'DPIA';
+
+    protected static ?string $pluralModelLabel = 'DPIA';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Gestione GDPR';
+    }
 
     public static function form(Schema $schema): Schema
     {

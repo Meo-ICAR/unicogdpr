@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Filament\Resources\EmailTemplates\Schemas;
+
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Schema;
+
+class EmailTemplateForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Select::make('company_id')
+                    ->relationship('company', 'name'),
+                TextInput::make('code')
+                    ->required(),
+                TextInput::make('name')
+                    ->required(),
+                TextInput::make('subject')
+                    ->required(),
+                Textarea::make('body_html')
+                    ->required()
+                    ->columnSpanFull(),
+                Textarea::make('body_text')
+                    ->columnSpanFull(),
+                TextInput::make('placeholders'),
+                Toggle::make('is_active')
+                    ->required(),
+            ]);
+    }
+}

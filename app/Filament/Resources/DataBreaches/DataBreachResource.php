@@ -20,7 +20,20 @@ class DataBreachResource extends Resource
 {
     protected static ?string $model = DataBreach::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFire;
+
+    protected static ?string $navigationLabel = 'Data Breach';
+
+    protected static ?int $navigationSort = 2;
+
+    protected static ?string $modelLabel = 'Data Breach';
+
+    protected static ?string $pluralModelLabel = 'Data Breach';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Gestione GDPR';
+    }
 
     public static function form(Schema $schema): Schema
     {

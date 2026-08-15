@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class TrainingRecord extends Model
+class TrainingRecord extends Model implements HasMedia
 {
-    use SoftDeletes;
+    use SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'company_id', 'ownerable_type', 'ownerable_id', 'course_name',
@@ -19,12 +21,24 @@ class TrainingRecord extends Model
     ];
 
     protected $casts = [
-        'training_date' => 'date',
-        'expiry_date' => 'date',
-        'certificate_issued' => 'boolean',
-        'hours' => 'decimal:1',
-        'score' => 'decimal:2',
+        'training_date'       => 'date',
+        'expiry_date'         => 'date',
+        'certificate_issued'  => 'boolean',
+        'hours'               => 'decimal:1',
+        'score'               => 'decimal:2',
     ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('certificates')
+            ->useDisk('private')
+            ->singleFile()
+            ->acceptsMimeTypes([
+                'application/pdf',
+                'image/jpeg',
+                'image/png',
+            ]);
+    }
 
     public function company(): BelongsTo
     {

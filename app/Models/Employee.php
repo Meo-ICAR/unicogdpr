@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Employee extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
 
     protected $fillable = [
         'company_id', 'user_id', 'first_name', 'last_name', 'tax_code',
@@ -18,9 +20,18 @@ class Employee extends Model
     ];
 
     protected $casts = [
-        'hired_at' => 'date',
+        'hired_at'      => 'date',
         'terminated_at' => 'date',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn (string $eventName) => "Dipendente {$eventName}: {$this->first_name} {$this->last_name}")
+            ->useLogName('employee');
+    }
 
     public function company(): BelongsTo
     {
@@ -40,5 +51,10 @@ class Employee extends Model
     public function assets(): MorphMany
     {
         return $this->morphMany(PrivacyAsset::class, 'ownerable');
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->last_name}";
     }
 }

@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class DataSubjectRequest extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
 
     protected $fillable = [
         'company_id', 'registrable_type', 'registrable_id', 'requester_name',
@@ -20,12 +22,21 @@ class DataSubjectRequest extends Model
     ];
 
     protected $casts = [
-        'received_at' => 'date',
-        'deadline_at' => 'date',
-        'extended_until' => 'date',
-        'completed_at' => 'date',
+        'received_at'      => 'date',
+        'deadline_at'      => 'date',
+        'extended_until'   => 'date',
+        'completed_at'     => 'date',
         'identity_verified' => 'boolean',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn (string $eventName) => "DSAR {$eventName}: {$this->requester_name}")
+            ->useLogName('dsar');
+    }
 
     public function company(): BelongsTo
     {
@@ -35,5 +46,30 @@ class DataSubjectRequest extends Model
     public function registrable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /**
+     * Factory method: crea una nuova richiesta DSAR con scadenza automatica Art. 12.3 (30 giorni).
+     */
+    public static function createRequest(array $data): static
+    {
+        $receivedAt = now();
+
+        return static::create(array_merge([
+            'received_at' => $receivedAt,
+            'deadline_at' => $receivedAt->copy()->addDays(30),
+            'status'      => 'pending',
+        ], $data));
+    }
+
+    /**
+     * Verifica se la richiesta è in scadenza nei prossimi $days giorni.
+     */
+    public function isExpiringSoon(int $days = 7): bool
+    {
+        return $this->deadline_at
+            && $this->status === 'pending'
+            && $this->deadline_at->diffInDays(now(), false) >= -$days
+            && $this->deadline_at->isFuture();
     }
 }

@@ -5,12 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Dpia extends Model
+class Dpia extends Model implements HasMedia
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity, InteractsWithMedia;
 
     protected $table = 'dpias';
 
@@ -22,11 +25,31 @@ class Dpia extends Model
     ];
 
     protected $casts = [
-        'is_necessary' => 'boolean',
-        'is_proportional' => 'boolean',
-        'completion_date' => 'date',
+        'is_necessary'     => 'boolean',
+        'is_proportional'  => 'boolean',
+        'completion_date'  => 'date',
         'next_review_date' => 'date',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn (string $eventName) => "DPIA {$eventName}: {$this->name}")
+            ->useLogName('dpia');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('dpia_documents')
+            ->useDisk('private')
+            ->acceptsMimeTypes([
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ]);
+    }
 
     public function company(): BelongsTo
     {
@@ -43,8 +66,34 @@ class Dpia extends Model
         return $this->hasMany(DpiaItem::class, 'dpia_id');
     }
 
-    public function documents(): MorphMany
+    /**
+     * Aggiunge un elemento di rischio alla DPIA calcolando il punteggio intrinseco
+     * (Probabilità × Gravità) e il residuo dopo la misura di mitigazione.
+     *
+     * @param array{risk_source: string, potential_impact: string, probability: int, severity: int, privacy_security_id: int|null} $data
+     */
+    public function addRiskItem(array $data): DpiaItem
     {
-        return $this->morphMany(Document::class, 'documentable');
+        $probability = (int) ($data['probability'] ?? 1);
+        $severity    = (int) ($data['severity'] ?? 1);
+
+        $inherentRiskScore = $probability * $severity;
+
+        // Il rischio residuo viene ridotto proporzionalmente dalla misura di mitigazione
+        $residualFactor    = $data['privacy_security_id'] ? 0.6 : 1.0;
+        $residualRiskScore = (int) ceil($inherentRiskScore * $residualFactor);
+
+        return $this->items()->create(array_merge($data, [
+            'inherent_risk_score' => $inherentRiskScore,
+            'residual_risk_score' => $residualRiskScore,
+        ]));
+    }
+
+    /**
+     * Restituisce il punteggio di rischio massimo tra tutti gli item.
+     */
+    public function maxRiskScore(): int
+    {
+        return (int) $this->items()->max('inherent_risk_score');
     }
 }
