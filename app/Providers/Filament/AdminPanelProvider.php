@@ -28,7 +28,28 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('UnicoGDPR Compliance SaaS')
+
+->tenant(Company::class)
+        // Regola il reindirizzamento al login: se esiste un'ultima company, va direttamente su quella
+        ->homeUrl(function () {
+            $user = auth()->user();
+            if ($user && $user->last_company_id) {
+                return url("/admin/{$user->last_company_id}");
+            }
+            return url('/admin');
+        })
+        ->tenantMenuItems([
+            // Aggiunge la voce nel menu profilo per passare alla selezione aziende
+            'select' => \Filament\Navigation\MenuItem::make()
+                ->label('Cambia Azienda')
+                ->icon('heroicon-o-building-office'),
+        ])
+        ->tenantMiddleware([
+            RememberLastTenant::class,
+        ], isPersistent: true)
+
+
+            ->brandName('UnicoGDPR Compliance')
             ->colors([
                 'primary' => Color::Emerald,
             ])

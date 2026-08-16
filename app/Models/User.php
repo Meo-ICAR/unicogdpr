@@ -12,7 +12,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'email_verified_at', 'remember_token'];
+    protected $fillable = ['name', 'email', 'password', 'email_verified_at', 'remember_token','last_company_id'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -34,5 +34,22 @@ class User extends Authenticatable
     public function employee(): HasMany
     {
         return $this->hasMany(Employee::class);
+    }
+
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true; // Il DPO accede a Filament
+    }
+
+    // Restituisce tutte le aziende censite (il DPO le gestisce tutte)
+    public function getTenants(Panel $panel): array|Collection
+    {
+        return Company::all();
+    }
+
+    public function canAccessTenant(Model $tenant): bool
+    {
+        return true; // Il DPO ha accesso a qualsiasi tenant
     }
 }
