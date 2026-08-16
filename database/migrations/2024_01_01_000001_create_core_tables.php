@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('companies', function (Blueprint $table) {
             $table->comment('Anagrafica delle aziende e tenant gestiti nella piattaforma');
-    
+
             // --- DATI GENERALI TENANT ---
             $table->uuid('id')->primary()->comment('UUID univoco del tenant/azienda');
             $table->string('name')->comment('Ragione sociale o nome dell\'azienda');
@@ -43,8 +43,6 @@ return new class extends Migration
             $table->softDeletes();
         });
 
-       
-
         Schema::create('company_user', function (Blueprint $table) {
             $table->comment('Tabella pivot per l\'associazione multi-tenant tra utenti ed aziende');
             $table->id();
@@ -61,13 +59,6 @@ return new class extends Migration
             $table->string('provider')->comment('Provider OAuth (es. google, microsoft)');
             $table->string('provider_id')->comment('ID univoco restituito dal provider OAuth');
             $table->timestamps();
-        });
-
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->comment('Token temporanei per la procedura di reset password');
-            $table->string('email')->primary()->comment('Email dell\'utente');
-            $table->string('token')->comment('Token univoco per la cancellazione/reset');
-            $table->timestamp('created_at')->nullable()->comment('Data di generazione del token');
         });
 
         Schema::table('users', function (Blueprint $table) {
