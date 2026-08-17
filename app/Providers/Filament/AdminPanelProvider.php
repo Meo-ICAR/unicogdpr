@@ -2,16 +2,19 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\GdprStatsWidget; // <-- MANCA QUESTA
+use App\Filament\Widgets\HighRiskDpiaWidget; // <-- MANCA QUESTA
+use App\Http\Middleware\RememberLastTenant;
+use App\Models\Company;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -28,26 +31,25 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-
-->tenant(Company::class)
+            ->tenant(Company::class)
         // Regola il reindirizzamento al login: se esiste un'ultima company, va direttamente su quella
-        ->homeUrl(function () {
-            $user = auth()->user();
-            if ($user && $user->last_company_id) {
-                return url("/admin/{$user->last_company_id}");
-            }
-            return url('/admin');
-        })
-        ->tenantMenuItems([
-            // Aggiunge la voce nel menu profilo per passare alla selezione aziende
-            'select' => \Filament\Navigation\MenuItem::make()
-                ->label('Cambia Azienda')
-                ->icon('heroicon-o-building-office'),
-        ])
-        ->tenantMiddleware([
-            RememberLastTenant::class,
-        ], isPersistent: true)
+            ->homeUrl(function () {
+                $user = auth()->user();
+                if ($user && $user->last_company_id) {
+                    return url("/admin/{$user->last_company_id}");
+                }
 
+                return url('/admin');
+            })
+            ->tenantMenuItems([
+                // Aggiunge la voce nel menu profilo per passare alla selezione aziende
+                'select' => MenuItem::make()
+                    ->label('Cambia Azienda')
+                    ->icon('heroicon-o-building-office'),
+            ])
+            ->tenantMiddleware([
+                RememberLastTenant::class,
+            ], isPersistent: true)
 
             ->brandName('UnicoGDPR Compliance')
             ->colors([
@@ -60,8 +62,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                \App\Filament\Widgets\GdprStatsWidget::class,
-                \App\Filament\Widgets\HighRiskDpiaWidget::class,
+                GdprStatsWidget::class,
+                HighRiskDpiaWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\PrivacySecurity;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema; // <-- AGGIUNGI QUESTA RIGA
 
 class PrivacySecuritySeeder extends Seeder
 {
@@ -14,8 +14,13 @@ class PrivacySecuritySeeder extends Seeder
      */
     public function run(): void
     {
+        // 1. Disabilita i controlli delle chiavi esterne
+        Schema::disableForeignKeyConstraints();
         // Truncate table to avoid duplicates
         DB::table('privacy_security')->truncate();
+
+        // 3. Riabilita i controlli delle chiavi esterne
+        Schema::enableForeignKeyConstraints();
 
         $securityMeasures = [
             // Technical Measures

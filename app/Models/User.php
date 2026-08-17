@@ -2,23 +2,30 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasTenants;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Model; // Corretto
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <-- ASSICURATI CHE SIA QUESTO
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 
-class User extends Authenticatable
+// use App\Models\Company;
+
+class User extends Authenticatable implements FilamentUser, HasTenants
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'email_verified_at', 'remember_token','last_company_id'];
+    protected $fillable = ['name', 'email', 'password', 'email_verified_at', 'remember_token', 'last_company_id'];
 
     protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password'          => 'hashed',
+        'password' => 'hashed',
     ];
 
     public function companies(): BelongsToMany
@@ -35,7 +42,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Employee::class);
     }
-
 
     public function canAccessPanel(Panel $panel): bool
     {

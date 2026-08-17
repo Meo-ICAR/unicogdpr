@@ -19,8 +19,11 @@ class DpiaRiskResource extends Resource
 {
     protected static ?string $model = DpiaRisk::class;
 
+    protected static bool $isScopedToTenant = false;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-        protected static UnitEnum|string|null $navigationGroup = 'System';
+
+    protected static UnitEnum|string|null $navigationGroup = 'System';
 
     public static function form(Schema $schema): Schema
     {

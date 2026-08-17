@@ -18,6 +18,9 @@ class DpiaItemResource extends Resource
 {
     protected static ?string $model = DpiaItem::class;
 
+    // Indica a Filament di risalire al tenant tramite la relazione dpia -> company
+    protected static ?string $tenantOwnershipRelationshipName = 'company';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     public static function form(Schema $schema): Schema

@@ -18,6 +18,8 @@ class SoftwareCategoryResource extends Resource
 {
     protected static ?string $model = SoftwareCategory::class;
 
+    protected static bool $isScopedToTenant = false;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     public static function form(Schema $schema): Schema

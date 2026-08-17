@@ -2,126 +2,118 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Company;
 use App\Models\DataSubjectRequest;
+use App\Models\MailAccount;
 use Illuminate\Console\Command;
-use Webklex\IMAP\Facades\Client;
+use Webklex\PHPIMAP\ClientManager;
 
 class FetchIncomingEmails extends Command
 {
     /**
      * Il nome e la firma del comando Artisan.
      */
-    protected $signature = 'emails:fetch {--account=default : Account email da controllare} {--limit=20 : Numero massimo di email da leggere} {--company= : UUID del tenant/company}';
+    protected $signature = 'emails:fetch {--company= : UUID opzionale del tenant} {--limit=20 : Numero max di email da elaborare per casella}';
 
     /**
      * La descrizione del comando.
      */
-    protected $description = 'Legge la casella IMAP ed elabora le email in arrivo, creando le richieste DSAR e salvando gli allegati con Spatie MediaLibrary';
+    protected $description = 'Scansiona le caselle IMAP attive memorizzate in mail_accounts e registra le richieste DSAR';
 
     public function handle(): int
     {
-        $account = $this->option('account');
-        $limit = (int) $this->option('limit');
         $companyId = $this->option('company');
+        $limit = (int) $this->option('limit');
 
-        // Se non specificato, assegna al primo tenant disponibile
-        if (! $companyId) {
-            $companyId = Company::first()?->id;
-        }
+        // Query delle caselle attive (con eventuale filtro per tenant)
+        $accounts = MailAccount::query()
+            ->where('is_active', true)
+            ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+            ->get();
 
-        $this->info("Connessione alla casella di posta [{$account}]...");
-
-        try {
-            $client = Client::account($account);
-            $client->connect();
-
-            // Accede alla cartella INBOX
-            $folder = $client->getFolder('INBOX');
-
-            // Recupera i messaggi non letti
-            $messages = $folder->messages()->unseen()->get()->take($limit);
-
-            $this->info("Trovate {$messages->count()} email non lette.");
-
-            foreach ($messages as $message) {
-                $subject = $message->getSubject() ?? '(Nessun oggetto)';
-                $fromObj = $message->getFrom()[0] ?? null;
-                $fromEmail = $fromObj?->mail ?? 'unknown@example.com';
-                $fromName = $fromObj?->personal ?? $fromEmail;
-                $body = $message->getTextBody() ?: strip_tags((string) $message->getHTMLBody());
-
-                $this->line("Elaborazione email da: {$fromEmail} | Oggetto: {$subject}");
-
-                // Classificazione automatica del tipo di richiesta GDPR in base alle keyword
-                $requestType = $this->determineRequestType($subject, $body);
-
-                // Creazione della richiesta DSAR con calcolo automatico dei 30 giorni ex Art. 12.3
-                $dsar = DataSubjectRequest::createRequest([
-                    'company_id'          => $companyId,
-                    'requester_name'      => $fromName,
-                    'requester_email'     => $fromEmail,
-                    'request_type'        => $requestType,
-                    'request_description' => "Oggetto: {$subject}\n\n{$body}",
-                    'channel'             => 'email',
-                    'status'              => 'pending',
-                ]);
-
-                $this->info("-> Creata richiesta DSAR ID #{$dsar->id} ({$requestType}) per {$fromEmail}");
-
-                // Elaborazione e salvataggio degli allegati tramite Spatie MediaLibrary
-                if ($message->hasAttachments()) {
-                    $attachments = $message->getAttachments();
-                    $this->line("   Trovati {$attachments->count()} allegati. Salvataggio in corso...");
-
-                    foreach ($attachments as $attachment) {
-                        try {
-                            $filename = $attachment->getName() ?: 'allegato_'.uniqid().'.dat';
-                            $content = $attachment->getContent();
-
-                            if ($content) {
-                                $dsar->addMediaFromString($content)
-                                    ->usingFileName($filename)
-                                    ->toMediaCollection('dsar_attachments');
-
-                                $this->info("   -> Allegato '{$filename}' associato con successo tramite MediaLibrary.");
-                            }
-                        } catch (\Throwable $attEx) {
-                            $this->warn("   -> Errore nel salvataggio dell'allegato: {$attEx->getMessage()}");
-                        }
-                    }
-                }
-
-                // Segna il messaggio come letto
-                $message->setFlag('Seen');
-            }
-
-            $this->info('Elaborazione email completata con successo.');
+        if ($accounts->isEmpty()) {
+            $this->info('Nessuna casella mail/PEC attiva da scansionare.');
 
             return Command::SUCCESS;
-
-        } catch (\Exception $e) {
-            $this->error('Errore durante la lettura delle email: '.$e->getMessage());
-
-            return Command::FAILURE;
         }
-    }
 
-    /**
-     * Determina la tipologia di richiesta DSAR (Art. 15-22 GDPR) analizzando subject e body.
-     */
-    protected function determineRequestType(string $subject, string $body): string
-    {
-        $text = strtolower($subject.' '.$body);
+        $cm = new ClientManager;
 
-        return match (true) {
-            str_contains($text, 'cancell') || str_contains($text, 'oblio') || str_contains($text, 'erasure') || str_contains($text, 'delete') => 'erasure',
-            str_contains($text, 'rettif') || str_contains($text, 'modific') || str_contains($text, 'rectif') || str_contains($text, 'aggiorn') => 'rectification',
-            str_contains($text, 'portabilit') || str_contains($text, 'portab') || str_contains($text, 'export') => 'portability',
-            str_contains($text, 'opposiz') || str_contains($text, 'oppong') || str_contains($text, 'object') => 'objection',
-            str_contains($text, 'limitaz') || str_contains($text, 'restrict') => 'restriction',
-            str_contains($text, 'revoc') || str_contains($text, 'withdraw') => 'withdraw_consent',
-            default => 'access',
-        };
+        foreach ($accounts as $account) {
+            $this->info("Connessione a [{$account->name}] ({$account->email_address})...");
+
+            try {
+                // Configurazione dinamica del client IMAP dalla tabella mail_accounts
+                $client = $cm->make([
+                    'host' => $account->imap_host,
+                    'port' => $account->imap_port,
+                    'encryption' => $account->imap_encryption,
+                    'validate_cert' => true,
+                    'username' => $account->imap_username,
+                    'password' => $account->auth_type === 'oauth2' ? $account->access_token : $account->imap_password,
+                    'protocol' => 'imap',
+                    'authentication' => $account->auth_type === 'oauth2' ? 'oauth' : null,
+                ]);
+
+                $client->connect();
+
+                $folder = $client->getFolder('INBOX');
+                $messages = $folder->messages()->unseen()->get()->take($limit);
+
+                $this->info("Trovate {$messages->count()} email non lette.");
+
+                foreach ($messages as $message) {
+                    $subject = $message->getSubject() ?? '(Senza Oggetto)';
+                    $fromAddress = $message->getFrom()[0]->mail ?? null;
+                    $fromName = $message->getFrom()[0]->personal ?? $fromAddress;
+                    $body = $message->getTextBody() ?: $message->getHTMLBody();
+
+                    if (! $fromAddress) {
+                        continue;
+                    }
+
+                    $this->line("Elaborazione messaggio da: {$fromAddress} | Oggetto: {$subject}");
+
+                    // 1. Creazione della richiesta DSAR associata al tenant della casella
+                    $dsar = DataSubjectRequest::createRequest([
+                        'company_id' => $account->company_id,
+                        'requester_name' => $fromName,
+                        'requester_email' => $fromAddress,
+                        'request_type' => 'access',
+                        'request_description' => $body,
+                        'channel' => $account->type === 'pec' ? 'PEC' : 'Email',
+                    ]);
+
+                    // 2. Salvataggio degli allegati via Spatie Media Library
+                    if ($message->hasAttachments()) {
+                        foreach ($message->getAttachments() as $attachment) {
+                            $tmpFilePath = sys_get_temp_dir().'/'.uniqid('mail_att_').'_'.$attachment->getName();
+                            file_put_contents($tmpFilePath, $attachment->getContent());
+
+                            $dsar->addMedia($tmpFilePath)
+                                ->usingFileName($attachment->getName())
+                                ->toMediaCollection('attachments', 'private');
+                        }
+                    }
+
+                    // 3. Imposta il messaggio come letto sul server IMAP
+                    $message->setFlag('Seen');
+
+                    $this->info("-> Creata richiesta DSAR #{$dsar->id} per {$fromAddress}");
+                }
+
+                // Aggiorna il timestamp dell'ultima scansione
+                $account->update(['last_synced_at' => now()]);
+
+            } catch (\Exception $e) {
+                $this->error("Errore durante la scansione dell'account [{$account->name}]: ".$e->getMessage());
+
+                // Continua il ciclo sugli altri account senza bloccare la schedulazione
+                continue;
+            }
+        }
+
+        $this->info('Scansione di tutte le caselle completata.');
+
+        return Command::SUCCESS;
     }
 }
