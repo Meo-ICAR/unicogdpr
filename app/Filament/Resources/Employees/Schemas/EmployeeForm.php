@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Employees\Schemas;
 
 use Filament\Forms\Components\DatePicker;
-use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class EmployeeForm
@@ -44,14 +44,19 @@ class EmployeeForm
                             ->preload(),
                     ]),
 
-                Section::make('Inquadramento Aziendale e Albi')
+                Section::make('Inquadramento Aziendale e Ruolo')
                     ->icon('heroicon-o-briefcase')
                     ->columns(2)
                     ->schema([
+                        Select::make('employee_type_id')
+                            ->label('Tipo / Ruolo')
+                            ->relationship('employeeType', 'name')
+                            ->searchable()
+                            ->preload(),
                         TextInput::make('department')
                             ->label('Reparto / Area')
                             ->maxLength(255)
-                            ->placeholder('Es. Amministrazione, IT, Risorse Umane, Marketing'),
+                            ->placeholder('Es. Amministrazione, IT, Risorse Umane'),
                         TextInput::make('job_title')
                             ->label('Mansione / Ruolo')
                             ->maxLength(255)

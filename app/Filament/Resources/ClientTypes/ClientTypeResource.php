@@ -20,6 +20,7 @@ use UnitEnum;
 class ClientTypeResource extends Resource
 {
     protected static ?string $model = ClientType::class;
+     protected static bool $isScopedToTenant = false;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
     protected static UnitEnum|string|null $navigationGroup = 'System';

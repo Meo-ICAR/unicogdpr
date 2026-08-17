@@ -24,20 +24,44 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('privacy_security', function (Blueprint $table) {
-            $table->comment('Registro delle misure di sicurezza tecniche e organizzative (Art. 32 GDPR)');
-            $table->id();
-            $table->string('name')->comment('Titolo della misura di sicurezza');
-            $table->text('description')->nullable()->comment('Descrizione dettagliata della contromisura');
-            $table->enum('type', ['technical', 'organizational'])->default('technical')->comment('Natura: Tecnica o Organizzativa');
-            $table->string('status')->nullable()->comment('Stato di attuazione (Attivo, In Implementazione)');
-            $table->string('risk_level')->nullable()->comment('Livello di rischio mitigato');
-            $table->string('owner')->nullable()->comment('Responsabile dell\'applicazione della misura');
-            $table->timestamp('last_reviewed_at')->nullable()->comment('Data ultima verifica dell\'efficacia');
-            $table->timestamp('next_review_due')->nullable()->comment('Data prossima revisione programmata');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+Schema::create('privacy_securities', function (Blueprint $table) {
+    $table->comment('Catalogo globale delle misure di sicurezza di riferimento (Art. 32 GDPR)');
+    $table->id();
+    $table->string('code')->nullable()->comment('Codice identificativo (es. SEC-01)');
+    $table->string('name')->comment('Titolo della misura di sicurezza');
+    $table->enum('type', ['technical', 'organizational', 'physical'])->default('technical');
+    $table->text('description')->nullable()->comment('Descrizione della misura standard');
+    $table->boolean('is_active')->default(true);
+    $table->timestamps();
+});
+
+       Schema::create('privacy_security', function (Blueprint $table) {
+    $table->comment('Registro operativo delle misure di sicurezza attuate dalla singola azienda');
+    $table->id();
+
+    // Tenant ID (UUID)
+    $table->foreignUuid('company_id')
+        ->constrained('companies')
+        ->cascadeOnDelete();
+
+    // Riferimento facoltativo alla misura del catalogo globale
+    $table->foreignId('privacy_security_id')
+        ->nullable()
+        ->constrained('privacy_securities')
+        ->nullOnDelete();
+
+    $table->string('name')->comment('Titolo della misura applicata');
+    $table->text('description')->nullable()->comment('Descrizione dell\'attuazione specifica');
+    $table->enum('type', ['technical', 'organizational', 'physical'])->default('technical');
+    $table->string('status')->nullable()->comment('Stato: Attivo, In Implementazione, Pianificato');
+    $table->string('risk_level')->nullable()->comment('Livello di rischio mitigato');
+    $table->string('owner')->nullable()->comment('Responsabile dell\'applicazione');
+    $table->timestamp('last_reviewed_at')->nullable()->comment('Data ultima verifica dell\'efficacia');
+    $table->timestamp('next_review_due')->nullable()->comment('Data prossima revisione programmata');
+    
+    $table->softDeletes();
+    $table->timestamps();
+});
 
         Schema::create('dpias', function (Blueprint $table) {
             $table->comment('Valutazioni d\'impatto sulla protezione dei dati (DPIA - Art. 35 GDPR)');

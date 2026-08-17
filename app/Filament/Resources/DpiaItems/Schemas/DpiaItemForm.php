@@ -2,7 +2,10 @@
 
 namespace App\Filament\Resources\DpiaItems\Schemas;
 
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class DpiaItemForm
@@ -11,14 +14,63 @@ class DpiaItemForm
     {
         return $schema
             ->components([
-                TextInput::make('dpia_id')->label('ID DPIA')->maxLength(255),
-                TextInput::make('risk_source')->label('Fonte del rischio')->maxLength(255)->required(),
-                TextInput::make('potential_impact')->label('Impatto potenziale')->maxLength(255)->required(),
-                TextInput::make('probability')->label('Probabilità')->maxLength(255)->required(),
-                TextInput::make('severity')->label('Gravità')->maxLength(255)->required(),
-                TextInput::make('inherent_risk_score')->label('Punteggio rischio intrinseco')->numeric()->required(),
-                TextInput::make('privacy_security_id')->label('ID sicurezza privacy')->maxLength(255),
-                TextInput::make('residual_risk_score')->label('Punteggio rischio residuo')->numeric()->required(),
+                Section::make('Scenario di Rischio')
+                    ->icon('heroicon-o-exclamation-triangle')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('dpia_id')
+                            ->label('DPIA di Appartenenza')
+                            ->relationship('dpia', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        Select::make('privacy_security_id')
+                            ->label('Misura di Mitigazione')
+                            ->relationship('securityMeasure', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->nullable(),
+                        Textarea::make('risk_source')
+                            ->label('Fonte / Origine del Rischio')
+                            ->rows(2)
+                            ->placeholder('Es. Accesso non autorizzato, Perdita di dispositivo')
+                            ->columnSpanFull()
+                            ->required(),
+                        Textarea::make('potential_impact')
+                            ->label('Impatto Potenziale sugli Interessati')
+                            ->rows(2)
+                            ->placeholder('Es. Violazione della riservatezza, Danno reputazionale')
+                            ->columnSpanFull()
+                            ->required(),
+                    ]),
+
+                Section::make('Valutazione del Rischio')
+                    ->icon('heroicon-o-chart-bar')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('probability')
+                            ->label('Probabilità (1–5)')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(5)
+                            ->required(),
+                        TextInput::make('severity')
+                            ->label('Gravità (1–5)')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(5)
+                            ->required(),
+                        TextInput::make('inherent_risk_score')
+                            ->label('Punteggio Rischio Intrinseco')
+                            ->numeric()
+                            ->readOnly()
+                            ->helperText('Calcolato automaticamente: Probabilità × Gravità'),
+                        TextInput::make('residual_risk_score')
+                            ->label('Punteggio Rischio Residuo')
+                            ->numeric()
+                            ->readOnly()
+                            ->helperText('Calcolato dopo l\'applicazione della misura di mitigazione'),
+                    ]),
             ]);
     }
 }

@@ -14,8 +14,8 @@ class Employee extends Model
     use SoftDeletes, LogsActivity;
 
     protected $fillable = [
-        'company_id', 'user_id', 'first_name', 'last_name', 'tax_code',
-        'email', 'phone', 'department', 'job_title', 'oam_code',
+        'company_id', 'user_id', 'employee_type_id', 'first_name', 'last_name',
+        'tax_code', 'email', 'phone', 'department', 'job_title', 'oam_code',
         'ivass_code', 'hired_at', 'terminated_at',
     ];
 
@@ -41,6 +41,11 @@ class Employee extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function employeeType(): BelongsTo
+    {
+        return $this->belongsTo(EmployeeType::class, 'employee_type_id');
     }
 
     public function trainingRecords(): MorphMany

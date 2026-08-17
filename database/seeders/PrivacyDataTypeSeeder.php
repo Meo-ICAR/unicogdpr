@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\PrivacyDataType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class PrivacyDataTypeSeeder extends Seeder
 {
@@ -14,7 +16,10 @@ class PrivacyDataTypeSeeder extends Seeder
     public function run(): void
     {
         // Truncate table first
-        PrivacyDataType::truncate();
+        Schema::disableForeignKeyConstraints();
+          PrivacyDataType::truncate();
+        Schema::enableForeignKeyConstraints();
+    
 
         $dataTypes = [
             [

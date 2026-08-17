@@ -18,7 +18,7 @@ use UnitEnum;
 class CompanyResource extends Resource
 {
     protected static ?string $model = Company::class;
-
+ protected static bool $isScopedToTenant = false;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
     protected static UnitEnum|string|null $navigationGroup = 'Anagrafiche';
 

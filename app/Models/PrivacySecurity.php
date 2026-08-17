@@ -5,8 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
 class PrivacySecurity extends Model
 {
+    use HasFactory;
     use SoftDeletes;
 
     public const TYPE_TECHNICAL = 'technical';
@@ -31,4 +36,20 @@ class PrivacySecurity extends Model
         'last_reviewed_at' => 'datetime',
         'next_review_due'  => 'datetime',
     ];
+
+    public function processingActivities(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ProcessingActivity::class,
+            'processing_activity_privacy_security'
+        );
+    }
+
+    public function externalProcessors(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ExternalProcessor::class,
+            'external_processor_privacy_security'
+        );
+    }
 }

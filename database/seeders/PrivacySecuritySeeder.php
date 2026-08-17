@@ -2,10 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Company; // <-- AGGIUNTO L'IMPORT DI COMPANY
 use App\Models\PrivacySecurity;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema; // <-- AGGIUNGI QUESTA RIGA
+use Illuminate\Support\Facades\Schema;
 
 class PrivacySecuritySeeder extends Seeder
 {
@@ -16,11 +17,21 @@ class PrivacySecuritySeeder extends Seeder
     {
         // 1. Disabilita i controlli delle chiavi esterne
         Schema::disableForeignKeyConstraints();
-        // Truncate table to avoid duplicates
+        
+        // 2. Truncate table to avoid duplicates
         DB::table('privacy_security')->truncate();
 
         // 3. Riabilita i controlli delle chiavi esterne
         Schema::enableForeignKeyConstraints();
+
+        // Recupera la prima azienda
+        $company = Company::first();
+
+        // Se non ci sono aziende, interrompi il seeder per evitare errori
+        if (!$company) {
+            $this->command->error('Nessuna azienda trovata. Esegui prima il CompanySeeder.');
+            return;
+        }
 
         $securityMeasures = [
             // Technical Measures
@@ -237,7 +248,9 @@ class PrivacySecuritySeeder extends Seeder
             ],
         ];
 
+        // <-- INIETTA IL COMPANY_ID IN FASE DI CREAZIONE
         foreach ($securityMeasures as $measure) {
+            $measure['company_id'] = $company->id;
             PrivacySecurity::create($measure);
         }
 

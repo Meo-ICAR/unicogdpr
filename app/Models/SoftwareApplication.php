@@ -14,10 +14,10 @@ class SoftwareApplication extends Model
     ];
 
     protected $casts = [
-        'is_cloud' => 'boolean',
-        'is_data_eu' => 'boolean',
+        'is_cloud'              => 'boolean',
+        'is_data_eu'            => 'boolean',
         'is_iso27001_certified' => 'boolean',
-        'wallet_balance' => 'decimal:2',
+        'wallet_balance'        => 'decimal:2',
     ];
 
     public function company(): BelongsTo
