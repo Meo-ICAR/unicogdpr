@@ -46,4 +46,20 @@ class ExternalProcessor extends Model
     {
         return $this->belongsToMany(PrivacySecurity::class, 'external_processor_privacy_security');
     }
+
+    /**
+     * Relazione: Tutti gli audit di sicurezza effettuati su questo fornitore.
+     */
+    public function audits(): HasMany
+    {
+        return $this->hasMany(ExternalProcessorAudit::class);
+    }
+
+    /**
+     * Relazione: Tutte le TIA (Transfer Impact Assessments) per questo fornitore.
+     */
+    public function transferImpactAssessments(): HasMany
+    {
+        return $this->hasMany(TransferImpactAssessment::class);
+    }
 }

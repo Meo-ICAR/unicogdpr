@@ -11,7 +11,6 @@ class ClientController extends Model
 {
     use HasFactory;
 
-
     protected $fillable = [
         'company_id',
         'name',
@@ -46,5 +45,10 @@ class ClientController extends Model
     public function processingActivities(): HasMany
     {
         return $this->hasMany(ProcessingActivity::class);
+    }
+
+    public function audits(): HasMany
+    {
+        return $this->hasMany(ClientAudit::class);
     }
 }
