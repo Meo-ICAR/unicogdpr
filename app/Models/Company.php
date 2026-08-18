@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model
 {
-    use HasUuids, HasFactory;
+    use HasFactory, HasUuids;
 
     protected $fillable = ['name'];
 
@@ -32,5 +32,10 @@ class Company extends Model
     public function registroTrattamenti(): HasMany
     {
         return $this->hasMany(RegistroTrattamentiItem::class);
+    }
+
+    public function holding(): BelongsTo
+    {
+        return $this->belongsTo(Holding::class);
     }
 }

@@ -13,16 +13,22 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
 class CompanyResource extends Resource
 {
     protected static ?string $model = Company::class;
- protected static bool $isScopedToTenant = false;
+
+    protected static bool $isScopedToTenant = false;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
+
     protected static UnitEnum|string|null $navigationGroup = 'Anagrafiche';
 
     protected static ?string $modelLabel = 'Azienda';
+
     protected static ?string $pluralModelLabel = 'Aziende';
 
     public static function form(Schema $schema): Schema
@@ -45,9 +51,22 @@ class CompanyResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListCompanies::route('/'),
+            'index' => ListCompanies::route('/'),
             'create' => CreateCompany::route('/create'),
-            'edit'   => EditCompany::route('/{record}/edit'),
+            'edit' => EditCompany::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = Auth::user();
+
+        // Se l'utente è associato a una holding, mostra solo le aziende di quella holding
+        if ($user->holding_id) {
+            $query->where('holding_id', $user->holding_id);
+        }
+
+        return $query;
     }
 }

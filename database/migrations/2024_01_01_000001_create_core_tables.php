@@ -14,12 +14,20 @@ return new class extends Migration
             // --- DATI GENERALI TENANT ---
             $table->uuid('id')->primary()->comment('UUID univoco del tenant/azienda');
             $table->string('name')->comment('Ragione sociale o nome dell\'azienda');
+            $table->string('property_email')->nullable()->comment('Email aziendale amministrazione');
+            $table->string('property_name')->nullable()->comment('Titolare aziendale amministrazione');
+
             $table->string('vat_number', 50)->nullable()->comment('Partita IVA');
             $table->string('tax_code', 50)->nullable()->comment('Codice Fiscale');
             $table->string('address')->nullable()->comment('Indirizzo della sede legale');
             $table->string('phone', 50)->nullable()->comment('Recapito telefonico aziendale');
             $table->string('email_it')->nullable()->comment('Email aziendale IT');
-            $table->string('email_administration')->nullable()->comment('Email aziendale amministrazione');
+            $table->string('it_name')->nullable()->comment('Referente IT aziendale');
+
+            $table->string('referee')->nullable()->comment('Referente aziendale amministrazione');
+
+            $table->string('email_referee')->nullable()->comment('Email aziendale amministrazione');
+            $table->integer('holding_id')->nullable(); // Aggiungi la colonna holding_id
 
             // --- EMAIL ORDINARIA E CONFIGURAZIONE IMAP ---
             $table->string('email')->nullable()->comment('Email DPO ordinaria');
