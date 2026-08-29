@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ClientController extends Model
@@ -50,5 +51,13 @@ class ClientController extends Model
     public function audits(): HasMany
     {
         return $this->hasMany(ClientAudit::class);
+    }
+
+    public function authorizedEmployees(): BelongsToMany
+    {
+        // Se usi il modello User, cambia Employee::class in User::class
+        return $this->belongsToMany(Employee::class, 'client_controller_employee')
+            ->withPivot(['status', 'nda_signed', 'approved_at', 'notes'])
+            ->withTimestamps();
     }
 }

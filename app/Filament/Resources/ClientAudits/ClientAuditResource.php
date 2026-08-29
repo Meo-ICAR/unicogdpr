@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\ClientAudits;
 
-use App\Filament\Resources\ClientAuditResource\Pages;
+use App\Filament\Resources\ClientAudits\Pages\CreateClientAudit;
+use App\Filament\Resources\ClientAudits\Pages\EditClientAudit;
 use App\Filament\Resources\ClientAudits\Pages\ListClientAudits;
 use App\Filament\Resources\ClientAudits\Schemas\CompanyForm;
 use App\Models\ClientAudit;
@@ -27,6 +28,7 @@ class ClientAuditResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return CompanyForm::configure($schema);
+
     }
 
     public static function table(Table $table): Table
@@ -45,9 +47,9 @@ class ClientAuditResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListClientAudits::route('/'),
-            'create' => Pages\CreateClientAudit::route('/create'),
-            'edit' => Pages\EditClientAudit::route('/{record}/edit'),
+            'index' => ListClientAudits::route('/'),
+            'create' => CreateClientAudit::route('/create'),
+            'edit' => EditClientAudit::route('/{record}/edit'),
         ];
     }
 }

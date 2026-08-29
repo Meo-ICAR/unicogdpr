@@ -89,6 +89,19 @@ class ExternalProcessorForm
                             ->label('Note Operative')
                             ->rows(3),
                     ]),
+
+                Section::make('Gestione Sub-Responsabili (Catena di Fornitura)')
+                    ->schema([
+                        Toggle::make('general_authorization_granted')
+                            ->label('Autorizzazione Generale Concessa')
+                            ->helperText('Indica se nel DPA abbiamo autorizzato questo fornitore ad assumere a sua volta dei sub-fornitori.')
+                            ->default(true),
+
+                        TextInput::make('sub_processors_list_url')
+                            ->label('Link alla lista dei loro Sub-fornitori')
+                            ->helperText('Inserisci l\'URL in cui il fornitore elenca i terzi di cui si avvale (es. pagina privacy/trust center).')
+                            ->url(),
+                    ]),
             ]);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
@@ -11,7 +12,7 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Employee extends Model
 {
-    use SoftDeletes, LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'company_id', 'user_id', 'employee_type_id', 'first_name', 'last_name',
@@ -20,7 +21,7 @@ class Employee extends Model
     ];
 
     protected $casts = [
-        'hired_at'      => 'date',
+        'hired_at' => 'date',
         'terminated_at' => 'date',
     ];
 
@@ -61,5 +62,12 @@ class Employee extends Model
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    public function clientControllers(): BelongsToMany
+    {
+        return $this->belongsToMany(ClientController::class, 'client_controller_employee')
+            ->withPivot(['status', 'nda_signed', 'approved_at', 'notes'])
+            ->withTimestamps();
     }
 }
