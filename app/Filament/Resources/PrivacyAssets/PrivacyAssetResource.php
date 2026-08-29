@@ -19,8 +19,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class PrivacyAssetResource extends Resource
 {
     protected static ?string $model = PrivacyAsset::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \UnitEnum|string|null $navigationGroup = 'Filiera & Fornitori';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-globe-americas';
+    protected static ?string $navigationLabel = 'TIA Extra-UE';
+    protected static ?string $modelLabel = 'TIA Extra-UE';
+    protected static ?string $pluralModelLabel = 'Valutazioni TIA Extra-UE';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

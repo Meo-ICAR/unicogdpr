@@ -104,6 +104,19 @@ class DataBreachesTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('generate_dossier')
+                    ->label('Dossier Notifica (PDF)')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('danger')
+                    ->action(function (\App\Models\DataBreach $record, \App\Services\DocumentGeneratorService $service) {
+                        $pdf = $service->generateNotificaDataBreach($record);
+                        $fileName = 'Dossier_DataBreach_' . \Illuminate\Support\Str::slug($record->name) . '.pdf';
+                        return response()->streamDownload(
+                            fn () => print($pdf->output()),
+                            $fileName,
+                            ['Content-Type' => 'application/pdf']
+                        );
+                    }),
                 EditAction::make(),
             ])
             ->toolbarActions([

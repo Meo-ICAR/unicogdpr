@@ -19,21 +19,12 @@ use Filament\Tables\Table;
 class ExternalProcessorResource extends Resource
 {
     protected static ?string $model = ExternalProcessor::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
-
-    protected static ?string $navigationLabel = 'Responsabili Esterni (Art. 28)';
-
-    protected static ?string $modelLabel = 'Responsabile Esterno';
-
-    protected static ?string $pluralModelLabel = 'Responsabili Esterni';
-
-    protected static ?int $navigationSort = 6;
-
-    public static function getNavigationGroup(): ?string
-    {
-        return 'Gestione GDPR';
-    }
+    protected static \UnitEnum|string|null $navigationGroup = 'Filiera & Fornitori';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cpu-chip';
+    protected static ?string $navigationLabel = 'Fornitori (Sub-Responsabili)';
+    protected static ?string $modelLabel = 'Fornitore / Sub-Responsabile';
+    protected static ?string $pluralModelLabel = 'Fornitori (Sub-Responsabili)';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

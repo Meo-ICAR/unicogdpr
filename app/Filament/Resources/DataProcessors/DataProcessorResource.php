@@ -19,21 +19,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class DataProcessorResource extends Resource
 {
     protected static ?string $model = DataProcessor::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice;
-
-    protected static ?string $navigationLabel = 'Responsabili Esterni (Art. 28)';
-
-    protected static ?int $navigationSort = 4;
-
-    protected static ?string $modelLabel = 'Responsabile Esterno';
-
-    protected static ?string $pluralModelLabel = 'Responsabili Esterni';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return 'Gestione GDPR';
-    }
+    protected static \UnitEnum|string|null $navigationGroup = 'Filiera & Fornitori';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-server-stack';
+    protected static ?string $navigationLabel = 'Sub-Responsabili DPA';
+    protected static ?string $modelLabel = 'Sub-Responsabile DPA';
+    protected static ?string $pluralModelLabel = 'Sub-Responsabili DPA';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

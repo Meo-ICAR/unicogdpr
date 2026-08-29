@@ -19,23 +19,13 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class EmailTemplateResource extends Resource
 {
     protected static ?string $model = EmailTemplate::class;
-
     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
-
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
     protected static ?string $navigationLabel = 'Template Email';
-
-    protected static ?int $navigationSort = 10;
-
     protected static ?string $modelLabel = 'Template Email';
-
     protected static ?string $pluralModelLabel = 'Template Email';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return 'Configurazione & Template';
-    }
+    protected static ?int $navigationSort = 9;
 
     public static function form(Schema $schema): Schema
     {

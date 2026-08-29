@@ -19,20 +19,21 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class DataBreachResource extends Resource
 {
     protected static ?string $model = DataBreach::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFire;
-
-    protected static ?string $navigationLabel = 'Data Breach';
-
-    protected static ?int $navigationSort = 2;
-
+    protected static \UnitEnum|string|null $navigationGroup = 'Governance & Accountability';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-exclamation-triangle';
+    protected static ?string $navigationLabel = 'Registro Data Breach';
     protected static ?string $modelLabel = 'Data Breach';
+    protected static ?string $pluralModelLabel = 'Registro Data Breach';
+    protected static ?int $navigationSort = 3;
 
-    protected static ?string $pluralModelLabel = 'Data Breach';
-
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationBadge(): ?string
     {
-        return 'Gestione GDPR';
+        return (string) (static::getModel()::where('status', 'investigating')->count() ?: null);
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
     }
 
     public static function form(Schema $schema): Schema

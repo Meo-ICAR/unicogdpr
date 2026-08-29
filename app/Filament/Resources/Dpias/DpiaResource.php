@@ -20,21 +20,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class DpiaResource extends Resource
 {
     protected static ?string $model = Dpia::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
-
-    protected static ?string $navigationLabel = 'Valutazioni DPIA';
-
-    protected static ?int $navigationSort = 3;
-
+    protected static \UnitEnum|string|null $navigationGroup = 'Governance & Accountability';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-beaker';
+    protected static ?string $navigationLabel = 'Valutazioni Impatto (DPIA)';
     protected static ?string $modelLabel = 'DPIA';
-
-    protected static ?string $pluralModelLabel = 'DPIA';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return 'Gestione GDPR';
-    }
+    protected static ?string $pluralModelLabel = 'Valutazioni Impatto (DPIA)';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

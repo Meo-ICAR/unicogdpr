@@ -17,11 +17,8 @@ use Filament\Tables\Table;
 class DpiaItemResource extends Resource
 {
     protected static ?string $model = DpiaItem::class;
-
-    // Indica a Filament di risalire al tenant tramite la relazione dpia -> company
     protected static ?string $tenantOwnershipRelationshipName = 'company';
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Schema $schema): Schema
     {

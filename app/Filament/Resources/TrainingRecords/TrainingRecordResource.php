@@ -19,21 +19,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class TrainingRecordResource extends Resource
 {
     protected static ?string $model = TrainingRecord::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;
-
-    protected static ?string $navigationLabel = 'Formazione Personale';
-
-    protected static ?int $navigationSort = 7;
-
-    protected static ?string $modelLabel = 'Registro Formazione';
-
-    protected static ?string $pluralModelLabel = 'Registri Formazione';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return 'Organizzazione & Formazione';
-    }
+    protected static \UnitEnum|string|null $navigationGroup = 'Personale & Formazione';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationLabel = 'Corsi Formazione';
+    protected static ?string $modelLabel = 'Corso Formazione';
+    protected static ?string $pluralModelLabel = 'Corsi Formazione';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

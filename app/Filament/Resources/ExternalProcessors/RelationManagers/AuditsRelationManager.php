@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\ExternalProcessorResource\RelationManagers;
+namespace App\Filament\Resources\ExternalProcessors\RelationManagers;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;

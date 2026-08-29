@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\ExternalProcessorResource\RelationManagers;
+namespace App\Filament\Resources\ExternalProcessors\RelationManagers;
 
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;

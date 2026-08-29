@@ -18,16 +18,13 @@ use UnitEnum;
 class EmployeeTypeResource extends Resource
 {
     protected static ?string $model = EmployeeType::class;
-
-    // Catalogo globale condiviso tra tutti i tenant
     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedIdentification;
-
-    protected static UnitEnum|string|null $navigationGroup = 'System';
-
-    protected static ?string $modelLabel = 'Tipo Dipendente';
-    protected static ?string $pluralModelLabel = 'Tipi Dipendente';
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationLabel = 'Ruoli & Categorie Personale';
+    protected static ?string $modelLabel = 'Ruolo / Categoria Personale';
+    protected static ?string $pluralModelLabel = 'Ruoli & Categorie Personale';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

@@ -18,12 +18,13 @@ use UnitEnum;
 class PrivacyDataTypeResource extends Resource
 {
     protected static ?string $model = PrivacyDataType::class;
-
     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
+    protected static ?string $navigationLabel = 'Categorie Dati';
+    protected static ?string $modelLabel = 'Categoria Dati';
+    protected static ?string $pluralModelLabel = 'Categorie Dati';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

@@ -19,8 +19,22 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class OptOutResource extends Resource
 {
     protected static ?string $model = OptOut::class;
+    protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-no-symbol';
+    protected static ?string $navigationLabel = 'Blacklist / Opt-Out';
+    protected static ?string $modelLabel = 'Opt-Out';
+    protected static ?string $pluralModelLabel = 'Blacklist / Opt-Out';
+    protected static ?int $navigationSort = 2;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) (static::getModel()::where('created_at', '>=', now()->subDays(30))->count() ?: null);
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
 
     public static function form(Schema $schema): Schema
     {

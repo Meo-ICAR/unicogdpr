@@ -18,12 +18,13 @@ use UnitEnum;
 class DpiaRiskResource extends Resource
 {
     protected static ?string $model = DpiaRisk::class;
-
     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shield-exclamation';
+    protected static ?string $navigationLabel = 'Tipologie Rischi DPIA';
+    protected static ?string $modelLabel = 'Rischio DPIA';
+    protected static ?string $pluralModelLabel = 'Tipologie Rischi DPIA';
+    protected static ?int $navigationSort = 11;
 
     public static function form(Schema $schema): Schema
     {

@@ -48,6 +48,32 @@ class EmployeesTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('generate_nomina')
+                    ->label('Nomina Art. 29 (PDF)')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('primary')
+                    ->action(function (\App\Models\Employee $record, \App\Services\DocumentGeneratorService $service) {
+                        $pdf = $service->generateNominaIncaricato($record);
+                        $fileName = 'Nomina_Art29_' . \Illuminate\Support\Str::slug($record->full_name) . '.pdf';
+                        return response()->streamDownload(
+                            fn () => print($pdf->output()),
+                            $fileName,
+                            ['Content-Type' => 'application/pdf']
+                        );
+                    }),
+                \Filament\Actions\Action::make('generate_nda')
+                    ->label('Accordo NDA (PDF)')
+                    ->icon('heroicon-o-shield-check')
+                    ->color('gray')
+                    ->action(function (\App\Models\Employee $record, \App\Services\DocumentGeneratorService $service) {
+                        $pdf = $service->generateAccordoRiservatezza($record);
+                        $fileName = 'Accordo_NDA_' . \Illuminate\Support\Str::slug($record->full_name) . '.pdf';
+                        return response()->streamDownload(
+                            fn () => print($pdf->output()),
+                            $fileName,
+                            ['Content-Type' => 'application/pdf']
+                        );
+                    }),
                 EditAction::make(),
             ])
             ->toolbarActions([

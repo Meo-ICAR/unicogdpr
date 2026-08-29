@@ -61,6 +61,19 @@ class DataProcessorsTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('generate_dpa')
+                    ->label('Genera DPA (PDF)')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('primary')
+                    ->action(function (\App\Models\DataProcessor $record, \App\Services\DocumentGeneratorService $service) {
+                        $pdf = $service->generateDpaSubresponsabile($record);
+                        $fileName = 'DPA_Art28_' . \Illuminate\Support\Str::slug($record->name) . '.pdf';
+                        return response()->streamDownload(
+                            fn () => print($pdf->output()),
+                            $fileName,
+                            ['Content-Type' => 'application/pdf']
+                        );
+                    }),
                 EditAction::make(),
             ])
             ->toolbarActions([

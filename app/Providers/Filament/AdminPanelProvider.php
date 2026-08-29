@@ -2,8 +2,8 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Widgets\GdprStatsWidget; // <-- MANCA QUESTA
-use App\Filament\Widgets\HighRiskDpiaWidget; // <-- MANCA QUESTA
+use App\Filament\Widgets\GdprStatsWidget;
+use App\Filament\Widgets\HighRiskDpiaWidget;
 use App\Http\Middleware\RememberLastTenant;
 use App\Models\Company;
 use Filament\Http\Middleware\Authenticate;
@@ -21,6 +21,11 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Navigation\NavigationGroup;
+
+
+
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -30,6 +35,35 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+
+            ->navigationGroups([
+    NavigationGroup::make('Commesse & Clienti')
+        ->icon('heroicon-o-building-office-2')
+        ->collapsible(false),
+
+    NavigationGroup::make('Gestione Liste & Consensi')
+        ->icon('heroicon-o-queue-list')
+        ->collapsible(false),
+
+    NavigationGroup::make('Filiera & Fornitori')
+        ->icon('heroicon-o-server-stack')
+        ->collapsible(true),
+
+    NavigationGroup::make('Personale & Formazione')
+        ->icon('heroicon-o-user-group')
+        ->collapsible(true),
+
+    NavigationGroup::make('Governance & Accountability')
+        ->icon('heroicon-o-shield-check')
+        ->collapsible(true),
+
+    NavigationGroup::make('Configurazione & Tabellari')
+        ->icon('heroicon-o-cog-6-tooth')
+        ->collapsible(true)
+        ->collapsed(true),
+])
+
+
             ->login()
             ->tenant(Company::class)
         // Regola il reindirizzamento al login: se esiste un'ultima company, va direttamente su quella

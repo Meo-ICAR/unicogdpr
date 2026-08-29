@@ -20,10 +20,13 @@ use UnitEnum;
 class ClientTypeResource extends Resource
 {
     protected static ?string $model = ClientType::class;
-     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static bool $isScopedToTenant = false;
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-office';
+    protected static ?string $navigationLabel = 'Tipologie Clienti';
+    protected static ?string $modelLabel = 'Tipologia Cliente';
+    protected static ?string $pluralModelLabel = 'Tipologie Clienti';
+    protected static ?int $navigationSort = 5;
     public static function form(Schema $schema): Schema
     {
         return ClientTypeForm::configure($schema);

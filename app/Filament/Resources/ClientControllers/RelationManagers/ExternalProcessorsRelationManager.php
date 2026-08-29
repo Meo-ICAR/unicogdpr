@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\ClientControllerResource\RelationManagers;
+namespace App\Filament\Resources\ClientControllers\RelationManagers;
 
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;

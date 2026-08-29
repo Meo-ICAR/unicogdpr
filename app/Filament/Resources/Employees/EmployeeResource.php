@@ -19,21 +19,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class EmployeeResource extends Resource
 {
     protected static ?string $model = Employee::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
-
-    protected static ?string $navigationLabel = 'Anagrafica Dipendenti';
-
-    protected static ?int $navigationSort = 6;
-
-    protected static ?string $modelLabel = 'Dipendente';
-
-    protected static ?string $pluralModelLabel = 'Dipendenti';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return 'Organizzazione & Formazione';
-    }
+    protected static \UnitEnum|string|null $navigationGroup = 'Personale & Formazione';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
+    protected static ?string $navigationLabel = 'Dipendenti / Operatori';
+    protected static ?string $modelLabel = 'Dipendente / Operatore';
+    protected static ?string $pluralModelLabel = 'Dipendenti / Operatori';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

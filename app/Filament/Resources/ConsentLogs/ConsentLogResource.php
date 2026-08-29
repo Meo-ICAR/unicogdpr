@@ -17,8 +17,12 @@ use Filament\Tables\Table;
 class ConsentLogResource extends Resource
 {
     protected static ?string $model = ConsentLog::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
+    protected static ?string $navigationLabel = 'Lotti Liste (Batch)';
+    protected static ?string $modelLabel = 'Lotto Lista';
+    protected static ?string $pluralModelLabel = 'Lotti Liste (Batch)';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

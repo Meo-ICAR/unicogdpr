@@ -21,12 +21,13 @@ use UnitEnum;
 class PrivacySecurityResource extends Resource
 {
     protected static ?string $model = PrivacySecurity::class;
-
     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-lock-closed';
+    protected static ?string $navigationLabel = 'Misure di Sicurezza';
+    protected static ?string $modelLabel = 'Misura di Sicurezza';
+    protected static ?string $pluralModelLabel = 'Misure di Sicurezza';
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

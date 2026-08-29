@@ -18,12 +18,13 @@ use UnitEnum;
 class DpiaImpactResource extends Resource
 {
     protected static ?string $model = DpiaImpact::class;
-
     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
+    protected static ?string $navigationLabel = 'Livelli Impatto DPIA';
+    protected static ?string $modelLabel = 'Livello Impatto DPIA';
+    protected static ?string $pluralModelLabel = 'Livelli Impatto DPIA';
+    protected static ?int $navigationSort = 10;
 
     public static function form(Schema $schema): Schema
     {

@@ -17,17 +17,16 @@ use Filament\Tables\Table;
 class ClientControllerResource extends Resource
 {
     protected static ?string $model = ClientController::class;
+    protected static \UnitEnum|string|null $navigationGroup = 'Commesse & Clienti';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-office';
+    protected static ?string $navigationLabel = 'Clienti / Committenti';
+    protected static ?string $modelLabel = 'Cliente / Committente';
+    protected static ?string $pluralModelLabel = 'Clienti / Committenti';
+    protected static ?int $navigationSort = 1;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
-
-    protected static ?string $navigationLabel  = 'Contitolari del Trattamento (Art. 26)';
-    protected static ?string $modelLabel       = 'Contitolare';
-    protected static ?string $pluralModelLabel = 'Contitolari del Trattamento';
-    protected static ?int    $navigationSort   = 7;
-
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationBadge(): ?string
     {
-        return 'Gestione GDPR';
+        return (string) static::getModel()::count();
     }
 
     public static function form(Schema $schema): Schema

@@ -16,14 +16,22 @@ use UnitEnum;
 class ClientAuditResource extends Resource
 {
     protected static ?string $model = ClientAudit::class;
-
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-check';
-
-    protected static UnitEnum|string|null $navigationGroup = 'Gestione Privacy';
-
+    protected static \UnitEnum|string|null $navigationGroup = 'Commesse & Clienti';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-magnifying-glass';
+    protected static ?string $navigationLabel = 'Audit da Clienti';
     protected static ?string $modelLabel = 'Audit da Cliente';
-
     protected static ?string $pluralModelLabel = 'Audit dai Clienti';
+    protected static ?int $navigationSort = 2;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) (static::getModel()::where('status', 'pending')->count() ?: null);
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
 
     public static function form(Schema $schema): Schema
     {

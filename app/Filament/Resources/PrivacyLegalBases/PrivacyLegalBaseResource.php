@@ -18,12 +18,13 @@ use UnitEnum;
 class PrivacyLegalBaseResource extends Resource
 {
     protected static ?string $model = PrivacyLegalBase::class;
-
     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-scale';
+    protected static ?string $navigationLabel = 'Basi Giuridiche';
+    protected static ?string $modelLabel = 'Base Giuridica';
+    protected static ?string $pluralModelLabel = 'Basi Giuridiche';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

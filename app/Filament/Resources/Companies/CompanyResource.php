@@ -20,16 +20,13 @@ use UnitEnum;
 class CompanyResource extends Resource
 {
     protected static ?string $model = Company::class;
-
     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
-
-    protected static UnitEnum|string|null $navigationGroup = 'Anagrafiche';
-
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-library';
+    protected static ?string $navigationLabel = 'Aziende / Tenant';
     protected static ?string $modelLabel = 'Azienda';
-
-    protected static ?string $pluralModelLabel = 'Aziende';
+    protected static ?string $pluralModelLabel = 'Aziende / Tenant';
+    protected static ?int $navigationSort = 12;
 
     public static function form(Schema $schema): Schema
     {

@@ -19,8 +19,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class RegistrationResource extends Resource
 {
     protected static ?string $model = Registration::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-identification';
+    protected static ?string $navigationLabel = 'Registrazioni Consensi';
+    protected static ?string $modelLabel = 'Registrazione';
+    protected static ?string $pluralModelLabel = 'Registrazioni Consensi';
+    protected static ?int $navigationSort = 6;
 
     public static function form(Schema $schema): Schema
     {

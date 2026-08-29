@@ -18,12 +18,13 @@ use UnitEnum;
 class PrivacyRetentionResource extends Resource
 {
     protected static ?string $model = PrivacyRetention::class;
-
     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
-    protected static UnitEnum|string|null $navigationGroup = 'System';
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clock';
+    protected static ?string $navigationLabel = 'Tempi di Conservazione';
+    protected static ?string $modelLabel = 'Tempo di Conservazione';
+    protected static ?string $pluralModelLabel = 'Tempi di Conservazione';
+    protected static ?int $navigationSort = 8;
 
     public static function form(Schema $schema): Schema
     {

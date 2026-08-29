@@ -17,10 +17,13 @@ use Filament\Tables\Table;
 class SoftwareCategoryResource extends Resource
 {
     protected static ?string $model = SoftwareCategory::class;
-
     protected static bool $isScopedToTenant = false;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-folder';
+    protected static ?string $navigationLabel = 'Categorie Software';
+    protected static ?string $modelLabel = 'Categoria Software';
+    protected static ?string $pluralModelLabel = 'Categorie Software';
+    protected static ?int $navigationSort = 6;
 
     public static function form(Schema $schema): Schema
     {

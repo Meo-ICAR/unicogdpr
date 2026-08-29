@@ -26,20 +26,21 @@ use Illuminate\Support\Facades\Mail;
 class DataSubjectRequestResource extends Resource
 {
     protected static ?string $model = DataSubjectRequest::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelopeOpen;
-
-    protected static ?string $navigationLabel = 'Richieste Interessati (DSAR)';
-
-    protected static ?int $navigationSort = 1;
-
+    protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-inbox-arrow-down';
+    protected static ?string $navigationLabel = 'Diritti (DSAR)';
     protected static ?string $modelLabel = 'Richiesta Interessato';
+    protected static ?string $pluralModelLabel = 'Richieste Interessati (DSAR)';
+    protected static ?int $navigationSort = 3;
 
-    protected static ?string $pluralModelLabel = 'Richieste Interessati';
-
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationBadge(): ?string
     {
-        return 'Gestione GDPR';
+        return (string) (static::getModel()::whereIn('status', ['pending', 'in_progress', 'open'])->count() ?: null);
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
     }
 
     public static function form(Schema $schema): Schema
