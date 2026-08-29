@@ -20,10 +20,10 @@ class PrivacyAssetResource extends Resource
 {
     protected static ?string $model = PrivacyAsset::class;
     protected static \UnitEnum|string|null $navigationGroup = 'Filiera & Fornitori';
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-globe-americas';
-    protected static ?string $navigationLabel = 'TIA Extra-UE';
-    protected static ?string $modelLabel = 'TIA Extra-UE';
-    protected static ?string $pluralModelLabel = 'Valutazioni TIA Extra-UE';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedServer;
+    protected static ?string $navigationLabel = 'Asset IT & Privacy';
+    protected static ?string $modelLabel = 'Asset IT';
+    protected static ?string $pluralModelLabel = 'Asset IT & Privacy';
     protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
