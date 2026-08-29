@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Company;
 use App\Models\ExternalProcessor;
-use App\Models\PrivacySecurity;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class ExternalProcessorSeeder extends Seeder
 {
@@ -17,6 +17,9 @@ class ExternalProcessorSeeder extends Seeder
             return;
         }
 
+        // Legge gli ID dal catalogo globale privacy_securities (non la tabella tenant)
+        $catalogIds = DB::table('privacy_securities')->pluck('id', 'code');
+
         $processors = [
             [
                 'name'                   => 'CloudHost Services Italia S.r.l.',
@@ -26,11 +29,11 @@ class ExternalProcessorSeeder extends Seeder
                 'pec'                    => 'cloudhost@pec.it',
                 'phone'                  => '+39 02 1234567',
                 'dpo_contact'            => 'dpo@cloudhost.it',
-                'processing_description' => 'Hosting infrastruttura cloud (server, database, backup) contenente dati personali di clienti e dipendenti. Trattamento per conto del titolare ex Art. 28 GDPR.',
+                'processing_description' => 'Hosting infrastruttura cloud contenente dati personali di clienti e dipendenti.',
                 'contract_date'          => now()->subYear(),
                 'is_active'              => true,
-                'notes'                  => 'ISO 27001 certificato. Data center ubicati in UE (Frankfurt).',
-                'security_ids'           => [1, 3, 6],  // Crittografia, Backup, VPN
+                'notes'                  => 'ISO 27001 certificato. Data center in Frankfurt.',
+                'security_codes'         => ['SEC-T01', 'SEC-T03', 'SEC-T06'],
             ],
             [
                 'name'                   => 'Studio Consulenza del Lavoro Rossi & Partners',
@@ -40,11 +43,11 @@ class ExternalProcessorSeeder extends Seeder
                 'pec'                    => 'studiorossi@legalmail.it',
                 'phone'                  => '+39 06 9876543',
                 'dpo_contact'            => 'Avv. Andrea Rossi',
-                'processing_description' => 'Elaborazione paghe e contributi, gestione CUD e adempimenti previdenziali. Accesso a dati anagrafici, fiscali e bancari dei dipendenti.',
+                'processing_description' => 'Elaborazione paghe, CUD e adempimenti previdenziali.',
                 'contract_date'          => now()->subMonths(6),
                 'is_active'              => true,
-                'notes'                  => 'DPA firmato e archiviato. Verificato annualmente.',
-                'security_ids'           => [11, 16],   // Policy Privacy, Gestione Accessi
+                'notes'                  => 'DPA firmato e archiviato.',
+                'security_codes'         => ['SEC-O01', 'SEC-T12'],
             ],
             [
                 'name'                   => 'MailSender Pro S.r.l.',
@@ -54,11 +57,11 @@ class ExternalProcessorSeeder extends Seeder
                 'pec'                    => 'mailsenderpro@pec.it',
                 'phone'                  => '+39 051 1122334',
                 'dpo_contact'            => 'privacy@mailsenderpro.it',
-                'processing_description' => 'Invio campagne email DEM, newsletter e comunicazioni transazionali. Tratta indirizzi email e dati comportamentali (aperture, click).',
+                'processing_description' => 'Invio campagne email DEM e comunicazioni transazionali.',
                 'contract_date'          => now()->subMonths(3),
                 'is_active'              => true,
-                'notes'                  => 'Conforme CASL e CAN-SPAM. Log invii conservati 12 mesi.',
-                'security_ids'           => [10, 8],    // Secure Email Gateway, Patch Management
+                'notes'                  => 'Certificazione DPF UE-USA attiva.',
+                'security_codes'         => ['SEC-T10', 'SEC-T08'],
             ],
             [
                 'name'                   => 'Gestionale CRM SaaS Ltd',
@@ -68,11 +71,11 @@ class ExternalProcessorSeeder extends Seeder
                 'pec'                    => null,
                 'phone'                  => '+44 20 7123 4567',
                 'dpo_contact'            => 'Sarah Compliance – dpo@crmcloud.io',
-                'processing_description' => 'CRM cloud per la gestione di lead, clienti e storico commerciale. Server in UE (Dublin, Ireland – AWS).',
+                'processing_description' => 'CRM cloud per gestione lead, clienti e storico commerciale.',
                 'contract_date'          => now()->subYears(2),
                 'is_active'              => true,
-                'notes'                  => 'Clausole Contrattuali Standard (SCC) allegate al DPA per trasferimento UK → UE.',
-                'security_ids'           => [1, 4, 6],  // Crittografia, 2FA, VPN
+                'notes'                  => 'SCC allegate al DPA per trasferimento UK→UE.',
+                'security_codes'         => ['SEC-T01', 'SEC-T04', 'SEC-T06'],
             ],
             [
                 'name'                   => 'Agenzia Recupero Crediti Alpha S.p.A.',
@@ -82,29 +85,32 @@ class ExternalProcessorSeeder extends Seeder
                 'pec'                    => 'alpharc@pec.it',
                 'phone'                  => '+39 011 5544332',
                 'dpo_contact'            => 'Dott.ssa Verdi – privacy@alpharc.it',
-                'processing_description' => 'Gestione pratiche di recupero crediti. Accede a dati anagrafici, recapiti, situazione debitoria e storico comunicazioni dei clienti morosi.',
+                'processing_description' => 'Gestione pratiche di recupero crediti.',
                 'contract_date'          => now()->subMonths(8),
                 'is_active'              => false,
-                'notes'                  => 'Contratto sospeso in attesa di rinnovo DPA. Verificare entro 30 giorni.',
-                'security_ids'           => [],
+                'notes'                  => 'Contratto sospeso in attesa di rinnovo DPA.',
+                'security_codes'         => [],
             ],
         ];
 
-        $allSecurities = PrivacySecurity::pluck('id')->toArray();
-
         foreach ($processors as $data) {
-            $securityIds = $data['security_ids'];
-            unset($data['security_ids']);
+            $securityCodes = $data['security_codes'];
+            unset($data['security_codes']);
 
             $processor = ExternalProcessor::firstOrCreate(
                 ['vat_number' => $data['vat_number'], 'company_id' => $company->id],
                 array_merge($data, ['company_id' => $company->id])
             );
 
-            // Collega misure di sicurezza se esistono
-            $validIds = array_intersect($securityIds, $allSecurities);
-            if (! empty($validIds)) {
-                $processor->privacySecurities()->syncWithoutDetaching($validIds);
+            // Collega le misure dal catalogo globale
+            $ids = collect($securityCodes)
+                ->map(fn ($code) => $catalogIds[$code] ?? null)
+                ->filter()
+                ->values()
+                ->toArray();
+
+            if (! empty($ids)) {
+                $processor->privacySecurities()->syncWithoutDetaching($ids);
             }
         }
 
