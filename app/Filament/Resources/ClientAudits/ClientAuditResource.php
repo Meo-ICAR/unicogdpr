@@ -8,6 +8,7 @@ use App\Filament\Resources\ClientAudits\Schemas\CompanyForm;
 use App\Models\ClientAudit;
 use BackedEnum;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use UnitEnum;
 
