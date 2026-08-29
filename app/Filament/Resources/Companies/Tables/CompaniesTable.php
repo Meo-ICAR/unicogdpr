@@ -18,6 +18,13 @@ class CompaniesTable
                     ->label('Ragione Sociale')
                     ->sortable()
                     ->searchable(),
+                TextColumn::make('holding.name')
+                    ->label('Holding / Gruppo')
+                    ->badge()
+                    ->color('gray')
+                    ->placeholder('—')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('employees_count')
                     ->label('Dipendenti')
                     ->counts('employees')
@@ -38,7 +45,11 @@ class CompaniesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                \Filament\Tables\Filters\SelectFilter::make('holding_id')
+                    ->label('Holding / Gruppo')
+                    ->relationship('holding', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->recordActions([
                 EditAction::make(),

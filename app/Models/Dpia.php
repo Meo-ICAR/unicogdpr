@@ -13,7 +13,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Dpia extends Model implements HasMedia
 {
-    use SoftDeletes, LogsActivity, InteractsWithMedia;
+    use InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $table = 'dpias';
 
@@ -25,9 +25,9 @@ class Dpia extends Model implements HasMedia
     ];
 
     protected $casts = [
-        'is_necessary'     => 'boolean',
-        'is_proportional'  => 'boolean',
-        'completion_date'  => 'date',
+        'is_necessary' => 'boolean',
+        'is_proportional' => 'boolean',
+        'completion_date' => 'date',
         'next_review_date' => 'date',
     ];
 
@@ -61,6 +61,11 @@ class Dpia extends Model implements HasMedia
         return $this->belongsTo(RegistroTrattamentiItem::class, 'registro_trattamenti_item_id');
     }
 
+    public function dpiaItems(): HasMany
+    {
+        return $this->hasMany(DpiaItem::class, 'dpia_id');
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(DpiaItem::class, 'dpia_id');
@@ -70,17 +75,17 @@ class Dpia extends Model implements HasMedia
      * Aggiunge un elemento di rischio alla DPIA calcolando il punteggio intrinseco
      * (Probabilità × Gravità) e il residuo dopo la misura di mitigazione.
      *
-     * @param array{risk_source: string, potential_impact: string, probability: int, severity: int, privacy_security_id: int|null} $data
+     * @param  array{risk_source: string, potential_impact: string, probability: int, severity: int, privacy_security_id: int|null}  $data
      */
     public function addRiskItem(array $data): DpiaItem
     {
         $probability = (int) ($data['probability'] ?? 1);
-        $severity    = (int) ($data['severity'] ?? 1);
+        $severity = (int) ($data['severity'] ?? 1);
 
         $inherentRiskScore = $probability * $severity;
 
         // Il rischio residuo viene ridotto proporzionalmente dalla misura di mitigazione
-        $residualFactor    = $data['privacy_security_id'] ? 0.6 : 1.0;
+        $residualFactor = $data['privacy_security_id'] ? 0.6 : 1.0;
         $residualRiskScore = (int) ceil($inherentRiskScore * $residualFactor);
 
         return $this->items()->create(array_merge($data, [

@@ -31,8 +31,8 @@ class TrainingRecordForm
                                     ->label('Dipendente / Collaboratore'),
                             ])
                             ->searchable()
-                            ->preload()
-                            ->nullable(),
+                            ->preload(),
+                        // ->nullable(),
                     ]),
 
                 // ── Sezione 2: Corso ─────────────────────────────────────────────
@@ -51,11 +51,11 @@ class TrainingRecordForm
                             ->label('Modalità di Erogazione')
                             ->required()
                             ->options([
-                                'in_person'  => '🏫 In Presenza / Aula',
-                                'online'     => '💻 E-Learning / FAD Asincrona',
-                                'blended'    => '🔀 Misto / Blended',
+                                'in_person' => '🏫 In Presenza / Aula',
+                                'online' => '💻 E-Learning / FAD Asincrona',
+                                'blended' => '🔀 Misto / Blended',
                                 'on_the_job' => '🛠️ On The Job / Affiancamento',
-                                'webinar'    => '📹 Webinar / Aula Virtuale',
+                                'webinar' => '📹 Webinar / Aula Virtuale',
                             ])
                             ->default('in_person'),
                         TextInput::make('provider')
@@ -92,8 +92,8 @@ class TrainingRecordForm
                         Select::make('outcome')
                             ->label('Esito Finale')
                             ->options([
-                                'passed'   => '✅ Superato / Idoneo',
-                                'failed'   => '❌ Non Superato',
+                                'passed' => '✅ Superato / Idoneo',
+                                'failed' => '❌ Non Superato',
                                 'attended' => '📋 Solo Frequenza',
                             ])
                             ->default('passed'),

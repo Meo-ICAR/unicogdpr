@@ -11,6 +11,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\MenuItem;
+use Filament\Navigation\NavigationGroup;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -21,11 +22,6 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\Navigation\NavigationGroup;
-
-
-
-
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -37,32 +33,31 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
 
             ->navigationGroups([
-    NavigationGroup::make('Commesse & Clienti')
-        ->icon('heroicon-o-building-office-2')
-        ->collapsible(false),
+                NavigationGroup::make('Commesse & Clienti')
+                  //  ->icon('heroicon-o-building-office-2')
+                    ->collapsible(false),
 
-    NavigationGroup::make('Gestione Liste & Consensi')
-        ->icon('heroicon-o-queue-list')
-        ->collapsible(false),
+                NavigationGroup::make('Gestione Liste & Consensi')
+                  //  ->icon('heroicon-o-queue-list')
+                    ->collapsible(false),
 
-    NavigationGroup::make('Filiera & Fornitori')
-        ->icon('heroicon-o-server-stack')
-        ->collapsible(true),
+                NavigationGroup::make('Filiera & Fornitori')
+                 //   ->icon('heroicon-o-server-stack')
+                    ->collapsible(true),
 
-    NavigationGroup::make('Personale & Formazione')
-        ->icon('heroicon-o-user-group')
-        ->collapsible(true),
+                NavigationGroup::make('Personale & Formazione')
+                  //  ->icon('heroicon-o-user-group')
+                    ->collapsible(true),
 
-    NavigationGroup::make('Governance & Accountability')
-        ->icon('heroicon-o-shield-check')
-        ->collapsible(true),
+                NavigationGroup::make('Governance & Accountability')
+                  //  ->icon('heroicon-o-shield-check')
+                    ->collapsible(true),
 
-    NavigationGroup::make('Configurazione & Tabellari')
-        ->icon('heroicon-o-cog-6-tooth')
-        ->collapsible(true)
-        ->collapsed(true),
-])
-
+                NavigationGroup::make('Configurazione & Tabellari')
+                  //  ->icon('heroicon-o-cog-6-tooth')
+                    ->collapsible(true)
+                    ->collapsed(true),
+            ])
 
             ->login()
             ->tenant(Company::class)

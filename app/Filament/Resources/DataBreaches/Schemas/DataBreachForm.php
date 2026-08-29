@@ -3,11 +3,11 @@
 namespace App\Filament\Resources\DataBreaches\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class DataBreachForm
@@ -30,9 +30,9 @@ class DataBreachForm
                             ->required()
                             ->default('medium')
                             ->options([
-                                'low'    => '🟢 Bassa',
+                                'low' => '🟢 Bassa',
                                 'medium' => '🟡 Media',
-                                'high'   => '🔴 Alta',
+                                'high' => '🔴 Alta',
                             ]),
                         Select::make('status')
                             ->label('Stato')
@@ -40,9 +40,9 @@ class DataBreachForm
                             ->default('investigating')
                             ->options([
                                 'investigating' => '🔍 In indagine',
-                                'contained'     => '🛡️ Contenuto',
-                                'resolved'      => '✅ Risolto',
-                                'notified'      => '📨 Notificato',
+                                'contained' => '🛡️ Contenuto',
+                                'resolved' => '✅ Risolto',
+                                'notified' => '📨 Notificato',
                             ]),
                         DateTimePicker::make('discovered_at')
                             ->label('Data/ora scoperta')
@@ -58,16 +58,16 @@ class DataBreachForm
                     ]),
 
                 Section::make('Dati Coinvolti')
-                    ->icon('heroicon-o-database')
+                  //  ->icon('heroicon-o-database')
                     ->columns(2)
                     ->schema([
                         Select::make('nature_of_breach')
                             ->label('Natura della violazione')
                             ->options([
                                 'confidentiality' => '🔒 Riservatezza',
-                                'integrity'       => '⚠️ Integrità',
-                                'availability'    => '🚫 Disponibilità',
-                                'combined'        => '🔀 Combinata',
+                                'integrity' => '⚠️ Integrità',
+                                'availability' => '🚫 Disponibilità',
+                                'combined' => '🔀 Combinata',
                             ]),
                         TextInput::make('approximate_records_count')
                             ->label('N° record coinvolti (stimato)')

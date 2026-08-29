@@ -7,6 +7,7 @@ use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model; // Corretto
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <-- ASSICURATI CHE SIA QUESTO
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -19,7 +20,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'email_verified_at', 'remember_token', 'last_company_id'];
+    protected $fillable = ['name', 'email', 'password', 'email_verified_at', 'remember_token', 'last_company_id', 'holding_id'];
 
     protected $hidden = ['password', 'remember_token'];
 

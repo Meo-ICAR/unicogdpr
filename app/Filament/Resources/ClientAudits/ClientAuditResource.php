@@ -6,21 +6,29 @@ use App\Filament\Resources\ClientAudits\Pages\CreateClientAudit;
 use App\Filament\Resources\ClientAudits\Pages\EditClientAudit;
 use App\Filament\Resources\ClientAudits\Pages\ListClientAudits;
 use App\Filament\Resources\ClientAudits\Schemas\CompanyForm;
+use App\Filament\Resources\ClientAudits\Tables\ClientAuditsTable;
 use App\Models\ClientAudit;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use UnitEnum;
 
 class ClientAuditResource extends Resource
 {
     protected static ?string $model = ClientAudit::class;
+
+    protected static bool $isScopedToTenant = false;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Commesse & Clienti';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-magnifying-glass';
+
     protected static ?string $navigationLabel = 'Audit da Clienti';
+
     protected static ?string $modelLabel = 'Audit da Cliente';
+
     protected static ?string $pluralModelLabel = 'Audit dai Clienti';
+
     protected static ?int $navigationSort = 2;
 
     public static function getNavigationBadge(): ?string

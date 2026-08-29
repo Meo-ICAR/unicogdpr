@@ -2,6 +2,10 @@
 
 namespace App\Filament\Resources\ClientAudits\Tables;
 
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class ClientAuditsTable
@@ -10,15 +14,15 @@ class ClientAuditsTable
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('clientController.name')
+                TextColumn::make('clientController.name')
                     ->label('Cliente')
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Titolo'),
 
-                Tables\Columns\TextColumn::make('deadline')
+                TextColumn::make('deadline')
                     ->label('Scadenza')
                     ->date()
                     ->sortable()
@@ -26,7 +30,7 @@ class ClientAuditsTable
                     ->color(fn ($record) => ($record->deadline < now()->addDays(5) && $record->status !== 'closed_compliant') ? 'danger' : 'gray'
                     ),
 
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
                     ->colors([
@@ -37,7 +41,7 @@ class ClientAuditsTable
                         'success' => 'closed_compliant',
                     ]),
 
-                Tables\Columns\TextColumn::make('score_received')
+                TextColumn::make('score_received')
                     ->label('Rating')
                     ->searchable(),
             ])
@@ -46,11 +50,11 @@ class ClientAuditsTable
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

@@ -29,8 +29,8 @@ class PrivacyAssetForm
                             ->label('Tipologia Asset')
                             ->required()
                             ->options([
-                                'hardware'      => '🖥️ Hardware',
-                                'software'      => '💾 Software / Applicativo',
+                                'hardware' => '🖥️ Hardware',
+                                'software' => '💾 Software / Applicativo',
                                 'cloud_service' => '☁️ Servizio Cloud / SaaS',
                                 'paper_archive' => '🗄️ Archivio Cartaceo',
                             ]),
@@ -58,8 +58,8 @@ class PrivacyAssetForm
                                     ->label('Applicativo Software'),
                             ])
                             ->searchable()
-                            ->preload()
-                            ->nullable(),
+                            ->preload(),
+                        //  ->nullable(),
                     ]),
             ]);
     }
