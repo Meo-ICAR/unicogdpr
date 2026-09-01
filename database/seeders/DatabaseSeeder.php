@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ════════════════════════════════════════════════════════════════
-        // 1. CATALOGHI GLOBALI — senza company_id
+        // 1. CATALOGHI GLOBALI — senza company_id (lookup condivisi)
         // ════════════════════════════════════════════════════════════════
         $this->call([
             EmployeeTypeSeeder::class,
@@ -26,13 +26,13 @@ class DatabaseSeeder extends Seeder
             DpiaRiskSeeder::class,
             EmailTemplateSeeder::class,
             RemediationSeeder::class,
-            // Catalogo globale misure sicurezza (privacy_securities — senza company_id)
-            // Diverso da privacy_security (tenant-scoped)
+            // Catalogo globale misure sicurezza (privacy_securities, senza company_id)
+            // Distinto da privacy_security (registro operativo tenant-scoped)
             PrivacySecuritiesCatalogSeeder::class,
         ]);
 
         // ════════════════════════════════════════════════════════════════
-        // 2. TENANT — Aziende e Utenti
+        // 2. TENANT — Aziende e Utenti (prerequisito per tutti i seeder sotto)
         // ════════════════════════════════════════════════════════════════
         $this->call([CompanySeeder::class]);
 
@@ -66,7 +66,7 @@ class DatabaseSeeder extends Seeder
 
         // ════════════════════════════════════════════════════════════════
         // 3. CATALOGHI TENANT-SCOPED — richiedono company esistente
-        //    privacy_security (tabella operativa per tenant, con company_id)
+        //    privacy_security = registro operativo con company_id
         // ════════════════════════════════════════════════════════════════
         $this->call([
             PrivacySecuritySeeder::class,
@@ -81,25 +81,25 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ════════════════════════════════════════════════════════════════
-        // 5. GDPR CORE
+        // 5. GDPR CORE — Registro, DPIA, Responsabili, Contitolari
         // ════════════════════════════════════════════════════════════════
         $this->call([
             RegistroTrattamentiItemSeeder::class,
             DpiaSeeder::class,
             DpiaItemSeeder::class,
-            ExternalProcessorSeeder::class,   // usa privacy_securities (catalogo globale)
+            ExternalProcessorSeeder::class,
             ClientControllerSeeder::class,
         ]);
 
         // ════════════════════════════════════════════════════════════════
-        // 6. PROCESSING ACTIVITIES
+        // 6. PROCESSING ACTIVITIES (Art. 30 — nuovo modello)
         // ════════════════════════════════════════════════════════════════
         $this->call([
             ProcessingActivitySeeder::class,
         ]);
 
         // ════════════════════════════════════════════════════════════════
-        // 7. AUDIT, TIA, PIVOT
+        // 7. AUDIT, TIA, PIVOT OPERATORI
         // ════════════════════════════════════════════════════════════════
         $this->call([
             ClientAuditSeeder::class,
@@ -109,11 +109,17 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ════════════════════════════════════════════════════════════════
-        // 8. OPERAZIONI GDPR FINALI
+        // 8. OPERAZIONI GDPR — DSAR, Data Breach, Consensi, Lead, Registrazioni
+        //    Dipendono da ClientController, ExternalProcessor, Employee, Client
         // ════════════════════════════════════════════════════════════════
         $this->call([
             TrainingRecordSeeder::class,
             OptOutSeeder::class,
+            ClientSeeder::class,
+            ConsentLogSeeder::class,           // dipende da Client (creato inline in CompanySeeder o da anagrafiche)
+            DataSubjectRequestSeeder::class,   // dipende da Client
+            RegistrationSeeder::class,         // dipende da Employee
+            LeadTransferSeeder::class,         // dipende da Client, ClientController, ExternalProcessor
         ]);
     }
 }

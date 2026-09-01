@@ -21,64 +21,86 @@ class LeadTransferSeeder extends Seeder
 
         $company = Company::first();
         if (! $company) {
-            $this->command->warn('Nessuna company trovata per LeadTransferSeeder.');
+            $this->command->warn('Nessuna company trovata. Skippo LeadTransferSeeder.');
             return;
         }
 
-        $controller = ClientController::first();
-        $processor  = ExternalProcessor::first();
-        $client     = Client::where('company_id', $company->id)->first();
+        // leadable deve essere un Client (morphs → unsignedBigInteger)
+        $clients = Client::where('company_id', $company->id)->get();
+        if ($clients->isEmpty()) {
+            $this->command->warn('Nessun Client trovato. Skippo LeadTransferSeeder.');
+            return;
+        }
+
+        $controller = ClientController::where('company_id', $company->id)->first();
+        $processor  = ExternalProcessor::where('company_id', $company->id)->first();
+
+        // purchaserable può essere ClientController o ExternalProcessor (entrambi bigInt)
+        if (! $controller && ! $processor) {
+            $this->command->warn('Nessun ClientController né ExternalProcessor trovato. Skippo LeadTransferSeeder.');
+            return;
+        }
+
+        $purchaser1 = $controller ?? $processor;
+        $purchaser1Type = $controller ? ClientController::class : ExternalProcessor::class;
+
+        $purchaser2 = $processor ?? $controller;
+        $purchaser2Type = $processor ? ExternalProcessor::class : ClientController::class;
+
+        $client1 = $clients->get(0);
+        $client2 = $clients->get(1) ?? $client1;
+        $client3 = $clients->get(2) ?? $client1;
 
         $transfers = [
             [
-                'company_id'          => $company->id,
-                'leadable_type'       => $client ? Client::class : Company::class,
-                'leadable_id'         => $client?->id ?? $company->id,
-                'purchaserable_type'  => $controller ? ClientController::class : Company::class,
-                'purchaserable_id'    => $controller?->id ?? $company->id,
-                'transferred_at'      => now()->subMonths(3),
-                'price'               => 18.50,
-                'transfer_method'     => 'api_tls',
+                'company_id'         => $company->id,
+                'leadable_type'      => Client::class,
+                'leadable_id'        => $client1->id,
+                'purchaserable_type' => $purchaser1Type,
+                'purchaserable_id'   => $purchaser1->id,
+                'transferred_at'     => now()->subMonths(3),
+                'price'              => 18.50,
+                'transfer_method'    => 'api_tls',
             ],
             [
-                'company_id'          => $company->id,
-                'leadable_type'       => $client ? Client::class : Company::class,
-                'leadable_id'         => $client?->id ?? $company->id,
-                'purchaserable_type'  => $controller ? ClientController::class : Company::class,
-                'purchaserable_id'    => $controller?->id ?? $company->id,
-                'transferred_at'      => now()->subMonths(2),
-                'price'               => 22.00,
-                'transfer_method'     => 'api_tls',
+                'company_id'         => $company->id,
+                'leadable_type'      => Client::class,
+                'leadable_id'        => $client2->id,
+                'purchaserable_type' => $purchaser1Type,
+                'purchaserable_id'   => $purchaser1->id,
+                'transferred_at'     => now()->subMonths(2),
+                'price'              => 22.00,
+                'transfer_method'    => 'api_tls',
             ],
             [
-                'company_id'          => $company->id,
-                'leadable_type'       => $client ? Client::class : Company::class,
-                'leadable_id'         => $client?->id ?? $company->id,
-                'purchaserable_type'  => $processor ? ExternalProcessor::class : Company::class,
-                'purchaserable_id'    => $processor?->id ?? $company->id,
-                'transferred_at'      => now()->subMonths(1),
-                'price'               => 15.00,
-                'transfer_method'     => 'sftp',
+                'company_id'         => $company->id,
+                'leadable_type'      => Client::class,
+                'leadable_id'        => $client3->id,
+                'purchaserable_type' => $purchaser2Type,
+                'purchaserable_id'   => $purchaser2->id,
+                'transferred_at'     => now()->subMonths(1),
+                'price'              => 15.00,
+                'transfer_method'    => 'sftp',
             ],
             [
-                'company_id'          => $company->id,
-                'leadable_type'       => $client ? Client::class : Company::class,
-                'leadable_id'         => $client?->id ?? $company->id,
-                'purchaserable_type'  => $controller ? ClientController::class : Company::class,
-                'purchaserable_id'    => $controller?->id ?? $company->id,
-                'transferred_at'      => now()->subDays(10),
-                'price'               => 25.00,
-                'transfer_method'     => 'encrypted_csv',
+                'company_id'         => $company->id,
+                'leadable_type'      => Client::class,
+                'leadable_id'        => $client1->id,
+                'purchaserable_type' => $purchaser1Type,
+                'purchaserable_id'   => $purchaser1->id,
+                'transferred_at'     => now()->subDays(10),
+                'price'              => 25.00,
+                'transfer_method'    => 'encrypted_csv',
             ],
             [
-                'company_id'          => $company->id,
-                'leadable_type'       => $client ? Client::class : Company::class,
-                'leadable_id'         => $client?->id ?? $company->id,
-                'purchaserable_type'  => $controller ? ClientController::class : Company::class,
-                'purchaserable_id'    => $controller?->id ?? $company->id,
-                'transferred_at'      => now()->subDays(2),
-                'price'               => 19.90,
-                'transfer_method'     => 'api_tls',
+                'company_id'         => $company->id,
+                'leadable_type'      => Client::class,
+                'leadable_id'        => $client2->id,
+                'purchaserable_type' => $purchaser1Type,
+                'purchaserable_id'   => $purchaser1->id,
+                'transferred_at'     => now()->subDays(2),
+                'price'              => 19.90,
+                'transfer_method'    => 'api_tls',
             ],
         ];
 
