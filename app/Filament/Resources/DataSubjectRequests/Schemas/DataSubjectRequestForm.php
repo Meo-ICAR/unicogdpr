@@ -3,12 +3,14 @@
 namespace App\Filament\Resources\DataSubjectRequests\Schemas;
 
 use App\Enums\DsarStatus;
+use App\Models\DataSubjectRequest;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class DataSubjectRequestForm
@@ -68,7 +70,13 @@ class DataSubjectRequestForm
                             ->label('Stato')
                             ->required()
                             ->default(DsarStatus::Received->value)
-                            ->options(DsarStatus::options()),
+                            ->options(DsarStatus::options())
+                            ->helperText('Gli stati "In lavorazione", "Prorogata" e "Completata" richiedono l\'identità verificata.')
+                            ->disableOptionWhen(fn (string $value, Get $get): bool => ! $get('identity_verified') && in_array(
+                                DsarStatus::tryFrom($value),
+                                DataSubjectRequest::identityGatedStatuses(),
+                                true,
+                            )),
                         DatePicker::make('received_at')
                             ->label('Data ricezione')
                             ->default(now())
@@ -101,7 +109,8 @@ class DataSubjectRequestForm
                     ->schema([
                         Toggle::make('identity_verified')
                             ->label('Identità verificata')
-                            ->default(false),
+                            ->default(false)
+                            ->live(),
                         TextInput::make('identity_verification_method')
                             ->label('Metodo di verifica')
                             ->placeholder('Es. Documento d\'identità, SPID...')

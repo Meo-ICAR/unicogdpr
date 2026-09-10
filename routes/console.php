@@ -16,3 +16,9 @@ Schedule::command('emails:process-bounces')->hourly()->withoutOverlapping();
 
 // Retention della posta in arrivo, una volta al giorno
 Schedule::command('inbox:prune')->dailyAt('02:30');
+
+// Scadenzario DSAR: avvisa il DPO ogni mattina
+Schedule::command('dsar:deadline-check')->dailyAt('08:00');
+
+// Salute delle caselle di posta ogni 6 ore
+Schedule::command('mail:health-check')->everySixHours();

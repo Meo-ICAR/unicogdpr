@@ -85,4 +85,39 @@ class DataSubjectRequest extends Model implements HasMedia
             && $this->deadline_at->diffInDays(now(), false) >= -$days
             && $this->deadline_at->isFuture();
     }
+
+    /**
+     * Stati che si possono raggiungere solo dopo aver verificato l'identità
+     * del richiedente (evita disclosure a terzi non legittimati).
+     *
+     * @return array<int, DsarStatus>
+     */
+    public static function identityGatedStatuses(): array
+    {
+        return [DsarStatus::InProgress, DsarStatus::Extended, DsarStatus::Completed];
+    }
+
+    /**
+     * True se la pratica non può ancora essere lavorata/chiusa perché manca
+     * la verifica dell'identità.
+     */
+    public function isBlockedByIdentityCheck(): bool
+    {
+        return ! $this->identity_verified;
+    }
+
+    /**
+     * Giorni residui (negativi se scaduta) rispetto al termine di legge.
+     */
+    public function daysToDeadline(): ?int
+    {
+        return $this->deadline_at ? (int) round(now()->diffInDays($this->deadline_at, false)) : null;
+    }
+
+    public function isOverdue(): bool
+    {
+        return in_array($this->status, DsarStatus::open(), true)
+            && $this->deadline_at
+            && $this->deadline_at->isPast();
+    }
 }

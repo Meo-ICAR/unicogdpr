@@ -332,30 +332,34 @@ Usa Storage::fake('private') per i media.
 
 ---
 
-## 8. Migliorie suggerite per il DPO (non ancora implementate)
+## 8. Migliorie suggerite per il DPO
 
-Idee di prodotto e compliance, in ordine di impatto. Ognuna è un buon prompt di partenza.
+Idee di prodotto e compliance, in ordine di impatto. `[FATTO]` = già implementata (commit
+"migliorie"); le altre restano prompt di partenza.
 
-### 8.1 Scadenzario DSAR e solleciti automatici
-Widget dashboard "DSAR in scadenza" (7 / 3 / 1 giorni) e comando `dsar:deadline-check`
-schedulato che invia una notifica Filament al DPO e, opzionalmente, una PEC di interlocutoria
-all'interessato quando la pratica rischia di sforare i 30 giorni (Art. 12.3). Stato
-`identity_pending` che sospende il conteggio finché l'identità non è verificata.
+### 8.1 Scadenzario DSAR e solleciti automatici — `[FATTO]`
+Realizzato: widget dashboard `DsarDeadlinesWidget` (giorni residui, ritardo in rosso, stato
+identità) + comando `dsar:deadline-check` schedulato alle 08:00 che invia una notifica
+`App\Notifications\DpoAlert` (canale mail) al DPO con scadute e in scadenza entro N giorni.
+Aggiunto stato `identity_pending` all'enum `DsarStatus`.
+Da fare ancora: PEC di interlocutoria automatica all'interessato.
 
-### 8.2 Verifica dell'identità come step obbligato
-Prima di poter passare una DSAR a `in_progress`, richiedere `identity_verified = true` con
-`identity_verification_method` (documento, SPID, CIE, domanda di sicurezza). Blocco a livello
-di form + policy. Riduce il rischio di disclosure a terzi.
+### 8.2 Verifica dell'identità come step obbligato — `[FATTO]`
+Realizzato: `DataSubjectRequest::identityGatedStatuses()` + `isBlockedByIdentityCheck()`; nel
+form gli stati "In lavorazione / Prorogata / Completata" sono `disableOptionWhen` finché
+`identity_verified` è falso; l'azione `send_response` è bloccata con notifica se l'identità
+non è verificata.
 
-### 8.3 Registro data breach con timer 72 ore
-Nel `DataBreachResource`: campo `discovered_at`, countdown visivo verso le 72 ore per la
-notifica al Garante (Art. 33), checklist "notificato Garante / notificati interessati", e
-generazione automatica del dossier PDF già presente in `DocumentGeneratorService`.
+### 8.3 Registro data breach con timer 72 ore — `[FATTO]`
+Realizzato: migration `authority_notified_at` / `subjects_notified_at`; `DataBreach::
+authorityNotificationDeadline()` (scoperta + 72h) e `authorityNotificationState()`
+(not_required / on_track / due_soon / overdue / done); colonna "Garante 72h" colorata e
+azioni "Notificato al Garante" / "Comunicato agli interessati" nel `DataBreachesTable`.
 
-### 8.4 Cruscotto per azienda (tenant) con semaforo compliance
-Una pagina Filament per Company che aggrega: n. trattamenti nel registro, DPIA ad alto rischio
-aperte, DSAR scadute, breach non chiusi, nomine mancanti, DPA in scadenza. Semaforo
-verde/giallo/rosso per dare al DPO la vista a colpo d'occhio su tutte le commesse.
+### 8.4 Cruscotto per azienda (tenant) con semaforo compliance — parziale
+Realizzato: `GdprStatsWidget` esteso con "Posta in arrivo da leggere" e "Caselle di posta
+ferme". Da fare: pagina Filament cross-azienda con semaforo verde/giallo/rosso per commessa
+(nomine mancanti, DPA in scadenza, DPIA ad alto rischio, breach non chiusi).
 
 ### 8.5 Classificatore email v2 (LLM) con conferma umana
 Attivare `EmailClassifier::classifyWithLlm()` (Anthropic) con un prompt che estrae anche:
@@ -387,6 +391,7 @@ Con activitylog già attivo, aggiungere il log delle *letture* dei dati sensibil
 download allegato interessato) e una vista "attività recenti" per tenant, utile in caso di audit
 del Garante.
 
-### 8.11 Rotazione segreti e alert scadenza token OAuth
-Job giornaliero che verifica i `token_expires_at` delle `MailAccount` OAuth e le caselle che non
-sincronizzano da > 24h, notificando il DPO. Comando `secrets:rotate-check`.
+### 8.11 Rotazione segreti e alert scadenza token OAuth — `[FATTO]`
+Realizzato: comando `mail:health-check` (ogni 6h) che notifica il DPO (`DpoAlert`) sulle
+caselle attive ferme da oltre `--stale-hours` (default 24) e sui token OAuth in scadenza
+entro 24h senza refresh token.

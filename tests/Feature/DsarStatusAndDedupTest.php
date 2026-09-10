@@ -46,6 +46,26 @@ class DsarStatusAndDedupTest extends TestCase
         $this->assertSame('success', DsarStatus::Completed->getColor());
     }
 
+    public function test_identity_check_gates_progressed_statuses(): void
+    {
+        $company = Company::factory()->create();
+
+        $dsar = DataSubjectRequest::createRequest([
+            'company_id' => $company->id,
+            'requester_name' => 'A',
+            'requester_email' => 'a@example.com',
+            'request_type' => 'access',
+            'request_description' => 'x',
+        ]);
+
+        $this->assertTrue($dsar->isBlockedByIdentityCheck());
+        $this->assertContains(DsarStatus::Completed, DataSubjectRequest::identityGatedStatuses());
+        $this->assertNotContains(DsarStatus::Received, DataSubjectRequest::identityGatedStatuses());
+
+        $dsar->update(['identity_verified' => true]);
+        $this->assertFalse($dsar->fresh()->isBlockedByIdentityCheck());
+    }
+
     public function test_source_message_id_is_unique_per_company(): void
     {
         $company = Company::factory()->create();

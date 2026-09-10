@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UnicoGDPR — Manuale d'uso</title>
+<style>
+  :root{
+    --bg:#f7f8f7; --panel:#ffffff; --ink:#1f2937; --muted:#6b7280;
+    --line:#e5e7eb; --brand:#059669; --brand-weak:#ecfdf5; --brand-ink:#065f46;
+    --warn:#b45309; --warn-weak:#fffbeb; --danger:#b91c1c; --danger-weak:#fef2f2;
+    --code-bg:#f3f4f6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1115; --panel:#161a20; --ink:#e5e7eb; --muted:#9aa4b2;
+      --line:#262c36; --brand:#34d399; --brand-weak:#0c2a22; --brand-ink:#a7f3d0;
+      --warn:#fbbf24; --warn-weak:#2a2410; --danger:#f87171; --danger-weak:#2a1414;
+      --code-bg:#1e232b;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand-ink)}
+  @media (prefers-color-scheme: dark){a{color:var(--brand)}}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+  header.hero{
+    background:linear-gradient(135deg,var(--brand),#047857);
+    color:#fff;padding:48px 0 40px;
+  }
+  header.hero .wrap{padding-block:0}
+  header.hero h1{margin:0 0 8px;font-size:2rem;letter-spacing:-.02em}
+  header.hero p{margin:0;opacity:.92;max-width:60ch}
+  .badge{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+    padding:2px 10px;border-radius:999px;font-size:.78rem;margin-top:14px}
+  .layout{display:grid;grid-template-columns:260px 1fr;gap:32px;padding:32px 0 80px}
+  nav.toc{position:sticky;top:16px;align-self:start;max-height:calc(100vh - 32px);overflow:auto;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  nav.toc h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}
+  nav.toc ol{list-style:none;margin:0;padding:0;counter-reset:s}
+  nav.toc li{margin:2px 0}
+  nav.toc a{display:block;padding:6px 8px;border-radius:8px;text-decoration:none;color:var(--ink);font-size:.92rem}
+  nav.toc a:hover{background:var(--brand-weak)}
+  main{min-width:0}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 28px;margin:0 0 22px}
+  section > h2{margin:0 0 4px;font-size:1.35rem;letter-spacing:-.01em}
+  section > h2 .num{color:var(--brand);font-variant-numeric:tabular-nums;margin-right:10px}
+  section > p.lead{margin-top:6px;color:var(--muted)}
+  h3{margin:26px 0 8px;font-size:1.05rem}
+  h4{margin:18px 0 6px;font-size:.95rem;color:var(--brand-ink)}
+  @media (prefers-color-scheme: dark){h4{color:var(--brand)}}
+  ul,ol{padding-left:22px}
+  li{margin:4px 0}
+  code{background:var(--code-bg);padding:1px 6px;border-radius:6px;font-size:.88em;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto}
+  pre code{background:none;padding:0}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.92rem}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+  .callout{border-left:4px solid var(--brand);background:var(--brand-weak);padding:12px 16px;border-radius:8px;margin:14px 0}
+  .callout.warn{border-color:var(--warn);background:var(--warn-weak)}
+  .callout.danger{border-color:var(--danger);background:var(--danger-weak)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:14px 0}
+  .card{border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .card h4{margin:0 0 4px}
+  .card p{margin:0;color:var(--muted);font-size:.9rem}
+  .step{display:flex;gap:14px;margin:10px 0}
+  .step .n{flex:0 0 28px;height:28px;border-radius:999px;background:var(--brand);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:.85rem}
+  .step .b{flex:1}
+  footer{color:var(--muted);font-size:.85rem;text-align:center;padding:24px 0 60px}
+  .kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px;font-size:.82em;background:var(--panel)}
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;gap:16px}
+    nav.toc{position:static;max-height:none}
+  }
+  @media print{
+    header.hero{background:none;color:#000;border-bottom:2px solid #000}
+    .badge,nav.toc{display:none}
+    .layout{display:block;padding:0}
+    section{border:none;padding:0;margin:0 0 18px;break-inside:avoid}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>UnicoGDPR — Manuale d'uso</h1>
+    <p>Piattaforma di compliance per il Responsabile della Protezione dei Dati (DPO) che gestisce più aziende, con particolare attenzione ai call center: registro dei trattamenti, DPIA, richieste degli interessati, data breach, filiera dei responsabili e lettura automatica delle caselle DPO/PEC.</p>
+    <span class="badge">Laravel 13 · Filament 5 · aggiornato 2026-09-10</span>
+  </div>
+</header>
+
+<div class="wrap layout">
+
+  <nav class="toc" aria-label="Indice">
+    <h2>Indice</h2>
+    <ol>
+      <li><a href="#intro">1. Concetti di base</a></li>
+      <li><a href="#accesso">2. Accesso e cambio azienda</a></li>
+      <li><a href="#dashboard">3. Dashboard e indicatori</a></li>
+      <li><a href="#commesse">4. Commesse &amp; Clienti</a></li>
+      <li><a href="#liste">5. Gestione Liste &amp; Consensi</a></li>
+      <li><a href="#dsar">6. Richieste degli interessati (DSAR)</a></li>
+      <li><a href="#posta">7. Lettura email DPO / PEC</a></li>
+      <li><a href="#filiera">8. Filiera &amp; Fornitori</a></li>
+      <li><a href="#personale">9. Personale &amp; Formazione</a></li>
+      <li><a href="#governance">10. Governance &amp; Accountability</a></li>
+      <li><a href="#breach">11. Data breach e termine 72 ore</a></li>
+      <li><a href="#config">12. Configurazione &amp; Tabellari</a></li>
+      <li><a href="#documenti">13. Generazione documenti PDF</a></li>
+      <li><a href="#automazioni">14. Automazioni schedulate</a></li>
+      <li><a href="#sicurezza">15. Sicurezza e protezione dati</a></li>
+      <li><a href="#flussi">16. Flussi operativi guidati</a></li>
+      <li><a href="#comandi">17. Riferimento comandi</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section id="intro">
+      <h2><span class="num">1</span>Concetti di base</h2>
+      <p class="lead">Come è organizzata la piattaforma e con quale logica lavora il DPO.</p>
+
+      <h3>Multi-azienda (tenant)</h3>
+      <p>Ogni azienda seguita dal DPO è un <strong>tenant</strong> separato. Tutti i dati operativi
+      (dipendenti, clienti, trattamenti, DSAR, breach, caselle di posta…) appartengono a una singola
+      azienda e sono visibili solo quando quell'azienda è selezionata. Il DPO ha accesso a
+      <strong>tutte</strong> le aziende censite e passa dall'una all'altra dal menu profilo.</p>
+
+      <h3>Gruppi / Holding</h3>
+      <p>Le aziende possono essere raggruppate in una <strong>Holding</strong>. Un utente legato a una
+      holding vede e crea aziende solo all'interno del proprio gruppo.</p>
+
+      <h3>Aree del pannello</h3>
+      <p>La navigazione laterale è divisa in sei aree tematiche:</p>
+      <div class="grid">
+        <div class="card"><h4>Commesse &amp; Clienti</h4><p>Anagrafiche aziende, clienti, titolari del trattamento, siti web, documenti.</p></div>
+        <div class="card"><h4>Gestione Liste &amp; Consensi</h4><p>DSAR, posta in arrivo, registro consensi, opt-out, resi lead.</p></div>
+        <div class="card"><h4>Filiera &amp; Fornitori</h4><p>Responsabili esterni, sub-responsabili, DPA, transfer impact assessment, audit.</p></div>
+        <div class="card"><h4>Personale &amp; Formazione</h4><p>Dipendenti, tipologie/autorizzazioni, registro formazione.</p></div>
+        <div class="card"><h4>Governance &amp; Accountability</h4><p>Registro dei trattamenti, DPIA, data breach, asset, misure di sicurezza, retention.</p></div>
+        <div class="card"><h4>Configurazione &amp; Tabellari</h4><p>Caselle di posta IMAP, template email, software, categorie, tabelle di supporto.</p></div>
+      </div>
+    </section>
+
+    <section id="accesso">
+      <h2><span class="num">2</span>Accesso e cambio azienda</h2>
+      <ul>
+        <li><strong>Login</strong> con email e password, oppure con Google / Microsoft (Socialite).</li>
+        <li>Al primo accesso viene aperta l'ultima azienda usata; se non esiste, si apre la
+        <em>selezione azienda</em>.</li>
+        <li>Per cambiare azienda: menu profilo in alto a destra → <strong>Cambia Azienda</strong>.
+        La scelta viene memorizzata e riproposta al login successivo.</li>
+        <li>Tutte le pagine sono nel percorso <code>/admin/&lt;azienda&gt;/…</code>: l'azienda corrente
+        fa parte dell'URL.</li>
+      </ul>
+    </section>
+
+    <section id="dashboard">
+      <h2><span class="num">3</span>Dashboard e indicatori</h2>
+      <p class="lead">La home del pannello riassume lo stato di compliance a colpo d'occhio.</p>
+
+      <h3>Riquadri statistici</h3>
+      <table>
+        <tr><th>Indicatore</th><th>Significato</th></tr>
+        <tr><td>Richieste DSAR in sospeso</td><td>Istanze Art. 15-22 ancora da evadere.</td></tr>
+        <tr><td>DSAR in scadenza (&lt; 7 gg)</td><td>Pratiche che si avvicinano al termine di 30 giorni (Art. 12.3).</td></tr>
+        <tr><td>Data breach aperti</td><td>Incidenti in stato <em>investigating</em> o <em>contained</em>.</td></tr>
+        <tr><td>Accordi DPA in scadenza</td><td>Contratti Art. 28 con scadenza nei prossimi 30 giorni.</td></tr>
+        <tr><td>Posta in arrivo da leggere</td><td>Email DPO/PEC archiviate e non ancora triagliate.</td></tr>
+        <tr><td>Caselle di posta ferme</td><td>Caselle attive che non sincronizzano da oltre 24 ore.</td></tr>
+      </table>
+
+      <h3>Scadenzario DSAR</h3>
+      <p>Tabella con tutte le richieste aperte ordinate per scadenza, con giorni residui
+      (in rosso se in ritardo) e stato della verifica d'identità.</p>
+
+      <h3>Monitoraggio DPIA ad alto rischio</h3>
+      <p>Elenco delle valutazioni d'impatto con punteggio di rischio massimo (P×G su scala 25) e
+      data della prossima revisione.</p>
+    </section>
+
+    <section id="commesse">
+      <h2><span class="num">4</span>Commesse &amp; Clienti</h2>
+
+      <h3>Aziende</h3>
+      <p>Anagrafica completa del tenant: ragione sociale, P.IVA, codice fiscale, sede, contatti di
+      titolare / referente privacy / referente IT, indirizzo PEC ed email DPO ordinaria, appartenenza
+      a una holding.</p>
+      <div class="callout warn">
+        Le sezioni <strong>IMAP</strong> presenti nella scheda azienda sono <strong>deprecate</strong>:
+        la configurazione attiva delle caselle si fa in <em>Configurazione &amp; Tabellari → Caselle di
+        posta (IMAP)</em> (vedi §7).
+      </div>
+
+      <h3>Clienti e Tipi cliente</h3>
+      <p>Registro dei clienti dell'azienda (per i call center: committenti delle campagne) con
+      classificazione per tipologia.</p>
+
+      <h3>Titolari del trattamento (Client Controller)</h3>
+      <p>Soggetti per cui l'azienda opera come responsabile del trattamento. Per ciascuno si
+      gestiscono gli <strong>incaricati autorizzati</strong> e i <strong>responsabili esterni</strong>
+      collegati (relation manager dedicati).</p>
+
+      <h3>Registrazioni, Filiali, Siti web, Documenti</h3>
+      <ul>
+        <li><strong>Filiali</strong> e <strong>siti web</strong> dell'azienda (relation manager sulla scheda azienda).</li>
+        <li><strong>Documenti</strong>: repository documentale con tipologia, date di emissione/scadenza,
+        monitoraggio scadenze e allegati (PDF, immagini, Word).</li>
+        <li><strong>Registrazioni</strong>: iscrizioni / lead raccolti, con esportazione Excel.</li>
+      </ul>
+    </section>
+
+    <section id="liste">
+      <h2><span class="num">5</span>Gestione Liste &amp; Consensi</h2>
+
+      <h3>Registro consensi</h3>
+      <p>Evidenza dei consensi raccolti (marketing, cessione a terzi) con IP, origine del form e
+      timestamp — utile a dimostrare la base giuridica del contatto.</p>
+
+      <h3>Opt-out</h3>
+      <p>Registro delle revoche/opposizioni al contatto, con collegamento polimorfico al soggetto
+      interessato.</p>
+
+      <h3>Resi lead e Cessioni lead</h3>
+      <ul>
+        <li><strong>Lead Return Log</strong>: lead scartati o resi dai partner (errati, opt-out, bounce).</li>
+        <li><strong>Lead Transfer</strong>: cessioni di lead a terzi con prezzo, data e canale di
+        trasmissione protetta (API TLS, SFTP, CSV cifrato).</li>
+      </ul>
+
+      <h3>Posta in arrivo</h3>
+      <p>Archivio delle email lette dalle caselle DPO/PEC. Dettaglio completo in §7.</p>
+    </section>
+
+    <section id="dsar">
+      <h2><span class="num">6</span>Richieste degli interessati (DSAR)</h2>
+      <p class="lead">Gestione delle istanze di esercizio dei diritti (artt. 15-22 GDPR).</p>
+
+      <h3>Contenuto della pratica</h3>
+      <ul>
+        <li>Dati del richiedente (nome, email, telefono) e canale di ricezione (email, PEC, cartaceo, form, di persona).</li>
+        <li><strong>Tipo di diritto</strong>: accesso, rettifica, cancellazione, limitazione, portabilità, opposizione, revoca consenso, altro.</li>
+        <li><strong>Stato</strong>: Ricevuta · Verifica identità · In lavorazione · Prorogata · Completata · Rifiutata.</li>
+        <li><strong>Scadenza</strong> calcolata automaticamente a <strong>+30 giorni</strong> dalla ricezione (Art. 12.3); campo proroga (+60 gg) per casi complessi.</li>
+        <li>Verifica d'identità: flag + metodo (documento, SPID, CIE…).</li>
+        <li>Allegati (documenti inviati dall'interessato) archiviati su disco riservato.</li>
+      </ul>
+
+      <div class="callout">
+        <strong>Blocco anti-disclosure.</strong> Gli stati <em>In lavorazione</em>, <em>Prorogata</em> e
+        <em>Completata</em> sono selezionabili solo dopo aver spuntato <em>Identità verificata</em>.
+        Anche l'invio di un riscontro è bloccato finché l'identità non è confermata.
+      </div>
+
+      <h3>Creazione</h3>
+      <ul>
+        <li><strong>Manuale</strong>: pulsante <em>Nuovo</em> nell'elenco DSAR.</li>
+        <li><strong>Da email</strong>: automatica dal fetch IMAP quando il classificatore riconosce una
+        richiesta di diritto, oppure con l'azione <em>Crea richiesta DSAR</em> dalla Posta in arrivo.</li>
+      </ul>
+
+      <h3>Rispondere all'interessato</h3>
+      <div class="step"><div class="n">1</div><div class="b">Apri la pratica e verifica/conferma l'identità del richiedente.</div></div>
+      <div class="step"><div class="n">2</div><div class="b">Azione <strong>Invia Risposta</strong>: scegli un template email attivo.</div></div>
+      <div class="step"><div class="n">3</div><div class="b">Il sistema compila i segnaposto (nome, azienda, date, tipo) e invia il messaggio.</div></div>
+      <div class="step"><div class="n">4</div><div class="b">La pratica passa a <strong>Completata</strong> e l'invio è tracciato nel registro attività.</div></div>
+
+      <h3>Solleciti automatici</h3>
+      <p>Ogni mattina il comando <code>dsar:deadline-check</code> individua le pratiche scadute o in
+      scadenza entro 3 giorni e invia un avviso al DPO.</p>
+    </section>
+
+    <section id="posta">
+      <h2><span class="num">7</span>Lettura email DPO / PEC</h2>
+      <p class="lead">La piattaforma legge automaticamente le caselle privacy delle aziende, archivia i
+      messaggi, li classifica e apre le DSAR pertinenti.</p>
+
+      <h3>7.1 Configurare una casella — <em>Caselle di posta (IMAP)</em></h3>
+      <table>
+        <tr><th>Campo</th><th>Note</th></tr>
+        <tr><td>Etichetta</td><td>Nome descrittivo (es. "PEC Ufficiale", "Google Privacy").</td></tr>
+        <tr><td>Tipologia</td><td><strong>Email</strong> ordinaria · <strong>PEC</strong> · <strong>Bounce</strong> (mancati recapiti).</td></tr>
+        <tr><td>Indirizzo gestito</td><td>La casella email/PEC.</td></tr>
+        <tr><td>Metodo di autenticazione</td><td><strong>Password / App Password</strong> oppure <strong>OAuth 2.0</strong> (Google, Microsoft).</td></tr>
+        <tr><td>Parametri IMAP</td><td>Host, porta (default 993), crittografia (SSL/STARTTLS/nessuna), username.</td></tr>
+        <tr><td>Token OAuth</td><td>Access/refresh token e scadenza; il refresh è automatico alla scadenza.</td></tr>
+        <tr><td>Polling automatico</td><td>Interruttore per attivare/sospendere la sincronizzazione.</td></tr>
+      </table>
+      <p>Due azioni sulla riga: <strong>Testa connessione</strong> (apre INBOX e riporta il numero di
+      email non lette senza marcarle) e <strong>Sincronizza ora</strong> (accoda subito la scansione).</p>
+
+      <h3>7.2 Sincronizzazione automatica</h3>
+      <ul>
+        <li>Ogni 5 minuti il comando <code>emails:fetch</code> accoda una scansione per ciascuna
+        casella email/PEC attiva; l'elaborazione avviene in coda, casella per casella.</li>
+        <li>Per ogni messaggio non letto viene creato un record in <strong>Posta in arrivo</strong>
+        (mittente, oggetto, corpo, header di conversazione, allegati su disco riservato).</li>
+        <li>La deduplica sul <em>Message-Id</em> impedisce archiviazioni o DSAR doppie.</li>
+        <li>Il messaggio viene marcato come letto sul server IMAP.</li>
+      </ul>
+
+      <h3>7.3 Classificazione</h3>
+      <p>Ogni email riceve una classe: <em>DSAR — Accesso / Cancellazione / Rettifica / Opposizione /
+      Portabilità / Limitazione</em>, <em>Reclamo</em>, <em>Mancato recapito</em>, <em>Spam</em>,
+      <em>Da classificare</em>. Le classi DSAR generano automaticamente una richiesta con il tipo
+      corretto (disattivabile da configurazione: <code>gdpr.auto_create_dsar</code>).</p>
+
+      <h3>7.4 Posta in arrivo — cosa può fare il DPO</h3>
+      <ul>
+        <li><strong>Visualizzare</strong> il messaggio (corpo sanificato), il thread di conversazione e gli allegati scaricabili.</li>
+        <li><strong>Segna letta / non letta</strong>.</li>
+        <li><strong>Crea richiesta DSAR</strong>: precompila tipo, dati del richiedente e descrizione dall'email e vi collega gli allegati.</li>
+        <li><strong>Rispondi</strong>: usa un template email; la risposta viene agganciata alla conversazione originale (header <em>In-Reply-To</em>).</li>
+        <li><strong>Archivia</strong>: sposta il messaggio nel cestino.</li>
+      </ul>
+
+      <h3>7.5 Mancati recapiti (bounce)</h3>
+      <p>Le caselle di tipo <em>Bounce</em> vengono scansionate ogni ora da
+      <code>emails:process-bounces</code>: il DSN viene interpretato (destinatario fallito, codice di
+      stato, diagnostica) e registrato con classificazione <em>hard / soft / unknown</em>.</p>
+
+      <h3>7.6 Retention della posta</h3>
+      <p>Il comando <code>inbox:prune</code> (giornaliero) cestina le email oltre la retention
+      configurata (default 365 giorni) che non hanno una DSAR collegata e non sono reclami; dopo
+      ulteriori 30 giorni le elimina definitivamente insieme agli allegati.</p>
+
+      <h3>7.7 Salute delle caselle</h3>
+      <p>Ogni 6 ore <code>mail:health-check</code> avvisa il DPO se una casella attiva non sincronizza
+      da oltre 24 ore o se un token OAuth sta per scadere senza refresh token.</p>
+    </section>
+
+    <section id="filiera">
+      <h2><span class="num">8</span>Filiera &amp; Fornitori</h2>
+      <h3>Responsabili del trattamento (Data Processor)</h3>
+      <p>Fornitori nominati responsabili ex Art. 28: dati di contatto, stato e date della DPA
+      (firma / scadenza). Da qui si genera l'atto di nomina in PDF.</p>
+
+      <h3>Sub-responsabili (External Processor)</h3>
+      <p>Terze parti a valle del responsabile, con i relativi <strong>audit</strong> e le
+      <strong>valutazioni d'impatto sui trasferimenti</strong> (transfer impact assessment) per i
+      flussi extra-UE.</p>
+
+      <h3>Audit</h3>
+      <ul>
+        <li><strong>Client Audit</strong>: verifiche periodiche verso i titolari serviti.</li>
+        <li><strong>External Processor Audit</strong>: verifiche verso i sub-responsabili.</li>
+      </ul>
+    </section>
+
+    <section id="personale">
+      <h2><span class="num">9</span>Personale &amp; Formazione</h2>
+      <ul>
+        <li><strong>Dipendenti</strong>: anagrafica, mansione, reparto, tipologia, collegamento
+        all'utente applicativo. Dalla lista si generano la <em>lettera di designazione a incaricato</em>
+        (Art. 29) e l'<em>accordo di riservatezza / NDA</em> in PDF.</li>
+        <li><strong>Tipologie dipendente</strong> e relative <strong>autorizzazioni</strong> ai
+        trattamenti.</li>
+        <li><strong>Registro formazione</strong>: corsi svolti, date, esito, allegati attestati.</li>
+      </ul>
+    </section>
+
+    <section id="governance">
+      <h2><span class="num">10</span>Governance &amp; Accountability</h2>
+
+      <h3>Registro dei trattamenti (Art. 30)</h3>
+      <p>Attività di trattamento e relative voci di dettaglio: finalità, categorie di interessati e di
+      dati, basi giuridiche, tempi di conservazione, destinatari, misure di sicurezza. Tabelle di
+      supporto: <strong>Basi giuridiche</strong>, <strong>Tipi di dato</strong>,
+      <strong>Categorie di interessati</strong>, <strong>Tempi di retention</strong>.</p>
+
+      <h3>DPIA — Valutazione d'impatto (Art. 35)</h3>
+      <p>Per i trattamenti a rischio elevato: identificazione dei <strong>rischi</strong>
+      (probabilità × gravità), <strong>impatti</strong> e misure di mitigazione, con punteggio di
+      rischio inerente e residuo e data di revisione. Il widget di dashboard evidenzia le DPIA con
+      rischio ≥ 15/25.</p>
+
+      <h3>Asset e misure di sicurezza</h3>
+      <ul>
+        <li><strong>Privacy Asset</strong>: sistemi, archivi e supporti che trattano dati personali.</li>
+        <li><strong>Privacy Security</strong>: misure tecniche e organizzative adottate, con catalogo di riferimento.</li>
+      </ul>
+
+      <h3>Data breach</h3>
+      <p>Registro delle violazioni: vedi §11.</p>
+    </section>
+
+    <section id="breach">
+      <h2><span class="num">11</span>Data breach e termine 72 ore</h2>
+
+      <h3>Registrazione</h3>
+      <p>Titolo, data di scoperta e di accadimento, descrizione, natura (riservatezza / integrità /
+      disponibilità), numero stimato di record, gravità, categorie di dati e di interessati coinvolti,
+      causa, azioni correttive e preventive.</p>
+      <p>All'inserimento, in base alla gravità, la piattaforma propone automaticamente l'obbligo di
+      <strong>notifica al Garante</strong> (gravità alta o media) e di <strong>comunicazione agli
+      interessati</strong> (gravità alta).</p>
+
+      <h3>Contatore 72 ore (Art. 33)</h3>
+      <p>La colonna <strong>Garante 72h</strong> mostra lo stato rispetto al termine calcolato come
+      <em>data di scoperta + 72 ore</em>:</p>
+      <table>
+        <tr><th>Stato</th><th>Significato</th></tr>
+        <tr><td>Non dovuta</td><td>La violazione non è notificabile al Garante.</td></tr>
+        <tr><td>Entro &lt;data&gt;</td><td>Termine non ancora vicino.</td></tr>
+        <tr><td>Entro &lt;data&gt; (giallo)</td><td>Mancano meno di 12 ore.</td></tr>
+        <tr><td>SCADUTO (rosso)</td><td>Termine superato senza notifica registrata.</td></tr>
+        <tr><td>Notificato &lt;data&gt; (verde)</td><td>Notifica registrata.</td></tr>
+      </table>
+
+      <h3>Azioni</h3>
+      <ul>
+        <li><strong>Notificato al Garante</strong> / <strong>Comunicato agli interessati</strong>:
+        registrano data e ora dell'adempimento e aggiornano lo stato dell'incidente.</li>
+        <li><strong>Dossier Notifica (PDF)</strong>: genera il modello di notifica pronto da inviare.</li>
+      </ul>
+    </section>
+
+    <section id="config">
+      <h2><span class="num">12</span>Configurazione &amp; Tabellari</h2>
+      <ul>
+        <li><strong>Caselle di posta (IMAP)</strong> — vedi §7.1.</li>
+        <li><strong>Template email</strong>: oggetto e corpo HTML/testo con segnaposto
+        <code>{requester_name}</code>, <code>{company_name}</code>, <code>{received_at}</code>,
+        <code>{deadline_at}</code>, <code>{request_type}</code>, <code>{subject}</code>. Usati per le
+        risposte DSAR e dalla Posta in arrivo.</li>
+        <li><strong>Software applicativi</strong> e <strong>categorie software</strong>: censimento
+        degli strumenti che trattano dati, collegabili ad asset e trattamenti.</li>
+        <li><strong>Holding / gruppi societari</strong>.</li>
+        <li>Tabelle di supporto (tipi documento, tipi cliente, ecc.).</li>
+      </ul>
+    </section>
+
+    <section id="documenti">
+      <h2><span class="num">13</span>Generazione documenti PDF</h2>
+      <p>Dalla riga della risorsa corrispondente si producono, già intestati all'azienda corrente:</p>
+      <table>
+        <tr><th>Documento</th><th>Origine</th><th>Riferimento</th></tr>
+        <tr><td>Lettera di designazione a incaricato</td><td>Dipendenti</td><td>Art. 29 GDPR</td></tr>
+        <tr><td>Accordo di riservatezza / NDA</td><td>Dipendenti</td><td>—</td></tr>
+        <tr><td>Atto di nomina a sub-responsabile (DPA)</td><td>Responsabili del trattamento</td><td>Art. 28 GDPR</td></tr>
+        <tr><td>Dossier di notifica data breach</td><td>Data breach</td><td>Art. 33-34 GDPR</td></tr>
+      </table>
+      <div class="callout">L'azienda di riferimento è sempre quella collegata al record o il tenant
+      attivo: se non è determinabile, la generazione si interrompe con un errore esplicito (nessun
+      documento intestato all'azienda sbagliata).</div>
+    </section>
+
+    <section id="automazioni">
+      <h2><span class="num">14</span>Automazioni schedulate</h2>
+      <p>Richiedono lo scheduler di Laravel attivo (<code>php artisan schedule:run</code> ogni minuto)
+      e un worker di coda (<code>php artisan queue:work</code>).</p>
+      <table>
+        <tr><th>Frequenza</th><th>Comando</th><th>Effetto</th></tr>
+        <tr><td>Ogni 5 minuti</td><td><code>emails:fetch</code></td><td>Accoda la scansione delle caselle email/PEC.</td></tr>
+        <tr><td>Ogni ora</td><td><code>emails:process-bounces</code></td><td>Scansiona le caselle bounce e registra i DSN.</td></tr>
+        <tr><td>02:30</td><td><code>inbox:prune</code></td><td>Retention della posta in arrivo.</td></tr>
+        <tr><td>08:00</td><td><code>dsar:deadline-check</code></td><td>Avvisa il DPO su DSAR scadute / in scadenza.</td></tr>
+        <tr><td>Ogni 6 ore</td><td><code>mail:health-check</code></td><td>Avvisa su caselle ferme o token OAuth in scadenza.</td></tr>
+      </table>
+    </section>
+
+    <section id="sicurezza">
+      <h2><span class="num">15</span>Sicurezza e protezione dati</h2>
+      <ul>
+        <li><strong>Segreti cifrati a riposo</strong>: password IMAP, access token e refresh token
+        delle caselle sono salvati cifrati. Il comando <code>secrets:encrypt-company-imap</code> cifra
+        eventuali valori legacy in chiaro.</li>
+        <li><strong>Allegati su disco riservato</strong>: gli allegati di DSAR, posta in arrivo e
+        breach sono su un filesystem privato, non servito pubblicamente.</li>
+        <li><strong>Registro attività</strong> (activity log): traccia creazioni/modifiche di DSAR,
+        breach, posta in arrivo, invii di risposte, test/sincronizzazioni delle caselle e le
+        operazioni di retention.</li>
+        <li><strong>Minimizzazione</strong>: la posta non pertinente viene cancellata secondo la
+        retention configurata in <code>config/gdpr.php</code>.</li>
+        <li><strong>Isolamento tra aziende</strong>: ogni tenant vede solo i propri dati.</li>
+      </ul>
+    </section>
+
+    <section id="flussi">
+      <h2><span class="num">16</span>Flussi operativi guidati</h2>
+
+      <h3>Gestire una DSAR arrivata via email</h3>
+      <div class="step"><div class="n">1</div><div class="b">L'email arriva in <strong>Posta in arrivo</strong> ed è classificata (es. <em>DSAR — Accesso</em>). Se l'automatismo è attivo, la DSAR è già creata e collegata.</div></div>
+      <div class="step"><div class="n">2</div><div class="b">Apri la DSAR, richiedi all'interessato il documento d'identità se manca, poi spunta <strong>Identità verificata</strong> indicando il metodo.</div></div>
+      <div class="step"><div class="n">3</div><div class="b">Porta lo stato a <strong>In lavorazione</strong>; se serve più tempo, imposta la <strong>proroga</strong> e motiva.</div></div>
+      <div class="step"><div class="n">4</div><div class="b">Raccogli il riscontro, poi usa <strong>Invia Risposta</strong> con il template adeguato. La pratica passa a <strong>Completata</strong>.</div></div>
+
+      <h3>Gestire un data breach</h3>
+      <div class="step"><div class="n">1</div><div class="b">Registra l'incidente <strong>appena scoperto</strong>: la data di scoperta avvia il contatore delle 72 ore.</div></div>
+      <div class="step"><div class="n">2</div><div class="b">Compila natura, dati e interessati coinvolti, gravità: la piattaforma propone gli obblighi di notifica.</div></div>
+      <div class="step"><div class="n">3</div><div class="b">Se dovuta, genera il <strong>Dossier Notifica (PDF)</strong>, invialo al Garante e registra l'adempimento con <strong>Notificato al Garante</strong>.</div></div>
+      <div class="step"><div class="n">4</div><div class="b">Se la gravità è alta, comunica agli interessati e registra con <strong>Comunicato agli interessati</strong>. Aggiorna stato e misure fino a <em>Risolto</em>.</div></div>
+
+      <h3>Onboarding di una nuova azienda</h3>
+      <div class="step"><div class="n">1</div><div class="b">Crea l'<strong>azienda</strong> (eventualmente dentro una holding) con anagrafica e referenti.</div></div>
+      <div class="step"><div class="n">2</div><div class="b">Configura le <strong>caselle di posta</strong> DPO / PEC e testa la connessione.</div></div>
+      <div class="step"><div class="n">3</div><div class="b">Popola <strong>dipendenti</strong>, <strong>responsabili esterni</strong>, <strong>software</strong> e <strong>asset</strong>.</div></div>
+      <div class="step"><div class="n">4</div><div class="b">Compila il <strong>registro dei trattamenti</strong> e apri le <strong>DPIA</strong> necessarie.</div></div>
+      <div class="step"><div class="n">5</div><div class="b">Prepara i <strong>template email</strong> per le risposte DSAR.</div></div>
+    </section>
+
+    <section id="comandi">
+      <h2><span class="num">17</span>Riferimento comandi</h2>
+      <pre><code># Posta
+php artisan emails:fetch [--company=UUID] [--limit=N] [--sync]
+php artisan emails:process-bounces [--company=UUID]
+php artisan inbox:prune [--dry-run]
+php artisan mail:health-check [--stale-hours=24]
+
+# DSAR
+php artisan dsar:deadline-check [--days=3]
+
+# Sicurezza
+php artisan secrets:encrypt-company-imap [--dry-run]
+
+# Infrastruttura (necessari per le automazioni)
+php artisan schedule:run      # da cron, ogni minuto
+php artisan queue:work        # worker di coda</code></pre>
+      <div class="callout">
+        Parametri di comportamento in <code>config/gdpr.php</code>:
+        <code>auto_create_dsar</code>, <code>inbox_retention_days</code>,
+        <code>inbox_hard_delete_after_days</code>, <code>fetch.default_limit</code>,
+        <code>fetch.queue</code>.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  UnicoGDPR Compliance — manuale operativo. Documento interno, non costituisce consulenza legale.
+</footer>
+
+</body>
+</html>

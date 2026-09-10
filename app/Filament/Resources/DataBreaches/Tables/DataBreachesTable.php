@@ -2,17 +2,22 @@
 
 namespace App\Filament\Resources\DataBreaches\Tables;
 
+use App\Models\DataBreach;
+use App\Services\DocumentGeneratorService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class DataBreachesTable
 {
@@ -32,34 +37,34 @@ class DataBreachesTable
                     ->colors([
                         'success' => 'low',
                         'warning' => 'medium',
-                        'danger'  => 'high',
+                        'danger' => 'high',
                     ])
                     ->icons([
-                        'heroicon-o-check-circle'       => 'low',
+                        'heroicon-o-check-circle' => 'low',
                         'heroicon-o-exclamation-circle' => 'medium',
-                        'heroicon-o-fire'               => 'high',
+                        'heroicon-o-fire' => 'high',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'low'    => '🟢 Bassa',
+                        'low' => '🟢 Bassa',
                         'medium' => '🟡 Media',
-                        'high'   => '🔴 Alta',
-                        default  => ucfirst($state),
+                        'high' => '🔴 Alta',
+                        default => ucfirst($state),
                     }),
                 BadgeColumn::make('status')
                     ->label('Stato')
                     ->sortable()
                     ->colors([
                         'warning' => 'investigating',
-                        'info'    => 'contained',
+                        'info' => 'contained',
                         'success' => 'resolved',
                         'primary' => 'notified',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'investigating' => 'In indagine',
-                        'contained'     => 'Contenuto',
-                        'resolved'      => 'Risolto',
-                        'notified'      => 'Notificato',
-                        default         => ucfirst($state),
+                        'contained' => 'Contenuto',
+                        'resolved' => 'Risolto',
+                        'notified' => 'Notificato',
+                        default => ucfirst($state),
                     }),
                 IconColumn::make('is_notifiable_to_authority')
                     ->label('Notifica Garante')
@@ -79,6 +84,23 @@ class DataBreachesTable
                     ->label('Scoperto il')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
+                TextColumn::make('authority_deadline')
+                    ->label('Garante 72h')
+                    ->state(fn (DataBreach $record) => match ($record->authorityNotificationState()) {
+                        'not_required' => 'Non dovuta',
+                        'done' => 'Notificato '.$record->authority_notified_at?->format('d/m H:i'),
+                        'overdue' => 'SCADUTO ('.$record->authorityNotificationDeadline()?->format('d/m H:i').')',
+                        'due_soon' => 'Entro '.$record->authorityNotificationDeadline()?->format('d/m H:i'),
+                        default => 'Entro '.$record->authorityNotificationDeadline()?->format('d/m H:i'),
+                    })
+                    ->badge()
+                    ->color(fn (DataBreach $record) => match ($record->authorityNotificationState()) {
+                        'done' => 'success',
+                        'overdue' => 'danger',
+                        'due_soon' => 'warning',
+                        'not_required' => 'gray',
+                        default => 'info',
+                    }),
                 TextColumn::make('approximate_records_count')
                     ->label('N° record')
                     ->numeric()
@@ -89,30 +111,56 @@ class DataBreachesTable
                 SelectFilter::make('severity')
                     ->label('Gravità')
                     ->options([
-                        'low'    => '🟢 Bassa',
+                        'low' => '🟢 Bassa',
                         'medium' => '🟡 Media',
-                        'high'   => '🔴 Alta',
+                        'high' => '🔴 Alta',
                     ]),
                 SelectFilter::make('status')
                     ->label('Stato')
                     ->options([
                         'investigating' => 'In indagine',
-                        'contained'     => 'Contenuto',
-                        'resolved'      => 'Risolto',
-                        'notified'      => 'Notificato',
+                        'contained' => 'Contenuto',
+                        'resolved' => 'Risolto',
+                        'notified' => 'Notificato',
                     ]),
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                \Filament\Actions\Action::make('generate_dossier')
+                Action::make('mark_authority_notified')
+                    ->label('Notificato al Garante')
+                    ->icon('heroicon-o-bell-alert')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (DataBreach $record) => $record->is_notifiable_to_authority && ! $record->authority_notified_at)
+                    ->action(function (DataBreach $record): void {
+                        $record->update([
+                            'authority_notified_at' => now(),
+                            'status' => $record->status === 'investigating' ? 'notified' : $record->status,
+                        ]);
+                        activity('data_breach')->performedOn($record)->log('Notifica al Garante registrata');
+                        Notification::make()->title('Notifica al Garante registrata')->success()->send();
+                    }),
+                Action::make('mark_subjects_notified')
+                    ->label('Comunicato agli interessati')
+                    ->icon('heroicon-o-users')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->visible(fn (DataBreach $record) => $record->is_notifiable_to_subjects && ! $record->subjects_notified_at)
+                    ->action(function (DataBreach $record): void {
+                        $record->update(['subjects_notified_at' => now()]);
+                        activity('data_breach')->performedOn($record)->log('Comunicazione agli interessati registrata');
+                        Notification::make()->title('Comunicazione agli interessati registrata')->success()->send();
+                    }),
+                Action::make('generate_dossier')
                     ->label('Dossier Notifica (PDF)')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('danger')
-                    ->action(function (\App\Models\DataBreach $record, \App\Services\DocumentGeneratorService $service) {
+                    ->action(function (DataBreach $record, DocumentGeneratorService $service) {
                         $pdf = $service->generateNotificaDataBreach($record);
-                        $fileName = 'Dossier_DataBreach_' . \Illuminate\Support\Str::slug($record->name) . '.pdf';
+                        $fileName = 'Dossier_DataBreach_'.Str::slug($record->name).'.pdf';
+
                         return response()->streamDownload(
-                            fn () => print($pdf->output()),
+                            fn () => print ($pdf->output()),
                             $fileName,
                             ['Content-Type' => 'application/pdf']
                         );

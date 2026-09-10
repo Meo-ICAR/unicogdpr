@@ -96,6 +96,16 @@ class DataSubjectRequestResource extends Resource
                         ->helperText('Solo template attivi'),
                 ])
                 ->action(function (DataSubjectRequest $record, array $data): void {
+                    if ($record->isBlockedByIdentityCheck()) {
+                        Notification::make()
+                            ->title('Identità non verificata')
+                            ->body('Verifica e conferma l\'identità del richiedente prima di inviare un riscontro con dati personali.')
+                            ->danger()
+                            ->send();
+
+                        return;
+                    }
+
                     $template = EmailTemplate::findOrFail($data['email_template_id']);
 
                     $rendered = $template->render([

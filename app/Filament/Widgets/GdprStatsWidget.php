@@ -5,6 +5,8 @@ namespace App\Filament\Widgets;
 use App\Models\DataBreach;
 use App\Models\DataProcessor;
 use App\Models\DataSubjectRequest;
+use App\Models\IncomingEmail;
+use App\Models\MailAccount;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -32,6 +34,14 @@ class GdprStatsWidget extends BaseWidget
             ->whereBetween('dpa_expires_at', [now(), now()->addDays(30)])
             ->count();
 
+        // 5. Email in "Posta in arrivo" non ancora lette
+        $unreadInboxCount = IncomingEmail::query()->where('is_read', false)->count();
+
+        // 6. Caselle IMAP attive ferme da oltre 24 ore
+        $staleMailboxCount = MailAccount::where('is_active', true)
+            ->where(fn ($q) => $q->whereNull('last_synced_at')->orWhere('last_synced_at', '<', now()->subDay()))
+            ->count();
+
         return [
             Stat::make('Richieste DSAR in Sospeso', $pendingDsarCount)
                 ->description('Istanze Art. 15-22 da evadere')
@@ -56,6 +66,16 @@ class GdprStatsWidget extends BaseWidget
                 ->descriptionIcon('heroicon-o-document-text')
                 ->color($expiringDpaCount > 0 ? 'warning' : 'success')
                 ->chart([1, 2, 1, 3, $expiringDpaCount]),
+
+            Stat::make('Posta in Arrivo da Leggere', $unreadInboxCount)
+                ->description('Email DPO/PEC non ancora triagliate')
+                ->descriptionIcon('heroicon-o-envelope')
+                ->color($unreadInboxCount > 0 ? 'warning' : 'success'),
+
+            Stat::make('Caselle di Posta Ferme', $staleMailboxCount)
+                ->description('Attive ma senza sync da oltre 24h')
+                ->descriptionIcon('heroicon-o-signal-slash')
+                ->color($staleMailboxCount > 0 ? 'danger' : 'success'),
         ];
     }
 }
