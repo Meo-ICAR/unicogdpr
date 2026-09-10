@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,7 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class OptOut extends Model implements HasMedia
 {
-    use InteractsWithMedia, SoftDeletes;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'phone',

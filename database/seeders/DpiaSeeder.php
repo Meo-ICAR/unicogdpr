@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Company;
 use App\Models\Dpia;
+use App\Models\ProcessingActivity;
 use App\Models\RegistroTrattamentiItem;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -26,6 +26,7 @@ class DpiaSeeder extends Seeder
 
         if ($companies->isEmpty() || $registroItems->isEmpty()) {
             $this->command->warn('No companies or registro trattamenti items found. Skipping DPIA seeding.');
+
             return;
         }
 
@@ -126,11 +127,17 @@ class DpiaSeeder extends Seeder
             // Assign random registro trattamenti items to DPIAs
             $assignedItems = $registroItems->random(min(5, $registroItems->count()));
 
+            // Trattamenti canonici (Art. 30) di questa azienda, per il collegamento nuovo
+            $activities = ProcessingActivity::where('company_id', $company->id)->get();
+
             foreach ($dpias as $index => $dpiaData) {
-                // Create DPIA with company_id and random registro item
+                // Create DPIA with company_id, registro legacy e trattamento canonico
                 $dpia = Dpia::create(array_merge($dpiaData, [
                     'company_id' => $company->id,
                     'registro_trattamenti_item_id' => $assignedItems->get($index % $assignedItems->count())->id,
+                    'processing_activity_id' => $activities->isNotEmpty()
+                        ? $activities->get($index % $activities->count())->id
+                        : null,
                 ]));
 
                 $this->command->info("Created DPIA: {$dpia->name} for company: {$company->name}");

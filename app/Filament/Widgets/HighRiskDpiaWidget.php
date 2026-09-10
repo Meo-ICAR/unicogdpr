@@ -21,7 +21,7 @@ class HighRiskDpiaWidget extends BaseWidget
         return $table
             ->query(
                 Dpia::query()
-                    ->with(['registroTrattamento', 'items'])
+                    ->with(['processingActivity', 'registroTrattamento', 'items'])
                     ->latest()
             )
             ->columns([
@@ -29,23 +29,25 @@ class HighRiskDpiaWidget extends BaseWidget
                     ->label('Valutazione d\'Impatto')
                     ->weight('bold')
                     ->searchable(),
-                TextColumn::make('registroTrattamento.activity')
+                TextColumn::make('processing_activity')
                     ->label('Trattamento Correlato')
+                    ->state(fn (Dpia $record) => $record->processingActivity?->name
+                        ?? $record->registroTrattamento?->activity
+                        ?? 'Non specificato')
                     ->badge()
-                    ->color('info')
-                    ->placeholder('Non specificato'),
+                    ->color('info'),
                 BadgeColumn::make('status')
                     ->label('Stato')
                     ->colors([
                         'warning' => 'draft',
-                        'info'    => 'under_review',
+                        'info' => 'under_review',
                         'success' => 'completed',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'draft'        => 'Bozza',
+                        'draft' => 'Bozza',
                         'under_review' => 'In revisione',
-                        'completed'    => 'Completata',
-                        default        => ucfirst($state),
+                        'completed' => 'Completata',
+                        default => ucfirst($state),
                     }),
                 TextColumn::make('items_count')
                     ->label('N° Rischi')
@@ -59,12 +61,12 @@ class HighRiskDpiaWidget extends BaseWidget
                     ->colors([
                         'success' => fn ($state): bool => $state < 10,
                         'warning' => fn ($state): bool => $state >= 10 && $state < 15,
-                        'danger'  => fn ($state): bool => $state >= 15,
+                        'danger' => fn ($state): bool => $state >= 15,
                     ])
                     ->formatStateUsing(fn ($state) => match (true) {
                         $state >= 15 => "🔴 {$state}/25 (Elevato)",
                         $state >= 10 => "🟡 {$state}/25 (Medio)",
-                        default      => "🟢 {$state}/25 (Basso)",
+                        default => "🟢 {$state}/25 (Basso)",
                     }),
                 TextColumn::make('next_review_date')
                     ->label('Prossima Revisione')

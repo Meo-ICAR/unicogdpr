@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesMorphLabels;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -11,6 +12,7 @@ use Spatie\Activitylog\Support\LogOptions;
 class ConsentLog extends Model
 {
     use LogsActivity;
+    use ResolvesMorphLabels;
 
     protected $fillable = [
         'company_id', 'consentable_type', 'consentable_id', 'ip_address',
@@ -18,7 +20,7 @@ class ConsentLog extends Model
     ];
 
     protected $casts = [
-        'marketing_consent'            => 'boolean',
+        'marketing_consent' => 'boolean',
         'third_party_transfer_consent' => 'boolean',
     ];
 

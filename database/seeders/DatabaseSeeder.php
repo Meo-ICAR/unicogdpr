@@ -42,16 +42,16 @@ class DatabaseSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['email' => 'hassistosrl@gmail.com'],
             [
-                'name'              => 'Amministratore GDPR',
-                'password'          => Hash::make('password'),
+                'name' => 'Amministratore GDPR',
+                'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
         );
         $dpoUser = User::firstOrCreate(
             ['email' => 'dpo@unicogdpr.it'],
             [
-                'name'              => 'Avv. Laura Bianchi (DPO)',
-                'password'          => Hash::make('password'),
+                'name' => 'Avv. Laura Bianchi (DPO)',
+                'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
         );
@@ -78,24 +78,21 @@ class DatabaseSeeder extends Seeder
         $this->call([
             EmployeeSeeder::class,
             SoftwareApplicationSeeder::class,
+            PrivacyAssetSeeder::class,
+            MailAccountSeeder::class,
         ]);
 
         // ════════════════════════════════════════════════════════════════
-        // 5. GDPR CORE — Registro, DPIA, Responsabili, Contitolari
+        // 5. GDPR CORE — Responsabili, Contitolari, Registro, DPIA
+        //    Ordine: ClientController → ProcessingActivity → DPIA
         // ════════════════════════════════════════════════════════════════
         $this->call([
-            RegistroTrattamentiItemSeeder::class,
-            DpiaSeeder::class,
-            DpiaItemSeeder::class,
             ExternalProcessorSeeder::class,
             ClientControllerSeeder::class,
-        ]);
-
-        // ════════════════════════════════════════════════════════════════
-        // 6. PROCESSING ACTIVITIES (Art. 30 — nuovo modello)
-        // ════════════════════════════════════════════════════════════════
-        $this->call([
-            ProcessingActivitySeeder::class,
+            RegistroTrattamentiItemSeeder::class,   // legacy, ancora referenziato dalla FK DPIA
+            ProcessingActivitySeeder::class,        // registro canonico Art. 30
+            DpiaSeeder::class,
+            DpiaItemSeeder::class,
         ]);
 
         // ════════════════════════════════════════════════════════════════
@@ -120,6 +117,9 @@ class DatabaseSeeder extends Seeder
             DataSubjectRequestSeeder::class,   // dipende da Client
             RegistrationSeeder::class,         // dipende da Employee
             LeadTransferSeeder::class,         // dipende da Client, ClientController, ExternalProcessor
+            LeadReturnLogSeeder::class,        // dipende da Client
+            DataBreachSeeder::class,           // dipende da Company
+            IncomingEmailSeeder::class,        // dipende da MailAccount
         ]);
     }
 }

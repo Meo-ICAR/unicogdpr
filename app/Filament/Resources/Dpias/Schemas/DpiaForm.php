@@ -31,10 +31,10 @@ class DpiaForm
                             ->maxLength(255)
                             ->columnSpanFull(),
 
-                        // BelongsTo → RegistroTrattamentiItem
-                        Select::make('registro_trattamenti_item_id')
+                        // BelongsTo → ProcessingActivity (registro canonico Art. 30)
+                        Select::make('processing_activity_id')
                             ->label('Trattamento di Riferimento (Art. 30)')
-                            ->relationship(name: 'registroTrattamento', titleAttribute: 'activity')
+                            ->relationship(name: 'processingActivity', titleAttribute: 'name')
                             ->searchable()
                             ->preload(),
 
@@ -43,9 +43,9 @@ class DpiaForm
                             ->required()
                             ->default('draft')
                             ->options([
-                                'draft'        => '📝 Bozza',
+                                'draft' => '📝 Bozza',
                                 'under_review' => '🔍 In Revisione',
-                                'completed'    => '✅ Completata',
+                                'completed' => '✅ Completata',
                             ]),
                         DatePicker::make('completion_date')
                             ->label('Data Completamento'),
@@ -167,8 +167,8 @@ class DpiaForm
      */
     protected static function updateRiskScores(Get $get, Set $set): void
     {
-        $probability   = (int) ($get('probability') ?? 1);
-        $severity      = (int) ($get('severity') ?? 1);
+        $probability = (int) ($get('probability') ?? 1);
+        $severity = (int) ($get('severity') ?? 1);
         $hasMitigation = ! empty($get('privacy_security_id'));
 
         $inherentScore = $probability * $severity;

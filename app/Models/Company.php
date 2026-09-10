@@ -95,4 +95,39 @@ class Company extends Model
     {
         return $this->hasMany(EmailBounce::class);
     }
+
+    public function consentLogs(): HasMany
+    {
+        return $this->hasMany(ConsentLog::class);
+    }
+
+    public function leadTransfers(): HasMany
+    {
+        return $this->hasMany(LeadTransfer::class);
+    }
+
+    public function leadReturnLogs(): HasMany
+    {
+        return $this->hasMany(LeadReturnLog::class);
+    }
+
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(Registration::class);
+    }
+
+    public function processingActivities(): HasMany
+    {
+        return $this->hasMany(ProcessingActivity::class);
+    }
+
+    public function dpias(): HasMany
+    {
+        return $this->hasMany(Dpia::class);
+    }
+
+    public function dataBreaches(): HasMany
+    {
+        return $this->hasMany(DataBreach::class);
+    }
 }

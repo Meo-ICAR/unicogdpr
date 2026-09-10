@@ -18,7 +18,7 @@ class Dpia extends Model implements HasMedia
     protected $table = 'dpias';
 
     protected $fillable = [
-        'company_id', 'name', 'registro_trattamenti_item_id',
+        'company_id', 'name', 'registro_trattamenti_item_id', 'processing_activity_id',
         'description_of_processing', 'necessity_assessment',
         'is_necessary', 'is_proportional', 'status', 'dpo_opinion',
         'completion_date', 'next_review_date',
@@ -59,6 +59,14 @@ class Dpia extends Model implements HasMedia
     public function registroTrattamento(): BelongsTo
     {
         return $this->belongsTo(RegistroTrattamentiItem::class, 'registro_trattamenti_item_id');
+    }
+
+    /**
+     * Trattamento di riferimento nel registro canonico (Art. 30).
+     */
+    public function processingActivity(): BelongsTo
+    {
+        return $this->belongsTo(ProcessingActivity::class);
     }
 
     public function dpiaItems(): HasMany
