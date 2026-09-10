@@ -8,8 +8,11 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Esegue il controllo della posta ogni 5 minuti
-Schedule::command('emails:fetch --limit=50')->everyFiveMinutes();
+// Accoda la scansione delle caselle email/PEC ogni 5 minuti
+Schedule::command('emails:fetch')->everyFiveMinutes()->withoutOverlapping();
 
-// Esegue la scansione dei bounce ogni ora
-Schedule::command('emails:process-bounces')->hourly();
+// Scansione delle caselle bounce ogni ora
+Schedule::command('emails:process-bounces')->hourly()->withoutOverlapping();
+
+// Retention della posta in arrivo, una volta al giorno
+Schedule::command('inbox:prune')->dailyAt('02:30');

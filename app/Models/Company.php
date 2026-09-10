@@ -45,8 +45,10 @@ class Company extends Model
     protected $casts = [
         'imap_port' => 'integer',
         'imap_is_active' => 'boolean',
+        'imap_password' => 'encrypted',
         'pec_imap_port' => 'integer',
         'pec_imap_is_active' => 'boolean',
+        'pec_imap_password' => 'encrypted',
     ];
 
     public function users(): BelongsToMany
@@ -72,5 +74,25 @@ class Company extends Model
     public function holding(): BelongsTo
     {
         return $this->belongsTo(Holding::class);
+    }
+
+    public function mailAccounts(): HasMany
+    {
+        return $this->hasMany(MailAccount::class);
+    }
+
+    public function incomingEmails(): HasMany
+    {
+        return $this->hasMany(IncomingEmail::class);
+    }
+
+    public function dataSubjectRequests(): HasMany
+    {
+        return $this->hasMany(DataSubjectRequest::class);
+    }
+
+    public function emailBounces(): HasMany
+    {
+        return $this->hasMany(EmailBounce::class);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Companies\Schemas;
 
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -27,7 +26,7 @@ class CompanyForm
                             ->searchable()
                             ->preload()
                             ->default(fn () => Auth::user()?->holding_id)
-                            ->disabled(fn () => !empty(Auth::user()?->holding_id))
+                            ->disabled(fn () => ! empty(Auth::user()?->holding_id))
                             ->dehydrated()
                             ->nullable()
                             ->helperText('Associa questa azienda a un gruppo o holding (lasciare vuoto se autonoma)')
@@ -103,8 +102,12 @@ class CompanyForm
                     ]),
 
                 // ── 3. Canale PEC Ufficiale & IMAP ───────────────────────────
+                // @deprecated I parametri IMAP qui sotto non vengono più usati dal fetch:
+                // configura le caselle in "Configurazione & Tabellari › Caselle di posta (IMAP)".
+                // Restano solo per compatibilità con i dati storici.
                 Section::make('Canale PEC Ufficiale & IMAP')
                     ->icon('heroicon-o-shield-check')
+                    ->description('Deprecato: gestisci host, credenziali e OAuth nella sezione "Caselle di posta (IMAP)". Qui resta solo l\'indirizzo PEC di riferimento.')
                     ->columns(2)
                     ->schema([
                         TextInput::make('pec')
@@ -152,8 +155,11 @@ class CompanyForm
                     ]),
 
                 // ── 4. Email Ordinaria & IMAP ────────────────────────────────
+                // @deprecated Vedi nota alla sezione PEC: la configurazione IMAP attiva
+                // vive ora nella risorsa "Caselle di posta (IMAP)".
                 Section::make('Email DPO Ordinaria & Configurazione IMAP')
                     ->icon('heroicon-o-envelope')
+                    ->description('Deprecato: la sincronizzazione automatica usa la sezione "Caselle di posta (IMAP)". Qui resta solo l\'email DPO di riferimento.')
                     ->columns(2)
                     ->schema([
                         TextInput::make('email')

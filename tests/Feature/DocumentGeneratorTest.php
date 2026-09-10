@@ -22,6 +22,8 @@ class DocumentGeneratorTest extends TestCase
             'tax_code' => 'RSSMRA80A01H501U',
         ]);
 
+        $employee->setRelation('company', new Company(['name' => 'Acme S.r.l.']));
+
         $pdf = $service->generateNominaIncaricato($employee);
         $output = $pdf->output();
 
@@ -38,6 +40,8 @@ class DocumentGeneratorTest extends TestCase
             'job_title' => 'Team Leader',
             'tax_code' => 'VRDLGU85B02H501X',
         ]);
+
+        $employee->setRelation('company', new Company(['name' => 'Acme S.r.l.']));
 
         $pdf = $service->generateAccordoRiservatezza($employee);
         $output = $pdf->output();
@@ -57,6 +61,8 @@ class DocumentGeneratorTest extends TestCase
             'dpa_signed_at' => now(),
             'dpa_expires_at' => now()->addYear(),
         ]);
+
+        $processor->setRelation('company', new Company(['name' => 'Acme S.r.l.']));
 
         $pdf = $service->generateDpaSubresponsabile($processor);
         $output = $pdf->output();
@@ -78,6 +84,8 @@ class DocumentGeneratorTest extends TestCase
             'description' => 'Rilevato picco anomalo di tentativi di accesso su credenziali operatore dismesso.',
             'approximate_records_count' => 150,
         ]);
+
+        $breach->setRelation('company', new Company(['name' => 'Acme S.r.l.']));
 
         $pdf = $service->generateNotificaDataBreach($breach);
         $output = $pdf->output();

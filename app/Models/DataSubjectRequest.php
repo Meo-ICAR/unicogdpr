@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\DsarStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\MediaLibrary\HasMedia;
@@ -14,7 +16,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class DataSubjectRequest extends Model implements HasMedia
 {
-    use SoftDeletes, LogsActivity, InteractsWithMedia, HasFactory;
+    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'company_id', 'registrable_type', 'registrable_id', 'requester_name',
@@ -22,14 +24,16 @@ class DataSubjectRequest extends Model implements HasMedia
         'received_at', 'deadline_at', 'extended_until', 'completed_at',
         'request_description', 'response_notes', 'rejection_reason',
         'identity_verified', 'identity_verification_method', 'channel',
+        'source_message_id',
     ];
 
     protected $casts = [
-        'received_at'       => 'date',
-        'deadline_at'       => 'date',
-        'extended_until'    => 'date',
-        'completed_at'      => 'date',
+        'received_at' => 'date',
+        'deadline_at' => 'date',
+        'extended_until' => 'date',
+        'completed_at' => 'date',
         'identity_verified' => 'boolean',
+        'status' => DsarStatus::class,
     ];
 
     public function getActivitylogOptions(): LogOptions
@@ -66,8 +70,8 @@ class DataSubjectRequest extends Model implements HasMedia
 
         return static::create(array_merge([
             'received_at' => $receivedAt,
-            'deadline_at' => \Illuminate\Support\Carbon::parse($receivedAt)->copy()->addDays(30),
-            'status'      => 'received',
+            'deadline_at' => Carbon::parse($receivedAt)->copy()->addDays(30),
+            'status' => DsarStatus::Received,
         ], $data));
     }
 
@@ -77,7 +81,7 @@ class DataSubjectRequest extends Model implements HasMedia
     public function isExpiringSoon(int $days = 7): bool
     {
         return $this->deadline_at
-            && in_array($this->status, ['received', 'in_progress'])
+            && in_array($this->status, [DsarStatus::Received, DsarStatus::InProgress], true)
             && $this->deadline_at->diffInDays(now(), false) >= -$days
             && $this->deadline_at->isFuture();
     }

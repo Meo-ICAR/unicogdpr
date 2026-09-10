@@ -2,39 +2,94 @@
 
 namespace App\Console\Commands;
 
-use App\Models\LeadReturnLog;
+use App\Contracts\ImapConnector;
+use App\Models\EmailBounce;
+use App\Models\MailAccount;
+use App\Services\Mail\BounceParser;
 use Illuminate\Console\Command;
-use Webklex\IMAP\Facades\Client;
 
 class ProcessBounceEmails extends Command
 {
-    protected $signature = 'emails:process-bounces';
-    protected $description = 'Scansiona le email di rimbalzo (bounce) per tracciare i recapiti falliti';
+    protected $signature = 'emails:process-bounces {--company= : UUID opzionale del tenant}';
 
-    public function handle(): int
+    protected $description = 'Scansiona le caselle di tipo "bounce" e registra i mancati recapiti (DSN) in email_bounces';
+
+    public function handle(ImapConnector $connections, BounceParser $parser): int
     {
-        $client = Client::account('bounces');
-        $client->connect();
+        $accounts = MailAccount::query()
+            ->where('is_active', true)
+            ->where('type', 'bounce')
+            ->when($this->option('company'), fn ($q) => $q->where('company_id', $this->option('company')))
+            ->get();
 
-        $folder = $client->getFolder('INBOX');
-        $messages = $folder->messages()->unseen()->get();
+        if ($accounts->isEmpty()) {
+            $this->info('Nessuna casella bounce attiva da scansionare.');
 
-        foreach ($messages as $message) {
-            $body = $message->getTextBody();
+            return Command::SUCCESS;
+        }
 
-            // Estrae l'indirizzo email fallito dal corpo del bounce
-            if (preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $body, $matches)) {
-                $failedEmail = $matches[0];
+        foreach ($accounts as $account) {
+            $this->info("Connessione a casella bounce [{$account->name}] ({$account->email_address})...");
 
-                LeadReturnLog::create([
-                    'status' => 'bounce',
-                    'reported_at' => now(),
-                ]);
+            try {
+                $client = $connections->make($account);
+                $client->connect();
 
-                $this->warn("Registrato bounce per: {$failedEmail}");
+                $messages = $client->getFolder('INBOX')->messages()->unseen()->get();
+                $this->info("Trovate {$messages->count()} email di bounce non lette.");
+
+                foreach ($messages as $message) {
+                    $rawHeaders = (string) ($message->getHeader()->raw ?? '');
+                    $raw = $rawHeaders."\r\n\r\n".$message->getRawBody();
+
+                    $parsed = $parser->parse($raw);
+
+                    if ($parsed === null) {
+                        $this->warn('Impossibile estrarre un indirizzo dal bounce, messaggio saltato.');
+                        $message->setFlag('Seen');
+
+                        continue;
+                    }
+
+                    $messageId = mb_substr(trim((string) $message->getMessageId(), " \t\n\r\0\x0B<>"), 0, 255) ?: null;
+
+                    $attributes = [
+                        'mail_account_id' => $account->id,
+                        'failed_email' => $parsed['failed_email'],
+                        'bounce_type' => $parsed['bounce_type'],
+                        'diagnostic_code' => $parsed['diagnostic_code'],
+                        'status_code' => $parsed['status_code'],
+                        'raw_headers' => mb_substr($rawHeaders, 0, 65000),
+                        'source_message_id' => $messageId,
+                        'reported_at' => now(),
+                    ];
+
+                    // Deduplica solo quando il Message-Id è disponibile.
+                    $bounce = $messageId
+                        ? EmailBounce::firstOrCreate(
+                            ['company_id' => $account->company_id, 'source_message_id' => $messageId],
+                            $attributes
+                        )
+                        : EmailBounce::create(['company_id' => $account->company_id] + $attributes);
+
+                    $message->setFlag('Seen');
+
+                    $this->line(sprintf(
+                        '%s bounce %s per %s%s',
+                        $bounce->wasRecentlyCreated ? 'Registrato' : 'Già presente',
+                        $parsed['bounce_type'],
+                        $parsed['failed_email'],
+                        $parsed['status_code'] ? " ({$parsed['status_code']})" : ''
+                    ));
+                }
+
+                $account->update(['last_synced_at' => now()]);
+
+            } catch (\Exception $e) {
+                $this->error("Errore sulla casella bounce [{$account->name}]: ".$e->getMessage());
+
+                continue;
             }
-
-            $message->setFlag('Seen');
         }
 
         return Command::SUCCESS;

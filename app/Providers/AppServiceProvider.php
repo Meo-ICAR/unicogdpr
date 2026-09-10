@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Contracts\ImapConnector;
 use App\Models\Audit;
 use App\Models\Branch;
 use App\Models\Clienti;
@@ -11,6 +12,7 @@ use App\Models\Document;
 use App\Models\Employee;
 use App\Models\Fornitore;
 use App\Models\Website;
+use App\Services\Mail\ImapConnectionFactory;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -25,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(ImapConnector::class, ImapConnectionFactory::class);
     }
 
     /**

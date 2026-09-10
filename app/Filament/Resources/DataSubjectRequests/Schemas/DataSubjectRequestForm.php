@@ -2,12 +2,13 @@
 
 namespace App\Filament\Resources\DataSubjectRequests\Schemas;
 
+use App\Enums\DsarStatus;
 use Filament\Forms\Components\DatePicker;
-use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class DataSubjectRequestForm
@@ -36,12 +37,12 @@ class DataSubjectRequestForm
                         Select::make('channel')
                             ->label('Canale di ricezione')
                             ->options([
-                                'email'       => '📧 Email',
-                                'pec'         => '📜 PEC',
-                                'letter'      => '📄 Lettera Cartacea',
+                                'email' => '📧 Email',
+                                'pec' => '📜 PEC',
+                                'letter' => '📄 Lettera Cartacea',
                                 'online_form' => '🌐 Modulo Web / Form Online',
-                                'in_person'   => '👤 Di Persona',
-                                'other'       => '❓ Altro',
+                                'in_person' => '👤 Di Persona',
+                                'other' => '❓ Altro',
                             ])
                             ->default('email'),
                     ]),
@@ -54,26 +55,20 @@ class DataSubjectRequestForm
                             ->label('Tipo di diritto esercitato')
                             ->required()
                             ->options([
-                                'access'           => '🔍 Art. 15 — Accesso',
-                                'rectification'    => '✏️ Art. 16 — Rettifica',
-                                'erasure'          => '🗑️ Art. 17 — Cancellazione',
-                                'restriction'      => '🔒 Art. 18 — Limitazione',
-                                'portability'      => '📦 Art. 20 — Portabilità',
-                                'objection'        => '🚫 Art. 21 — Opposizione',
+                                'access' => '🔍 Art. 15 — Accesso',
+                                'rectification' => '✏️ Art. 16 — Rettifica',
+                                'erasure' => '🗑️ Art. 17 — Cancellazione',
+                                'restriction' => '🔒 Art. 18 — Limitazione',
+                                'portability' => '📦 Art. 20 — Portabilità',
+                                'objection' => '🚫 Art. 21 — Opposizione',
                                 'withdraw_consent' => '↩️ Revoca Consenso',
-                                'other'            => '❓ Altro',
+                                'other' => '❓ Altro',
                             ]),
                         Select::make('status')
                             ->label('Stato')
                             ->required()
-                            ->default('received')
-                            ->options([
-                                'received'    => '⏳ Ricevuta (In attesa)',
-                                'in_progress' => '🔄 In lavorazione',
-                                'extended'    => '📅 Prorogata (+60 gg)',
-                                'completed'   => '✅ Completata',
-                                'rejected'    => '❌ Rifiutata',
-                            ]),
+                            ->default(DsarStatus::Received->value)
+                            ->options(DsarStatus::options()),
                         DatePicker::make('received_at')
                             ->label('Data ricezione')
                             ->default(now())

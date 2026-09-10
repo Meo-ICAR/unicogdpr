@@ -9,27 +9,30 @@ use App\Models\Employee;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPdfWrapper;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
+use InvalidArgumentException;
 
 class DocumentGeneratorService
 {
     /**
-     * Recupera l'azienda di default / tenant associata
+     * Restituisce l'azienda per cui generare il documento.
+     *
+     * Usa l'azienda passata dal chiamante (di norma $model->company); in
+     * mancanza ripiega sul tenant Filament attivo. Non indovina più con
+     * Company::first(): un fallback silenzioso poteva intestare il documento
+     * all'azienda sbagliata.
      */
     protected function getCompany(?Company $company = null): Company
     {
-        if ($company) {
-            return $company;
+        $company ??= Filament::getTenant() instanceof Company ? Filament::getTenant() : null;
+
+        if (! $company instanceof Company) {
+            throw new InvalidArgumentException(
+                'Impossibile generare il documento: azienda di riferimento non determinabile.'
+            );
         }
 
-        try {
-            return Company::first() ?? new Company([
-                'name' => config('app.name', 'UnicoGDPR S.r.l.'),
-            ]);
-        } catch (\Throwable) {
-            return new Company([
-                'name' => config('app.name', 'UnicoGDPR S.r.l.'),
-            ]);
-        }
+        return $company;
     }
 
     /**

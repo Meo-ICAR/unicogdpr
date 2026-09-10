@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\DataSubjectRequests\Tables;
 
+use App\Enums\DsarStatus;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -32,40 +33,26 @@ class DataSubjectRequestsTable
                 BadgeColumn::make('request_type')
                     ->label('Tipo')
                     ->colors([
-                        'info'    => 'access',
+                        'info' => 'access',
                         'warning' => 'rectification',
-                        'danger'  => 'erasure',
-                        'gray'    => 'restriction',
+                        'danger' => 'erasure',
+                        'gray' => 'restriction',
                         'success' => 'portability',
                         'primary' => 'objection',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'access'           => 'Accesso',
-                        'rectification'    => 'Rettifica',
-                        'erasure'          => 'Cancellazione',
-                        'restriction'      => 'Limitazione',
-                        'portability'      => 'Portabilità',
-                        'objection'        => 'Opposizione',
+                        'access' => 'Accesso',
+                        'rectification' => 'Rettifica',
+                        'erasure' => 'Cancellazione',
+                        'restriction' => 'Limitazione',
+                        'portability' => 'Portabilità',
+                        'objection' => 'Opposizione',
                         'withdraw_consent' => 'Revoca consenso',
-                        default            => ucfirst($state),
+                        default => ucfirst($state),
                     }),
-                BadgeColumn::make('status')
+                TextColumn::make('status')
                     ->label('Stato')
-                    ->colors([
-                        'warning' => 'received',
-                        'info'    => 'in_progress',
-                        'primary' => 'extended',
-                        'success' => 'completed',
-                        'danger'  => 'rejected',
-                    ])
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'received'    => 'Ricevuta',
-                        'in_progress' => 'In lavorazione',
-                        'extended'    => 'Prorogata',
-                        'completed'   => 'Completata',
-                        'rejected'    => 'Rifiutata',
-                        default       => ucfirst($state),
-                    }),
+                    ->badge(),
                 TextColumn::make('received_at')
                     ->label('Ricevuta il')
                     ->date('d/m/Y')
@@ -74,7 +61,7 @@ class DataSubjectRequestsTable
                     ->label('Scadenza')
                     ->date('d/m/Y')
                     ->sortable()
-                    ->color(fn ($record) => $record?->deadline_at?->isPast() && in_array($record->status, ['received', 'in_progress'])
+                    ->color(fn ($record) => $record?->deadline_at?->isPast() && in_array($record->status, [DsarStatus::Received, DsarStatus::InProgress], true)
                         ? 'danger'
                         : null),
                 IconColumn::make('identity_verified')
@@ -85,22 +72,16 @@ class DataSubjectRequestsTable
             ->filters([
                 SelectFilter::make('status')
                     ->label('Stato')
-                    ->options([
-                        'received'    => 'Ricevuta',
-                        'in_progress' => 'In lavorazione',
-                        'extended'    => 'Prorogata',
-                        'completed'   => 'Completata',
-                        'rejected'    => 'Rifiutata',
-                    ]),
+                    ->options(DsarStatus::options()),
                 SelectFilter::make('request_type')
                     ->label('Tipo richiesta')
                     ->options([
-                        'access'           => 'Accesso',
-                        'rectification'    => 'Rettifica',
-                        'erasure'          => 'Cancellazione',
-                        'restriction'      => 'Limitazione',
-                        'portability'      => 'Portabilità',
-                        'objection'        => 'Opposizione',
+                        'access' => 'Accesso',
+                        'rectification' => 'Rettifica',
+                        'erasure' => 'Cancellazione',
+                        'restriction' => 'Limitazione',
+                        'portability' => 'Portabilità',
+                        'objection' => 'Opposizione',
                         'withdraw_consent' => 'Revoca consenso',
                     ]),
                 TrashedFilter::make(),

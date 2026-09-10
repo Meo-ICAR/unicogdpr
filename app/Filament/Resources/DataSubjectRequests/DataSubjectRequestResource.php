@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\DataSubjectRequests;
 
+use App\Enums\DsarStatus;
 use App\Filament\Resources\DataSubjectRequests\Pages\CreateDataSubjectRequest;
 use App\Filament\Resources\DataSubjectRequests\Pages\EditDataSubjectRequest;
 use App\Filament\Resources\DataSubjectRequests\Pages\ListDataSubjectRequests;
@@ -13,11 +14,9 @@ use App\Models\EmailTemplate;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\ViewField;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -26,16 +25,22 @@ use Illuminate\Support\Facades\Mail;
 class DataSubjectRequestResource extends Resource
 {
     protected static ?string $model = DataSubjectRequest::class;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-inbox-arrow-down';
+
     protected static ?string $navigationLabel = 'Diritti (DSAR)';
+
     protected static ?string $modelLabel = 'Richiesta Interessato';
+
     protected static ?string $pluralModelLabel = 'Richieste Interessati (DSAR)';
+
     protected static ?int $navigationSort = 3;
 
     public static function getNavigationBadge(): ?string
     {
-        return (string) (static::getModel()::whereIn('status', ['pending', 'in_progress', 'open'])->count() ?: null);
+        return (string) (static::getModel()::whereIn('status', array_map(fn (DsarStatus $s) => $s->value, DsarStatus::open()))->count() ?: null);
     }
 
     public static function getNavigationBadgeColor(): ?string
@@ -61,9 +66,9 @@ class DataSubjectRequestResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListDataSubjectRequests::route('/'),
+            'index' => ListDataSubjectRequests::route('/'),
             'create' => CreateDataSubjectRequest::route('/create'),
-            'edit'   => EditDataSubjectRequest::route('/{record}/edit'),
+            'edit' => EditDataSubjectRequest::route('/{record}/edit'),
         ];
     }
 
@@ -95,20 +100,29 @@ class DataSubjectRequestResource extends Resource
 
                     $rendered = $template->render([
                         'requester_name' => $record->requester_name,
-                        'deadline_at'    => $record->deadline_at?->format('d/m/Y') ?? '-',
-                        'request_type'   => $record->request_type,
-                        'company_name'   => $record->company?->name ?? config('app.name'),
-                        'received_at'    => $record->received_at?->format('d/m/Y') ?? '-',
+                        'deadline_at' => $record->deadline_at?->format('d/m/Y') ?? '-',
+                        'request_type' => $record->request_type,
+                        'company_name' => $record->company?->name ?? config('app.name'),
+                        'received_at' => $record->received_at?->format('d/m/Y') ?? '-',
                     ]);
 
                     Mail::to($record->requester_email)
                         ->send(new DsarResponseMail(
-                            renderedSubject:  $rendered['subject'],
+                            renderedSubject: $rendered['subject'],
                             renderedBodyHtml: $rendered['body_html'],
-                            requesterName:    $record->requester_name,
+                            requesterName: $record->requester_name,
                         ));
 
-                    $record->update(['status' => 'completed']);
+                    $record->update(['status' => DsarStatus::Completed]);
+
+                    activity('dsar')
+                        ->performedOn($record)
+                        ->withProperties([
+                            'template' => $template->name,
+                            'to' => $record->requester_email,
+                            'subject' => $rendered['subject'],
+                        ])
+                        ->log('Risposta DSAR inviata');
 
                     Notification::make()
                         ->title('Risposta inviata con successo')
