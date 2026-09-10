@@ -29,6 +29,17 @@ class DpiaRiskSeeder extends Seeder
             ['name' => 'Rischio di supply chain', 'description' => 'Compromissione di fornitori di servizi IT', 'extra_value' => 'weight:4,category:third_party'],
             ['name' => 'Rischio di social engineering', 'description' => 'Manipolazione psicologica per ottenere dati', 'extra_value' => 'weight:3,category:operational'],
             ['name' => 'Rischio di insufficient encryption', 'description' => 'Crittografia debole o assente su dati sensibili', 'extra_value' => 'weight:4,category:technical'],
+            ['name' => 'Rischio di accesso non autorizzato interno', 'description' => 'Personale che consulta dati non pertinenti alle proprie mansioni', 'extra_value' => 'weight:4,category:operational'],
+            ['name' => 'Rischio di eccessiva conservazione', 'description' => 'Dati mantenuti oltre i termini di retention previsti', 'extra_value' => 'weight:3,category:legal'],
+            ['name' => 'Rischio di data minimization insufficiente', 'description' => 'Raccolta di dati non necessari alla finalità dichiarata', 'extra_value' => 'weight:3,category:legal'],
+            ['name' => 'Rischio di trasferimento extra-UE non conforme', 'description' => 'Flussi verso Paesi terzi senza SCC o garanzie adeguate', 'extra_value' => 'weight:4,category:legal'],
+            ['name' => 'Rischio di profilazione discriminatoria', 'description' => 'Algoritmi che producono esiti sistematicamente sfavorevoli per alcune categorie', 'extra_value' => 'weight:5,category:legal'],
+            ['name' => 'Rischio di mancata gestione dei diritti (DSAR)', 'description' => 'Richieste degli interessati evase in ritardo o in modo incompleto', 'extra_value' => 'weight:3,category:operational'],
+            ['name' => 'Rischio di consenso non valido', 'description' => 'Consenso raccolto senza i requisiti di libertà, specificità e informazione', 'extra_value' => 'weight:4,category:legal'],
+            ['name' => 'Rischio di registrazioni vocali non protette', 'description' => 'Call recording accessibile senza controlli o conservato in chiaro', 'extra_value' => 'weight:4,category:technical'],
+            ['name' => 'Rischio di contatto di soggetti in opt-out', 'description' => 'Chiamate o email verso nominativi che hanno esercitato opposizione', 'extra_value' => 'weight:4,category:operational'],
+            ['name' => 'Rischio di errata configurazione cloud', 'description' => 'Bucket o database esposti pubblicamente per misconfiguration', 'extra_value' => 'weight:5,category:technical'],
+            ['name' => 'Rischio di perdita di disponibilità (DoS/guasto)', 'description' => 'Interruzione dei sistemi che impedisce l\'accesso ai dati', 'extra_value' => 'weight:3,category:technical'],
         ];
 
         foreach ($risks as $risk) {

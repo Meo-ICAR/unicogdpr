@@ -3,9 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\PrivacyDataType;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class PrivacyDataTypeSeeder extends Seeder
@@ -17,9 +15,8 @@ class PrivacyDataTypeSeeder extends Seeder
     {
         // Truncate table first
         Schema::disableForeignKeyConstraints();
-          PrivacyDataType::truncate();
+        PrivacyDataType::truncate();
         Schema::enableForeignKeyConstraints();
-    
 
         $dataTypes = [
             [
@@ -135,6 +132,108 @@ class PrivacyDataTypeSeeder extends Seeder
                 'name' => 'Orientamento Sessuale / Vita Sessuale',
                 'category' => 'particolari',
                 'retention_years' => 10,
+            ],
+            [
+                'slug' => 'CONTACT_DATA',
+                'name' => 'Recapiti (Telefono, Email, Indirizzo)',
+                'category' => 'comuni',
+                'retention_years' => 5,
+            ],
+            [
+                'slug' => 'CALL_RECORDING',
+                'name' => 'Registrazioni delle Chiamate',
+                'category' => 'comuni',
+                'retention_years' => 2,
+            ],
+            [
+                'slug' => 'CALL_METADATA',
+                'name' => 'Metadati di Traffico Telefonico (CDR)',
+                'category' => 'comuni',
+                'retention_years' => 1,
+            ],
+            [
+                'slug' => 'MARKETING_CONSENT',
+                'name' => 'Consensi e Preferenze Marketing',
+                'category' => 'comuni',
+                'retention_years' => 5,
+            ],
+            [
+                'slug' => 'CONTRACT_DATA',
+                'name' => 'Dati Contrattuali e di Fornitura',
+                'category' => 'comuni',
+                'retention_years' => 10,
+            ],
+            [
+                'slug' => 'EMPLOYMENT_DATA',
+                'name' => 'Dati del Rapporto di Lavoro',
+                'category' => 'comuni',
+                'retention_years' => 10,
+            ],
+            [
+                'slug' => 'ATTENDANCE_DATA',
+                'name' => 'Dati di Presenza e Timbrature',
+                'category' => 'comuni',
+                'retention_years' => 5,
+            ],
+            [
+                'slug' => 'CANDIDATE_CV',
+                'name' => 'Curriculum Vitae e Dati di Selezione',
+                'category' => 'comuni',
+                'retention_years' => 2,
+            ],
+            [
+                'slug' => 'CCTV_FOOTAGE',
+                'name' => 'Immagini da Videosorveglianza',
+                'category' => 'comuni',
+                'retention_years' => 1,
+            ],
+            [
+                'slug' => 'ACCESS_LOG',
+                'name' => 'Log di Accesso ai Sistemi (AdS)',
+                'category' => 'comuni',
+                'retention_years' => 1,
+            ],
+            [
+                'slug' => 'DEVICE_DATA',
+                'name' => 'Dati Tecnici del Dispositivo (IP, User-Agent, Cookie)',
+                'category' => 'comuni',
+                'retention_years' => 1,
+            ],
+            [
+                'slug' => 'AML_KYC_DATA',
+                'name' => 'Dati Adeguata Verifica Antiriciclaggio (KYC)',
+                'category' => 'comuni',
+                'retention_years' => 10,
+            ],
+            [
+                'slug' => 'PEP_SCREENING',
+                'name' => 'Esiti Screening PEP e Liste Sanzioni',
+                'category' => 'particolari',
+                'retention_years' => 10,
+            ],
+            [
+                'slug' => 'DEBT_POSITION',
+                'name' => 'Posizione Debitoria / Morosità',
+                'category' => 'comuni',
+                'retention_years' => 10,
+            ],
+            [
+                'slug' => 'MINOR_DATA',
+                'name' => 'Dati di Minori',
+                'category' => 'comuni',
+                'retention_years' => 5,
+            ],
+            [
+                'slug' => 'DISABILITY_DATA',
+                'name' => 'Dati su Disabilità e Categorie Protette (L. 68/99)',
+                'category' => 'particolari',
+                'retention_years' => 10,
+            ],
+            [
+                'slug' => 'WHISTLEBLOWING_DATA',
+                'name' => 'Dati da Segnalazioni Whistleblowing',
+                'category' => 'giudiziari',
+                'retention_years' => 5,
             ],
         ];
 

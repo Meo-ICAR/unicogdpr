@@ -88,6 +88,46 @@ class PrivacyLegalBasisSeeder extends Seeder
                 'reference_article' => 'Art. 9 par. 2 lett. j)',
                 'description' => 'Trattamento necessario a fini di archiviazione nel pubblico interesse, per la ricerca scientifica o storica o per fini statistici, con adeguate garanzie.',
             ],
+            [
+                'name' => 'Dati Particolari - Sanità Pubblica',
+                'reference_article' => 'Art. 9 par. 2 lett. i)',
+                'description' => 'Trattamento necessario per motivi di interesse pubblico nel settore della sanità pubblica, come la protezione da gravi minacce sanitarie transfrontaliere.',
+            ],
+            [
+                'name' => 'Dati Giudiziari - Controllo Autorità Pubblica',
+                'reference_article' => 'Art. 10 GDPR',
+                'description' => "Trattamento di dati relativi a condanne penali e reati, effettuato soltanto sotto il controllo dell'autorità pubblica o se autorizzato dal diritto dell'Unione o degli Stati membri (in Italia, art. 2-octies del Codice Privacy).",
+            ],
+            [
+                'name' => 'Marketing verso Clienti (Soft Spam)',
+                'reference_article' => 'Art. 6 par. 1 lett. f) - Considerando 47',
+                'description' => 'Invio di comunicazioni promozionali su prodotti/servizi analoghi a quelli già acquistati dal cliente, con possibilità di opposizione fin dal primo contatto (art. 130 c. 4 Codice Privacy).',
+            ],
+            [
+                'name' => 'Obbligo Legale - Antiriciclaggio',
+                'reference_article' => 'Art. 6 par. 1 lett. c) - D.Lgs. 231/2007',
+                'description' => 'Trattamento necessario per adempiere agli obblighi di adeguata verifica della clientela, conservazione e segnalazione previsti dalla normativa antiriciclaggio.',
+            ],
+            [
+                'name' => 'Obbligo Legale - Conservazione Contabile e Fiscale',
+                'reference_article' => 'Art. 6 par. 1 lett. c) - Art. 2220 c.c.',
+                'description' => "Conservazione di scritture, corrispondenza e documenti fiscali per almeno dieci anni dalla data dell'ultima registrazione.",
+            ],
+            [
+                'name' => 'Interesse Legittimo - Sicurezza delle Reti',
+                'reference_article' => 'Art. 6 par. 1 lett. f) - Considerando 49',
+                'description' => 'Trattamento strettamente necessario e proporzionato a garantire la sicurezza della rete e dei sistemi informativi (log, antifrode, prevenzione accessi non autorizzati).',
+            ],
+            [
+                'name' => 'Interesse Legittimo - Recupero Crediti',
+                'reference_article' => 'Art. 6 par. 1 lett. f)',
+                'description' => 'Trattamento dei dati del debitore necessario al recupero stragiudiziale e giudiziale del credito vantato dal titolare o da terzi cessionari.',
+            ],
+            [
+                'name' => 'Misure Precontrattuali su Richiesta',
+                'reference_article' => 'Art. 6 par. 1 lett. b)',
+                'description' => "Trattamento necessario all'esecuzione di misure precontrattuali adottate su richiesta dell'interessato (es. preventivo, valutazione di fattibilità).",
+            ],
         ];
 
         foreach ($legalBases as $basis) {

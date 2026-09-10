@@ -12,9 +12,8 @@ class SoftwareCategorySeeder extends Seeder
     public function run(): void
     {
         Schema::disableForeignKeyConstraints();
-             DB::table('software_categories')->truncate();
+        DB::table('software_categories')->truncate();
         Schema::enableForeignKeyConstraints();
-   
 
         $categories = [
             ['name' => 'CRM / Gestione Clienti',           'code' => 'CRM',    'description' => 'Customer Relationship Management: gestione contatti, lead e pipeline commerciale'],
@@ -33,6 +32,19 @@ class SoftwareCategorySeeder extends Seeder
             ['name' => 'Gestionale Assicurativo / Finance', 'code' => 'FIN',    'description' => 'Software specifici per intermediari finanziari, assicurativi e bancari'],
             ['name' => 'VoIP / Dialer / Call Center',       'code' => 'VOIP',   'description' => 'Centralino VoIP, software dialer e piattaforme per contact center'],
             ['name' => 'Backup & Disaster Recovery',        'code' => 'BDR',    'description' => 'Soluzioni di backup dati, replication e ripristino di emergenza'],
+            ['name' => 'Identity & Access Management (IAM)', 'code' => 'IAM',    'description' => 'Gestione identità, SSO, MFA, provisioning e federazione degli accessi'],
+            ['name' => 'Piattaforma Consent & Preference',  'code' => 'CONSENT', 'description' => 'Consent Management Platform (CMP), cookie banner e gestione preferenze privacy'],
+            ['name' => 'GRC / Privacy Management',          'code' => 'GRC',    'description' => 'Registro trattamenti, DPIA, gestione DSAR e data breach (come questo applicativo)'],
+            ['name' => 'Antiriciclaggio / AML & KYC',       'code' => 'AML',    'description' => 'Adeguata verifica clientela, screening liste PEP/sanzioni, segnalazioni SOS'],
+            ['name' => 'Registrazione & Archiviazione Chiamate', 'code' => 'REC', 'description' => 'Call recording, voice logger e conservazione delle registrazioni telefoniche'],
+            ['name' => 'Speech Analytics / AI Vocale',      'code' => 'SPEECH', 'description' => 'Trascrizione, analisi del sentiment e scoring qualità delle conversazioni'],
+            ['name' => 'Firma Grafometrica / Onboarding',   'code' => 'ONBRD',  'description' => 'Sottoscrizione contratti a distanza con firma grafometrica o OTP'],
+            ['name' => 'Data Enrichment / Provider Liste',  'code' => 'DATA',   'description' => 'Arricchimento anagrafiche, normalizzazione indirizzi e acquisto liste'],
+            ['name' => 'Web Analytics & Tag Management',    'code' => 'WEBAN',  'description' => 'Statistiche di navigazione, tag manager e tracciamento conversioni'],
+            ['name' => 'Piattaforma SMS / WhatsApp Business', 'code' => 'MSG',    'description' => 'Invio di notifiche transazionali e campagne su canali di messaggistica'],
+            ['name' => 'Portale Fornitori / Procurement',   'code' => 'PROC',   'description' => 'Qualifica fornitori, gare e gestione del ciclo passivo'],
+            ['name' => 'Log Management / SIEM',             'code' => 'SIEM',   'description' => 'Raccolta centralizzata dei log, correlazione eventi e alerting di sicurezza'],
+            ['name' => 'MDM / Gestione Dispositivi Mobili', 'code' => 'MDM',    'description' => 'Enrollment, policy e wipe remoto di smartphone e tablet aziendali'],
             ['name' => 'Altro',                             'code' => 'OTHER',  'description' => 'Categoria generica per applicativi non classificati'],
         ];
 
