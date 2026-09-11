@@ -7,6 +7,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
@@ -38,6 +39,7 @@ class MailAccountForm
                         ->email()
                         ->required()
                         ->maxLength(255)
+                        ->trim()
                         ->columnSpanFull(),
                     Toggle::make('is_active')
                         ->label('Polling automatico attivo')
@@ -73,7 +75,9 @@ class MailAccountForm
                         ->label('Host IMAP')
                         ->placeholder('es. imap.gmail.com, imaps.pec.aruba.it')
                         ->required()
-                        ->maxLength(255),
+                        ->maxLength(255)
+                        ->trim()
+                        ->live(onBlur: true),
                     TextInput::make('imap_port')
                         ->label('Porta')
                         ->numeric()
@@ -90,15 +94,30 @@ class MailAccountForm
                     TextInput::make('imap_username')
                         ->label('Username IMAP')
                         ->required()
-                        ->maxLength(255),
+                        ->maxLength(255)
+                        ->trim(),
                     TextInput::make('imap_password')
                         ->label('Password / App Password')
                         ->password()
                         ->revealable()
                         ->maxLength(255)
+                        ->trim()
                         ->visible(fn (Get $get) => $get('auth_type') === 'password')
                         ->requiredIf('auth_type', 'password')
                         ->dehydrated(fn ($state) => filled($state)),
+                ]),
+
+            Section::make('Gmail / Google Workspace via password')
+                ->icon('heroicon-o-exclamation-triangle')
+                ->visible(fn (Get $get) => $get('auth_type') === 'password' && str_contains(mb_strtolower((string) $get('imap_host')), 'gmail'))
+                ->schema([
+                    Text::make(
+                        "Google non accetta più la password normale dell'account per l'accesso IMAP. Serve una "
+                        .'"Password per le app" di 16 caratteri (richiede la verifica in due passaggi attiva su '
+                        .'myaccount.google.com/apppasswords), e l\'accesso IMAP deve essere abilitato in Gmail → '
+                        .'Impostazioni → Inoltro e POP/IMAP. In alternativa, usa "OAuth 2.0" come metodo di '
+                        .'autenticazione qui sopra.'
+                    )->color('warning'),
                 ]),
 
             Section::make('Token OAuth 2.0')

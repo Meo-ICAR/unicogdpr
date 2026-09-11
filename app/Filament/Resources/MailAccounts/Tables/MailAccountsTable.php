@@ -14,6 +14,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Log;
 
 class MailAccountsTable
 {
@@ -87,10 +88,19 @@ class MailAccountsTable
                                 ->success()
                                 ->send();
                         } catch (\Throwable $e) {
+                            Log::warning('Test connessione casella IMAP fallito', [
+                                'mail_account_id' => $record->id,
+                                'company_id' => $record->company_id,
+                                'imap_host' => $record->imap_host,
+                                'auth_type' => $record->auth_type,
+                                'error' => $e->getMessage(),
+                            ]);
+
                             Notification::make()
                                 ->title('Connessione fallita')
                                 ->body($e->getMessage())
                                 ->danger()
+                                ->persistent()
                                 ->send();
                         }
                     }),
