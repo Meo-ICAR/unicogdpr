@@ -6,6 +6,10 @@
 > **Stato implementazione:** §3, §4 e §5 sono state realizzate (vedi commit del 2026-09-10).
 > §6 (test) coperto per le parti nuove. I prompt restano come documentazione della logica.
 > Le idee non ancora codificate sono raccolte in **§8 — Migliorie suggerite per il DPO**.
+>
+> **Sessione 2026-09-15:** consolidati i moduli "core" del DPO (Registro Trattamenti, DPIA,
+> Data Breach, Vendor Risk, Data Retention, Dashboard multicompany) rispetto alle specifiche
+> funzionali del prodotto. Dettaglio in **§9**; residui e debito tecnico in **§9.9**.
 
 ---
  
@@ -395,3 +399,160 @@ del Garante.
 Realizzato: comando `mail:health-check` (ogni 6h) che notifica il DPO (`DpoAlert`) sulle
 caselle attive ferme da oltre `--stale-hours` (default 24) e sui token OAuth in scadenza
 entro 24h senza refresh token.
+
+---
+
+## 9. Moduli DPO Core — Registro, DPIA, Data Breach, Vendor Risk, Retention, Dashboard
+
+> Sessione 2026-09-15. Confronto tra le specifiche funzionali di prodotto (Governance
+> Multicompany, Toolsuite del DPO su Registro/DPIA/Data Breach/Vendor Risk/DSAR-Retention) e il
+> codice. La Matrice RACI è **esclusa di proposito**: è già realizzata in un'altra app
+> dell'ecosistema Unico e non va duplicata qui.
+
+### 9.1 Consolidamento modelli duplicati — `[FATTO]`
+`RegistroTrattamentiItem` (schema legacy, colonne in italiano) è stato migrato dentro
+`ProcessingActivity` (schema canonico, con ruolo Titolare/Responsabile ex Art. 28) tramite
+migration di data-fix; `DataProcessor` (mai popolato) è stato assorbito in `ExternalProcessor`
+(anagrafica reale con audit/TIA collegati), che ora porta anche il tracciamento DPA
+(`has_dpa_signed`, `dpa_signed_at`, `dpa_expires_at`, upload contratto). Modelli, migration,
+seeder e Filament Resource legacy rimossi. Vedi migration `2026_09_15_100000_*` e `*_100001_*`.
+
+### 9.2 SLA 72h Data Breach — `[FATTO]`
+`DataBreach::calculateRiskScore()` sostituisce il mapping binario severità→notificabilità con
+una matrice che pesa anche categorie particolari di dati (Art. 9) e volume dei record.
+Comando `breach:deadline-check` (schedulato ogni ora) notifica DPO/admin della company via
+`DpoAlert` su incidenti scaduti/in scadenza per la notifica al Garante; widget
+`BreachSlaWidget` in dashboard.
+
+### 9.3 Data Retention enforcement — `[FATTO]`
+`PrivacyRetention` può ora essere collegata a un modello reale (`Employee`, `Client`) e a una
+colonna data tramite `applies_to_model`/`date_column`/`is_active` (opt-in esplicito, mai
+automatico di default). Comando `retention:enforce` (schedulato alle 03:00) anonimizza
+(interfaccia `App\Contracts\Anonymizable`) o cancella (soft delete) i record scaduti, loggando
+ogni azione in activitylog. `Employee`/`Client` implementano `anonymize()`.
+
+### 9.4 DPIA Wizard & sign-off del DPO — `[FATTO]`
+Form trasformato in `Wizard` a 4 step (Identificazione → Necessità/Proporzionalità → Analisi
+Rischi → Parere DPO); i cataloghi `DpiaRisk`/`DpiaImpact` (prima morti) sono ora selezionabili
+sugli item di rischio. Azione "Firma e Completa DPIA": verifica i requisiti minimi
+(`Dpia::missingSignOffRequirements()`), poi blocca il contenuto con un hash SHA-256
+(`dpo_signature_hash`) e timestamp (`dpo_signed_at`/`dpo_signed_by`) — vedi
+`Dpia::signOffByDpo()`. Generazione PDF del report DPIA via `DocumentGeneratorService::generateDpiaReport()`.
+
+### 9.5 Vendor Risk Management — `[FATTO]`
+Generazione nomina/DPA PDF ora disponibile anche su `ExternalProcessor` (prima solo su
+`DataProcessor`, mai popolato). Nuovo workflow di invio/raccolta questionari fornitori: azione
+"Invia Questionario" genera un token univoco e invia un'email (`VendorAuditQuestionnaireInvite`)
+con link al portale pubblico non autenticato `/fornitori/questionario/{token}`
+(`VendorAuditQuestionnaireController`); alla sottomissione le evidenze finiscono su Cloudflare
+R2 (disco `google`→`r2`, vedi §9.6) e il DPO viene notificato. Comando
+`vendor:audit-reminders` (08:30) su audit e DPA in scadenza.
+
+### 9.6 Storage evidenze su Cloudflare R2 — `[FATTO]`
+Aggiunto `league/flysystem-aws-s3-v3`; disco `r2` (S3-compatibile) configurato in
+`config/filesystems.php` con le credenziali già presenti in `.env`; il disco `google` (nome
+storico usato da `ExternalProcessorAudit`/`TransferImpactAssessment`) è ora un alias verso R2
+invece del fallback locale iniziale. Verificato con scrittura/lettura/cancellazione reali sul
+bucket.
+
+### 9.7 Dashboard DPO multicompany — `[FATTO]`
+Nuova pagina Filament `DpoCommandCenter` (`/admin/{tenant}/dpo-command-center`): per ogni
+company su cui l'utente ha ruolo `dpo`/`admin` (non solo il tenant attivo), mostra in una
+riga breach SLA scaduti/in scadenza, DPIA in attesa di parere, DSAR aperte, DPA fornitori in
+scadenza — la visione trasversale richiesta dalla specifica ("dashboard di supervisione
+trasversale del DPO").
+
+### 9.8 Bug preesistenti corretti en passant
+- Disco `google` mai configurato in `config/filesystems.php`: qualunque upload su
+  `audit_evidences`/`tia_documents` avrebbe lanciato un'eccezione a runtime.
+- `Dpia::addRiskItem()` leggeva `$data['privacy_security_id']` senza fallback: un item di
+  rischio senza misura di mitigazione mandava in errore la creazione della DPIA.
+- Migration `dpias.registro_trattamenti_item_id` era `NOT NULL` ma il form Filament non la
+  valorizzava più da tempo: ogni nuova DPIA creata da pannello falliva l'insert (risolto
+  eliminando la colonna col consolidamento di §9.1).
+
+### 9.9 Cosa resta in sospeso (prompt di partenza per la prossima sessione)
+
+```text
+[Multicompany hardening — volutamente NON fatto in questa sessione, richiede una scelta
+architetturale a parte]
+Introduci app/Policies con una Policy per ciascun modello tenant-scoped, e un trait
+BelongsToCompany con Global Scope che filtri automaticamente per company_id anche fuori dal
+pannello Filament (comandi Artisan, job, coda). Applica il fix al leak noto: in
+App\Console\Commands\CheckDsarDeadlines la notifica va oggi a User::all() invece che ai soli
+utenti con ruolo dpo/admin della company della singola DSAR (vedi come CheckBreachDeadlines e
+CheckVendorAuditDeadlines, introdotti in questa sessione, già scopano per company con
+$company->users()->wherePivotIn('role', ['dpo','admin'])) — allinea CheckDsarDeadlines allo
+stesso pattern.
+```
+
+```text
+[Log immutabile di Accountability — oggi realizzato SOLO per il sign-off DPIA]
+La specifica chiede un "Log Immutabile di Accountability" su OGNI approvazione, parere del DPO
+o modifica dei registri, con marca temporale, a prova di ispezione. Oggi esiste solo l'hash
+SHA-256 puntuale su Dpia::signOffByDpo(). Estendi il pattern: aggiungi LogsActivity a
+ProcessingActivity, ExternalProcessor, ExternalProcessorAudit, TransferImpactAssessment,
+PrivacyRetention (oggi assenti), e valuta un meccanismo di hash-chain sulla tabella
+activity_log di spatie (es. colonna previous_hash + hash calcolato su riga+hash precedente) così
+un'alterazione di una riga passata sia rilevabile. Non è richiesto WORM a livello DB in questa
+fase, ma l'hash-chain va verificato con un comando `accountability:verify-log`.
+```
+
+```text
+[Portale pubblico self-service per l'interessato — DSAR, distinto dal portale fornitori]
+È stato realizzato solo il portale pubblico per i FORNITORI (questionari Art. 28, §9.5). Manca
+ancora quello per l'interessato descritto in §8.7: un form pubblico per company (route con
+token per tenant, non per singola richiesta) dove l'interessato apre una DSAR, allega un
+documento d'identità e riceve un codice pratica. Riusa DataSubjectRequest::createRequest() con
+channel = 'online_form' e identity_verified precompilato solo se il documento è coerente con i
+dati anagrafici inseriti (verifica manuale del DPO resta comunque necessaria per lo sblocco
+degli stati successivi, vedi identityGatedStatuses()).
+```
+
+```text
+[Proroga DSAR a 60 giorni — campo presente ma inutilizzato]
+DataSubjectRequest.extended_until esiste a DB ma nessun metodo lo valorizza. Aggiungi
+DataSubjectRequest::extendDeadline() che sposta la deadline_at di ulteriori 60 giorni (Art.
+12.3, richieste complesse), impostando extended_until e status = DsarStatus::Extended solo se
+lo stato attuale non è già bloccato da isBlockedByIdentityCheck(). Esponi un'azione Filament
+"Proroga 60gg" con motivazione obbligatoria, loggata in activitylog.
+```
+
+```text
+[Registro Trattamenti: vista aggregata di Holding e sync UnicoBPM]
+Oggi ProcessingActivity è scopato per singola Company, senza rollup a livello Holding, e non
+esiste alcuna sincronizzazione reale con UnicoBPM (solo un bridge SSO in BpmBridgeController,
+che NON importa dati). Valuta: (a) una vista/pagina Filament "Registro di Gruppo" che aggreghi
+ProcessingActivity di tutte le Company di una Holding; (b) un endpoint/comando di import che
+riceva da UnicoBPM i flussi dati reali e li mappi su ProcessingActivity, con un job idempotente
+simile a FetchMailAccountJob.
+```
+
+```text
+[DPIA obbligatoria: da indicatore a vincolo]
+ProcessingActivity::requiresDpia() esiste e la tabella del registro mostra il badge "Richiesta
+– Mancante", ma NON blocca nulla: un trattamento ad alto rischio può restare attivo senza DPIA
+collegata. Decidi con il prodotto se questo deve diventare un vincolo hard (impedire
+is_active=true finché non esiste una Dpia collegata con status=completed) o restare un
+warning — oggi è deliberatamente soft per non bloccare l'inserimento dati storici in
+migrazione.
+```
+
+```text
+[TIA (Transfer Impact Assessment): nessuna generazione PDF né reminder]
+TransferImpactAssessment ha un campo next_review_date ma nessun comando lo controlla, e
+DocumentGeneratorService non ha un generateTia...(). Aggiungi entrambi seguendo lo stesso
+pattern di generateDpiaReport() e CheckVendorAuditDeadlines.
+```
+
+```text
+[Notifica agli interessati (Art. 34): solo azione manuale]
+DataBreachesTable ha "mark_subjects_notified" ma nessuna generazione automatica della
+comunicazione da inviare agli interessati (oggi solo la "Notifica al Garante" ha un dossier
+PDF via generateNotificaDataBreach). Valuta un generateComunicazioneInteressati() + invio
+massivo (Mail::to in coda) quando is_notifiable_to_subjects = true.
+```
+
+Ordine di impatto consigliato per la prossima sessione: multicompany hardening (rischio di
+sicurezza reale) → log immutabile → portale self-service DSAR → resto in base a priorità di
+prodotto.

@@ -14,6 +14,11 @@ Route::get('/admin/manuale', function () {
     return response()->download(public_path('docs/Manuale Proforma.pdf'), 'Manuale Proforma.pdf');
 })->name('filament.admin.pages.manuale');
 
+Route::get('/admin/manuale-tecnico', function () {
+    return response(file_get_contents(resource_path('manuals/manuale-tecnico.html')))
+        ->header('Content-Type', 'text/html; charset=utf-8');
+})->name('filament.admin.pages.manuale-tecnico');
+
 // Portale pubblico (non autenticato) per la compilazione dei questionari
 // fornitori Art. 28 GDPR: l'accesso è protetto dal token univoco nell'URL.
 Route::get('/fornitori/questionario/{token}', [VendorAuditQuestionnaireController::class, 'show'])

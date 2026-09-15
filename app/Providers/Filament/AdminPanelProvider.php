@@ -12,6 +12,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\MenuItem;
 use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -57,6 +58,26 @@ class AdminPanelProvider extends PanelProvider
                   //  ->icon('heroicon-o-cog-6-tooth')
                     ->collapsible(true)
                     ->collapsed(true),
+
+                NavigationGroup::make('Documentazione')
+                    ->collapsible(true)
+                    ->collapsed(true),
+            ])
+
+            ->navigationItems([
+                NavigationItem::make('Manuale Tecnico')
+                    ->group('Documentazione')
+                    ->icon('heroicon-o-code-bracket-square')
+                    ->url(fn () => route('filament.admin.pages.manuale-tecnico'))
+                    ->openUrlInNewTab()
+                    ->sort(1),
+
+                NavigationItem::make('Manuale Operativo (PDF)')
+                    ->group('Documentazione')
+                    ->icon('heroicon-o-document-text')
+                    ->url(fn () => route('filament.admin.pages.manuale'))
+                    ->openUrlInNewTab()
+                    ->sort(2),
             ])
 
             ->login()

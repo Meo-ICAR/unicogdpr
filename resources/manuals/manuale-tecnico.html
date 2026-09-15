@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UnicoGDPR — Manuale Tecnico</title>
+<style>
+    :root {
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --primary: #059669;
+        --primary-dark: #047857;
+        --code-bg: #0f172a;
+        --code-ink: #e2e8f0;
+        --warn-bg: #fffbeb;
+        --warn-border: #fde68a;
+        --warn-ink: #92400e;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.55;
+    }
+    .layout { display: flex; min-height: 100vh; }
+    nav.toc {
+        width: 280px;
+        flex-shrink: 0;
+        background: var(--panel);
+        border-right: 1px solid var(--border);
+        padding: 24px 16px;
+        position: sticky;
+        top: 0;
+        align-self: flex-start;
+        height: 100vh;
+        overflow-y: auto;
+    }
+    nav.toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 12px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+    nav.toc li { counter-increment: toc; margin-bottom: 4px; }
+    nav.toc a {
+        display: block;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 13.5px;
+    }
+    nav.toc a::before { content: counter(toc) ". "; color: var(--primary); font-weight: 600; }
+    nav.toc a:hover { background: #ecfdf5; color: var(--primary-dark); }
+    main { flex: 1; padding: 40px 56px 96px; max-width: 920px; }
+    header.hero {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 24px;
+        margin-bottom: 32px;
+    }
+    header.hero .kicker { color: var(--primary); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+    header.hero h1 { font-size: 30px; margin: 8px 0 8px; }
+    header.hero p.lead { color: var(--muted); font-size: 15px; max-width: 640px; }
+    section { margin-bottom: 48px; scroll-margin-top: 24px; }
+    h2 {
+        font-size: 21px;
+        margin: 0 0 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--primary);
+        display: inline-block;
+    }
+    h3 { font-size: 16px; margin: 28px 0 10px; }
+    p { margin: 0 0 12px; }
+    ul, ol { margin: 0 0 12px; padding-left: 22px; }
+    li { margin-bottom: 4px; }
+    code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        background: #eef2f7;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+    pre {
+        background: var(--code-bg);
+        color: var(--code-ink);
+        padding: 16px 18px;
+        border-radius: 10px;
+        overflow-x: auto;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    pre code { background: none; padding: 0; color: inherit; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13.5px; }
+    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: #f1f5f9; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+    }
+    .badge {
+        display: inline-block;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: var(--primary-dark);
+        margin-left: 6px;
+    }
+    .badge.warn { background: var(--warn-bg); color: var(--warn-ink); }
+    .badge.pending { background: #fef2f2; color: #991b1b; }
+    .note {
+        background: var(--warn-bg);
+        border: 1px solid var(--warn-border);
+        color: var(--warn-ink);
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 13.5px;
+        margin: 12px 0;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 20px; margin-top: 56px; }
+    @media (max-width: 900px) {
+        .layout { flex-direction: column; }
+        nav.toc { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); }
+        main { padding: 28px 20px 72px; }
+        .grid-2 { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+<div class="layout">
+    <nav class="toc" aria-label="Indice">
+        <h2>Indice</h2>
+        <ol>
+            <li><a href="#panoramica">Panoramica e stack tecnologico</a></li>
+            <li><a href="#architettura">Architettura multicompany</a></li>
+            <li><a href="#registro">Registro dei Trattamenti (Art. 30)</a></li>
+            <li><a href="#dpia">DPIA e sign-off del DPO (Art. 35)</a></li>
+            <li><a href="#breach">Data Breach e SLA 72h (Art. 33-34)</a></li>
+            <li><a href="#vendor">Vendor Risk Management (Art. 28)</a></li>
+            <li><a href="#dsar">Diritti dell'interessato — DSAR</a></li>
+            <li><a href="#retention">Data Retention (Art. 5.1.e)</a></li>
+            <li><a href="#dashboard">Dashboard DPO multicompany</a></li>
+            <li><a href="#scheduler">Comandi schedulati</a></li>
+            <li><a href="#storage">Storage, media e sicurezza</a></li>
+            <li><a href="#debito">Debito tecnico e roadmap</a></li>
+        </ol>
+    </nav>
+
+    <main>
+        <header class="hero">
+            <div class="kicker">UnicoGDPR — Documentazione Tecnica</div>
+            <h1>Manuale Tecnico</h1>
+            <p class="lead">Riferimento per sviluppatori e amministratori di sistema sull'architettura, i moduli e i comandi di UnicoGDPR — il modulo dell'ecosistema Unico per la governance privacy multicompany.</p>
+        </header>
+
+        <section id="panoramica">
+            <h2>1. Panoramica e stack tecnologico</h2>
+            <p>UnicoGDPR è un'applicazione Laravel con pannello amministrativo Filament, pensata per DPO e Compliance Officer che seguono più società (Holding, gruppi finanziari, reti di mediazione).</p>
+            <div class="card">
+                <table>
+                    <tr><th>Componente</th><th>Dettaglio</th></tr>
+                    <tr><td>Framework</td><td>Laravel 13, PHP 8.4</td></tr>
+                    <tr><td>Pannello admin</td><td>Filament 5.8 — unico pannello <code>admin</code>, path <code>/admin</code></td></tr>
+                    <tr><td>Multi-tenancy</td><td>Filament tenant = <code>App\Models\Company</code> (chiave UUID)</td></tr>
+                    <tr><td>Allegati</td><td>spatie/laravel-medialibrary 11</td></tr>
+                    <tr><td>Audit trail</td><td>spatie/laravel-activitylog 5</td></tr>
+                    <tr><td>PDF</td><td>barryvdh/laravel-dompdf, viste in <code>resources/views/documents</code></td></tr>
+                    <tr><td>Email/PEC</td><td>webklex/laravel-imap</td></tr>
+                    <tr><td>Storage cloud</td><td>Cloudflare R2 (driver S3-compatibile, <code>league/flysystem-aws-s3-v3</code>)</td></tr>
+                    <tr><td>OAuth</td><td>laravel/socialite + dutchcodingcompany/filament-socialite (Google/Microsoft)</td></tr>
+                </table>
+            </div>
+            <h3>Convenzioni Filament del repository</h3>
+            <ul>
+                <li>Ogni risorsa vive in <code>app/Filament/Resources/&lt;Nome&gt;/</code> con sottocartelle <code>Pages/</code>, <code>Tables/</code>, <code>Schemas/</code>, <code>RelationManagers/</code>.</li>
+                <li>Il form è in <code>Schemas/&lt;Nome&gt;Form.php</code> (metodo statico <code>configure(Schema): Schema</code>); la tabella in <code>Tables/&lt;Nome&gt;Table.php</code> (<code>configure(Table): Table</code>).</li>
+                <li>Le pagine cross-modulo (dashboard, cruscotti) vivono in <code>app/Filament/Pages/</code> e sono auto-scoperte via <code>discoverPages()</code>.</li>
+                <li>Testi, label e messaggi UI sono in italiano.</li>
+            </ul>
+        </section>
+
+        <section id="architettura">
+            <h2>2. Architettura multicompany</h2>
+            <p>Il tenant Filament è <code>App\Models\Company</code> (UUID). Ogni <code>Company</code> può appartenere a una <code>Holding</code> (<code>holding_id</code>). Gli utenti sono collegati alle company tramite pivot <code>company_user</code> con colonna <code>role</code> (<code>admin</code>, <code>dpo</code>, ...).</p>
+            <pre><code>Holding 1──* Company 1──* {ProcessingActivity, Dpia, DataBreach, ExternalProcessor, DataSubjectRequest, ...}
+User *──* Company (pivot: role)</code></pre>
+            <div class="note">
+                <strong>Nota di sicurezza.</strong> L'isolamento tra società è garantito oggi dal plugin tenant di Filament (query dei Resource scopate sulla relazione <code>company()</code>) e, dove esplicitamente implementato in questa sessione (<code>breach:deadline-check</code>, <code>vendor:audit-reminders</code>), dal filtro esplicito <code>$company-&gt;users()-&gt;wherePivotIn('role', ['dpo','admin'])</code>. Non esistono ancora Policy Laravel né un Global Scope <code>BelongsToCompany</code> applicato universalmente: comandi/job scritti senza attenzione possono interrogare tutte le company. Vedi §12.
+            </div>
+            <p>I comandi Artisan e i job in coda <strong>non</strong> sono scopati automaticamente dal tenant Filament: qualunque nuovo comando che invia notifiche o legge dati deve filtrare esplicitamente per <code>company_id</code> e per il ruolo del destinatario, replicando il pattern di <code>CheckBreachDeadlines</code>/<code>CheckVendorAuditDeadlines</code>.</p>
+        </section>
+
+        <section id="registro">
+            <h2>3. Registro dei Trattamenti <span class="badge">Art. 30</span></h2>
+            <p>Modello canonico: <code>App\Models\ProcessingActivity</code> (tabella <code>processing_activities</code>), tenant-scoped su <code>company_id</code>. Il modello legacy <code>RegistroTrattamentiItem</code> è stato consolidato in questo (migration <code>2026_09_15_100000_*</code>) e non esiste più.</p>
+            <ul>
+                <li><code>role</code>: <code>controller</code> (Titolare, Art. 30.1) o <code>processor</code> (Responsabile, Art. 30.2, con <code>client_controller_id</code> verso <code>ClientController</code>).</li>
+                <li><code>requiresDpia(): bool</code> — vero se il trattamento prevede trasferimenti extra-UE o coinvolge categorie di dati <code>particolari</code>/<code>giudiziari</code> (relazione <code>privacyDataTypes</code>). Usato solo come indicatore visuale nella tabella Filament, non come vincolo bloccante (vedi §12).</li>
+                <li>Relazioni <code>privacyDataTypes()</code> e <code>privacySecurities()</code> (belongsToMany su cataloghi globali).</li>
+            </ul>
+            <p>Risorsa Filament: <code>App\Filament\Resources\ProcessingActivities</code>, gruppo di navigazione <em>Governance &amp; Accountability</em>.</p>
+        </section>
+
+        <section id="dpia">
+            <h2>4. DPIA e sign-off del DPO <span class="badge">Art. 35</span></h2>
+            <p>Modello <code>App\Models\Dpia</code> con <code>DpiaItem</code> (righe di rischio) collegati ai cataloghi globali <code>DpiaRisk</code>/<code>DpiaImpact</code> tramite <code>dpia_risk_id</code>/<code>dpia_impact_id</code>.</p>
+            <h3>Flusso operativo</h3>
+            <ol>
+                <li>Il form (<code>DpiaForm</code>) è un <code>Filament\Schemas\Components\Wizard</code> a 4 step: Identificazione → Necessità/Proporzionalità → Analisi Rischi → Parere del DPO.</li>
+                <li>Ogni riga di rischio calcola <code>inherent_risk_score</code> (Probabilità × Gravità) e <code>residual_risk_score</code> (ridotto se è collegata una <code>PrivacySecurity</code> di mitigazione) — vedi <code>Dpia::addRiskItem()</code>.</li>
+                <li>L'azione <strong>"Firma e Completa DPIA"</strong> (pagina Edit) chiama <code>Dpia::signOffByDpo(User $dpo)</code>, che:
+                    <ul>
+                        <li>verifica <code>missingSignOffRequirements()</code> (descrizione trattamento, valutazione necessità, almeno un rischio, parere DPO non vuoto) e lancia <code>RuntimeException</code> se mancano;</li>
+                        <li>imposta <code>status = completed</code>, <code>dpo_signed_by</code>, <code>dpo_signed_at</code>;</li>
+                        <li>calcola <code>dpo_signature_hash</code> = SHA-256 di un payload JSON del contenuto sostanziale (<code>computeContentHash()</code>) — qualunque modifica successiva ai campi sorgente produce un hash diverso, rendendo rilevabile un'alterazione post-firma;</li>
+                        <li>registra un'attività immutabile (spatie/activitylog, <code>log name = 'dpia'</code>).</li>
+                    </ul>
+                </li>
+                <li>PDF del report generato da <code>DocumentGeneratorService::generateDpiaReport()</code> (vista <code>resources/views/documents/dpia-report.blade.php</code>), include l'hash e i dati della firma se presente.</li>
+            </ol>
+            <div class="note">L'hash SHA-256 copre solo il contenuto della singola DPIA al momento della firma: non è (ancora) parte di una catena di hash generale sul log di accountability. Vedi §12.</div>
+        </section>
+
+        <section id="breach">
+            <h2>5. Data Breach e SLA 72h <span class="badge">Art. 33-34</span></h2>
+            <p>Modello <code>App\Models\DataBreach</code>. La notificabilità non è più un mapping binario sulla sola gravità, ma <code>DataBreach::calculateRiskScore()</code> combina:</p>
+            <ul>
+                <li>gravità dichiarata (<code>low</code>/<code>medium</code>/<code>high</code>);</li>
+                <li>coinvolgimento di categorie particolari di dati (parole chiave in <code>affected_data_categories</code>: sanitari, biometrici, genetici, origine razziale, orientamento sessuale, ecc.);</li>
+                <li>volume di record coinvolti (<code>approximate_records_count</code>).</li>
+            </ul>
+            <p>Da <code>registerBreach()</code>: <code>is_notifiable_to_authority</code> se punteggio ≥ 2, <code>is_notifiable_to_subjects</code> se punteggio ≥ 4.</p>
+            <p><code>authorityNotificationDeadline()</code> = <code>discovered_at + 72h</code> (calcolata a runtime, non persistita). <code>authorityNotificationState()</code> ritorna <code>not_required | done | overdue | due_soon (&lt;12h) | on_track</code>.</p>
+            <p>Il comando schedulato <code>breach:deadline-check</code> (orario) notifica via <code>DpoAlert</code> i referenti (<code>role IN (dpo, admin)</code>) della company interessata sugli incidenti scaduti/in scadenza. Widget dashboard: <code>BreachSlaWidget</code>.</p>
+        </section>
+
+        <section id="vendor">
+            <h2>6. Vendor Risk Management <span class="badge">Art. 28</span></h2>
+            <p>Modello canonico: <code>App\Models\ExternalProcessor</code> (assorbe il legacy <code>DataProcessor</code>, mai popolato — migration <code>2026_09_15_100001_*</code>). Porta sia l'anagrafica del fornitore sia il tracciamento del DPA (<code>has_dpa_signed</code>, <code>dpa_signed_at</code>, <code>dpa_expires_at</code>, media collection <code>dpa_contracts</code>).</p>
+            <h3>Nomina PDF</h3>
+            <p><code>DocumentGeneratorService::generateDpaSubresponsabile(ExternalProcessor $processor)</code>, azione "Genera DPA (PDF)" sulla tabella <code>ExternalProcessorsTable</code>.</p>
+            <h3>Questionario di adeguatezza — workflow pubblico</h3>
+            <ol>
+                <li><code>ExternalProcessorAudit</code> rappresenta un audit/questionario per fornitore, con colonne <code>token</code> (univoco), <code>sent_at</code>, <code>submitted_at</code>, <code>vendor_answers</code>.</li>
+                <li>Azione "Invia Questionario" (<code>AuditsRelationManager</code>) genera il token (<code>ensureToken()</code>), imposta <code>status = pending_answers</code> e invia <code>VendorAuditQuestionnaireInvite</code> (mail) con link a <code>/fornitori/questionario/{token}</code>.</li>
+                <li>Il fornitore compila il form pubblico <strong>senza autenticazione</strong> (<code>VendorAuditQuestionnaireController</code>, viste in <code>resources/views/vendor-audit/</code>): testo libero + upload evidenze. L'accesso è protetto unicamente dall'imprevedibilità del token (48 caratteri random).</li>
+                <li>Alla sottomissione: <code>vendor_answers</code> salvato, <code>submitted_at</code> impostato, evidenze caricate su <code>audit_evidences</code> (disco <code>google</code>→R2, vedi §11), DPO notificato via <code>DpoAlert</code>. Il questionario già inviato non è più raggiungibile (HTTP 410).</li>
+            </ol>
+            <p>Comando schedulato <code>vendor:audit-reminders</code> (08:30): avvisa i referenti su <code>next_audit_due</code> e <code>dpa_expires_at</code> in scadenza entro N giorni (default 30).</p>
+        </section>
+
+        <section id="dsar">
+            <h2>7. Diritti dell'interessato — DSAR</h2>
+            <p>Modello <code>App\Models\DataSubjectRequest</code>, stato normalizzato da <code>App\Enums\DsarStatus</code>. <code>createRequest()</code> imposta <code>deadline_at = received_at + 30 giorni</code> (Art. 12.3).</p>
+            <ul>
+                <li><code>identityGatedStatuses()</code>/<code>isBlockedByIdentityCheck()</code>: gli stati avanzati (in lavorazione, prorogata, completata) sono bloccati finché <code>identity_verified = false</code>.</li>
+                <li>Comando <code>dsar:deadline-check</code> (08:00): notifica le scadenze — <strong>attenzione</strong>, oggi invia a <code>User::all()</code> senza scoping per company (debito tecnico, vedi §12).</li>
+                <li>Intake: manuale da pannello o via classificazione automatica delle email in ingresso (<code>IncomingEmail</code> → <code>data_subject_request_id</code>). Nessun portale pubblico self-service per l'interessato (esiste solo quello per i fornitori, §6).</li>
+            </ul>
+        </section>
+
+        <section id="retention">
+            <h2>8. Data Retention <span class="badge">Art. 5.1.e</span></h2>
+            <p><code>App\Models\PrivacyRetention</code> è sia un catalogo documentale sia, opzionalmente, una policy eseguibile: i campi <code>applies_to_model</code>, <code>date_column</code>, <code>is_active</code> collegano la policy a un modello concreto (mappa in <code>PrivacyRetention::MODEL_MAP</code>, oggi <code>employee</code> e <code>client</code>).</p>
+            <p>Il comando <code>retention:enforce</code> (03:00, opzione <code>--dry-run</code>):</p>
+            <ol>
+                <li>seleziona le policy <code>is_active = true</code> ed <code>isEnforceable()</code> (modello e colonna mappati, azione ammessa);</li>
+                <li>calcola la data di cutoff (<code>PrivacyRetention::cutoffDate()</code>) in base a <code>retention_value</code>/<code>retention_unit</code>;</li>
+                <li>per ogni record scaduto: <code>anonymize()</code> se il modello implementa <code>App\Contracts\Anonymizable</code>, oppure soft-delete se usa <code>SoftDeletes</code>;</li>
+                <li>registra ogni azione in activitylog (<code>log name = 'data_retention'</code>) e aggiorna <code>last_enforced_at</code> sulla policy.</li>
+            </ol>
+            <div class="note">Per sicurezza l'enforcement è sempre <strong>opt-in</strong>: una policy senza <code>is_active = true</code> e un mapping esplicito resta puramente documentale e non tocca alcun dato.</div>
+        </section>
+
+        <section id="dashboard">
+            <h2>9. Dashboard DPO multicompany</h2>
+            <p><code>App\Filament\Pages\DpoCommandCenter</code> (route <code>/admin/{tenant}/dpo-command-center</code>) aggrega, per ciascuna company su cui l'utente autenticato ha ruolo <code>dpo</code> o <code>admin</code> — non solo il tenant Filament attivo — un riepilogo di:</p>
+            <ul>
+                <li>Data Breach con notifica al Garante scaduta/in scadenza;</li>
+                <li>DPIA non ancora firmate dal DPO;</li>
+                <li>DSAR aperte, scadute o in scadenza;</li>
+                <li>Fornitori con DPA in scadenza.</li>
+            </ul>
+            <p>Vista: <code>resources/views/filament/pages/dpo-command-center.blade.php</code>. Nota: il menu di cambio azienda di Filament elenca comunque tutte le company accessibili (<code>User::canAccessTenant()</code> ritorna sempre <code>true</code>) — è un comportamento distinto e preesistente rispetto al contenuto di questa pagina, che resta filtrato per ruolo.</p>
+        </section>
+
+        <section id="scheduler">
+            <h2>10. Comandi schedulati (<code>routes/console.php</code>)</h2>
+            <table>
+                <tr><th>Comando</th><th>Frequenza</th><th>Scopo</th></tr>
+                <tr><td><code>emails:fetch</code></td><td>ogni 5 min</td><td>Scarica email dalle caselle IMAP/PEC attive</td></tr>
+                <tr><td><code>emails:process-bounces</code></td><td>ogni ora</td><td>Elabora le email di bounce</td></tr>
+                <tr><td><code>inbox:prune</code></td><td>02:30</td><td>Retention della posta in arrivo</td></tr>
+                <tr><td><code>dsar:deadline-check</code></td><td>08:00</td><td>Scadenzario DSAR (Art. 12.3)</td></tr>
+                <tr><td><code>breach:deadline-check</code></td><td>ogni ora</td><td>SLA 72h notifica Garante (Art. 33)</td></tr>
+                <tr><td><code>retention:enforce</code></td><td>03:00</td><td>Anonimizzazione/cancellazione automatica</td></tr>
+                <tr><td><code>vendor:audit-reminders</code></td><td>08:30</td><td>Audit fornitori e DPA in scadenza (Art. 28)</td></tr>
+                <tr><td><code>mail:health-check</code></td><td>ogni 6h</td><td>Caselle IMAP ferme / token OAuth in scadenza</td></tr>
+            </table>
+        </section>
+
+        <section id="storage">
+            <h2>11. Storage, media e sicurezza</h2>
+            <table>
+                <tr><th>Disco</th><th>Driver</th><th>Uso</th></tr>
+                <tr><td><code>private</code></td><td>local</td><td>Allegati DSAR, documenti DPIA/Data Breach/DPA — non serviti pubblicamente</td></tr>
+                <tr><td><code>public</code></td><td>local</td><td>Asset pubblici standard Laravel</td></tr>
+                <tr><td><code>r2</code> / <code>google</code> <span class="badge">alias</span></td><td>s3 (Cloudflare R2)</td><td>Evidenze audit fornitori (<code>audit_evidences</code>) e documenti TIA (<code>tia_documents</code>). Il nome storico <code>google</code> è mantenuto come alias per non rinominare le media collection esistenti nel codice.</td></tr>
+            </table>
+            <p>Credenziali R2 in <code>.env</code> (<code>R2_ACCESS_KEY_ID</code>, <code>R2_SECRET_ACCESS_KEY</code>, <code>R2_BUCKET</code>, <code>R2_ENDPOINT</code>). Pacchetto richiesto: <code>league/flysystem-aws-s3-v3</code>.</p>
+            <p>Segreti IMAP/OAuth su <code>MailAccount</code> e <code>Company</code> sono cast <code>encrypted</code>. Il portale pubblico fornitori (§6) non richiede autenticazione: la sicurezza si basa sull'imprevedibilità del token e sulla singola-esecuzione (un questionario già inviato ritorna HTTP 410).</p>
+        </section>
+
+        <section id="debito">
+            <h2>12. Debito tecnico e roadmap <span class="badge pending">In sospeso</span></h2>
+            <p>Elenco dettagliato e prompt operativi in <code>docs/PROMPTS-VIBE-CODING.md</code>, §9.9. Sintesi:</p>
+            <ul>
+                <li><strong>Multicompany hardening</strong> — nessuna Policy Laravel né Global Scope <code>BelongsToCompany</code>; <code>dsar:deadline-check</code> notifica <code>User::all()</code> senza scoping per company (diversamente da <code>breach:deadline-check</code> e <code>vendor:audit-reminders</code>, già scopati).</li>
+                <li><strong>Log immutabile generale</strong> — l'hash SHA-256 esiste solo sul sign-off DPIA; la specifica richiede un log immutabile su ogni approvazione/parere/modifica dei registri.</li>
+                <li><strong>Portale self-service DSAR</strong> — esiste solo per i fornitori (§6), non per l'interessato.</li>
+                <li><strong>Proroga DSAR a 60 giorni</strong> — campo <code>extended_until</code> presente ma non gestito da alcun metodo.</li>
+                <li><strong>Registro di Gruppo</strong> — nessuna vista aggregata a livello Holding; nessuna sincronizzazione reale con UnicoBPM (solo SSO bridge).</li>
+                <li><strong>DPIA obbligatoria</strong> — <code>requiresDpia()</code> è solo un indicatore visuale, non un vincolo che impedisce di attivare un trattamento ad alto rischio senza DPIA completata.</li>
+                <li><strong>TIA</strong> — nessuna generazione PDF né reminder su <code>next_review_date</code>.</li>
+                <li><strong>Matrice RACI</strong> — esclusa di proposito: è già realizzata in un'altra app dell'ecosistema Unico.</li>
+            </ul>
+        </section>
+
+        <footer>
+            UnicoGDPR — Manuale Tecnico generato il 15 settembre 2026. Per la matrice RACI e la governance dei ruoli, fare riferimento all'applicazione dedicata dell'ecosistema Unico.
+        </footer>
+    </main>
+</div>
+</body>
+</html>
