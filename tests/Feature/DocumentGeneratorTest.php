@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Company;
 use App\Models\DataBreach;
-use App\Models\DataProcessor;
 use App\Models\Employee;
+use App\Models\ExternalProcessor;
 use App\Services\DocumentGeneratorService;
 use Tests\TestCase;
 
@@ -53,10 +53,10 @@ class DocumentGeneratorTest extends TestCase
     public function test_can_generate_dpa_subresponsabile_pdf(): void
     {
         $service = app(DocumentGeneratorService::class);
-        $processor = new DataProcessor([
+        $processor = new ExternalProcessor([
             'name' => 'Cloud Provider Solutions S.r.l.',
-            'tax_number' => 'IT01234567890',
-            'contact_email' => 'privacy@cloudprovider.it',
+            'vat_number' => 'IT01234567890',
+            'email' => 'privacy@cloudprovider.it',
             'has_dpa_signed' => true,
             'dpa_signed_at' => now(),
             'dpa_expires_at' => now()->addYear(),

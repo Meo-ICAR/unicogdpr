@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ExternalProcessors\Schemas;
 
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -66,6 +67,22 @@ class ExternalProcessorForm
                         Toggle::make('is_active')
                             ->label('Contratto Attivo')
                             ->default(true),
+                        Toggle::make('has_dpa_signed')
+                            ->label('DPA Firmato')
+                            ->live()
+                            ->default(false),
+                        DatePicker::make('dpa_signed_at')
+                            ->label('Data Firma DPA')
+                            ->visible(fn ($get) => $get('has_dpa_signed')),
+                        DatePicker::make('dpa_expires_at')
+                            ->label('Data Scadenza DPA')
+                            ->visible(fn ($get) => $get('has_dpa_signed')),
+                        SpatieMediaLibraryFileUpload::make('dpa_contract')
+                            ->label('Contratto DPA (PDF)')
+                            ->collection('dpa_contracts')
+                            ->disk('private')
+                            ->downloadable()
+                            ->columnSpanFull(),
                     ]),
 
                 // ── Sezione 3: Misure di Sicurezza (BelongsToMany) ───────────────

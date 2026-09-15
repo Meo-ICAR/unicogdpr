@@ -35,13 +35,13 @@ class ProcessingActivitiesTable
                     ->badge()
                     ->color(fn (string $state) => match ($state) {
                         'controller' => 'info',
-                        'processor'  => 'warning',
-                        default      => 'gray',
+                        'processor' => 'warning',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state) => match ($state) {
                         'controller' => 'Titolare',
-                        'processor'  => 'Responsabile',
-                        default      => $state,
+                        'processor' => 'Responsabile',
+                        default => $state,
                     }),
                 TextColumn::make('clientController.name')
                     ->label('Cliente / Mandante')
@@ -65,6 +65,21 @@ class ProcessingActivitiesTable
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('danger'),
+                TextColumn::make('dpia_status')
+                    ->label('DPIA')
+                    ->state(function ($record) {
+                        if (! $record->requiresDpia()) {
+                            return 'Non richiesta';
+                        }
+
+                        return $record->dpias()->exists() ? 'Presente' : 'Richiesta – Mancante';
+                    })
+                    ->badge()
+                    ->color(fn ($record, string $state) => match (true) {
+                        $state === 'Non richiesta' => 'gray',
+                        $state === 'Presente' => 'success',
+                        default => 'danger',
+                    }),
                 TextColumn::make('updated_at')
                     ->label('Aggiornato il')
                     ->dateTime('d/m/Y')
@@ -76,7 +91,7 @@ class ProcessingActivitiesTable
                     ->label('Ruolo')
                     ->options([
                         'controller' => 'Titolare del Trattamento',
-                        'processor'  => 'Responsabile del Trattamento',
+                        'processor' => 'Responsabile del Trattamento',
                     ]),
                 SelectFilter::make('is_active')
                     ->label('Stato')

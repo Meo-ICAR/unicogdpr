@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\DpiaRisk;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DpiaRiskSeeder extends Seeder
 {
@@ -14,7 +15,9 @@ class DpiaRiskSeeder extends Seeder
     public function run(): void
     {
         // Truncate and seed a curated list of risks
+        Schema::disableForeignKeyConstraints();
         DB::table('dpia_risks')->truncate();
+        Schema::enableForeignKeyConstraints();
 
         $risks = [
             ['name' => 'Rischio tecnico: vulnerabilità software', 'description' => 'Vulnerabilità in componenti software esposte', 'extra_value' => 'weight:4,category:technical'],

@@ -66,11 +66,6 @@ class Company extends Model
         return $this->hasMany(Client::class);
     }
 
-    public function registroTrattamenti(): HasMany
-    {
-        return $this->hasMany(RegistroTrattamentiItem::class);
-    }
-
     public function holding(): BelongsTo
     {
         return $this->belongsTo(Holding::class);

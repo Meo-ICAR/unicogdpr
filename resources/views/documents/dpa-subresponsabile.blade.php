@@ -14,7 +14,7 @@
         <strong>{{ $company->name }}</strong> (di seguito denominata il <em>"Responsabile Principale"</em> / <em>"Committente"</em>);
     </li>
     <li>
-        <strong>{{ $processor->name }}</strong>, P.IVA/C.F. <strong>{{ $processor->tax_number ?? 'N/D' }}</strong>, Email di contatto: <strong>{{ $processor->contact_email ?? 'N/D' }}</strong> (di seguito denominata il <em>"Sub-Responsabile"</em> o <em>"Fornitore"</em>).
+        <strong>{{ $processor->name }}</strong>, P.IVA/C.F. <strong>{{ $processor->vat_number ?? 'N/D' }}</strong>, Email di contatto: <strong>{{ $processor->email ?? 'N/D' }}</strong> (di seguito denominata il <em>"Sub-Responsabile"</em> o <em>"Fornitore"</em>).
     </li>
 </ol>
 

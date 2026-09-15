@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProcessingActivity extends Model
@@ -70,5 +71,21 @@ class ProcessingActivity extends Model
             PrivacySecurity::class,
             'processing_activity_privacy_security'
         );
+    }
+
+    public function dpias(): HasMany
+    {
+        return $this->hasMany(Dpia::class);
+    }
+
+    /**
+     * Indica se il trattamento presenta caratteristiche che rendono
+     * obbligatoria una DPIA (Art. 35.3 GDPR): trasferimento extra-UE o
+     * trattamento di categorie particolari/giudiziarie di dati (Art. 9/10).
+     */
+    public function requiresDpia(): bool
+    {
+        return $this->has_third_country_transfers
+            || $this->privacyDataTypes()->whereIn('category', ['particolari', 'giudiziari'])->exists();
     }
 }

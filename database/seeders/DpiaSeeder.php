@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Company;
 use App\Models\Dpia;
 use App\Models\ProcessingActivity;
-use App\Models\RegistroTrattamentiItem;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -20,12 +19,11 @@ class DpiaSeeder extends Seeder
         DB::table('dpia_items')->delete();
         DB::table('dpias')->delete();
 
-        // Get companies and registro trattamenti items for relationships
+        // Get companies for relationships
         $companies = Company::all();
-        $registroItems = RegistroTrattamentiItem::all();
 
-        if ($companies->isEmpty() || $registroItems->isEmpty()) {
-            $this->command->warn('No companies or registro trattamenti items found. Skipping DPIA seeding.');
+        if ($companies->isEmpty() || ProcessingActivity::doesntExist()) {
+            $this->command->warn('No companies or processing activities found. Skipping DPIA seeding.');
 
             return;
         }
@@ -124,20 +122,17 @@ class DpiaSeeder extends Seeder
 
         // Create DPIA records for each company
         foreach ($companies as $company) {
-            // Assign random registro trattamenti items to DPIAs
-            $assignedItems = $registroItems->random(min(5, $registroItems->count()));
-
-            // Trattamenti canonici (Art. 30) di questa azienda, per il collegamento nuovo
+            // Trattamenti canonici (Art. 30) di questa azienda
             $activities = ProcessingActivity::where('company_id', $company->id)->get();
 
+            if ($activities->isEmpty()) {
+                continue;
+            }
+
             foreach ($dpias as $index => $dpiaData) {
-                // Create DPIA with company_id, registro legacy e trattamento canonico
                 $dpia = Dpia::create(array_merge($dpiaData, [
                     'company_id' => $company->id,
-                    'registro_trattamenti_item_id' => $assignedItems->get($index % $assignedItems->count())->id,
-                    'processing_activity_id' => $activities->isNotEmpty()
-                        ? $activities->get($index % $activities->count())->id
-                        : null,
+                    'processing_activity_id' => $activities->get($index % $activities->count())->id,
                 ]));
 
                 $this->command->info("Created DPIA: {$dpia->name} for company: {$company->name}");

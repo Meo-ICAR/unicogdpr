@@ -89,7 +89,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ExternalProcessorSeeder::class,
             ClientControllerSeeder::class,
-            RegistroTrattamentiItemSeeder::class,   // legacy, ancora referenziato dalla FK DPIA
             ProcessingActivitySeeder::class,        // registro canonico Art. 30
             DpiaSeeder::class,
             DpiaItemSeeder::class,

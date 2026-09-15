@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\DpiaImpact;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DpiaImpactSeeder extends Seeder
 {
@@ -14,7 +15,9 @@ class DpiaImpactSeeder extends Seeder
     public function run(): void
     {
         // Truncate and seed curated list of DPIA impacts
+        Schema::disableForeignKeyConstraints();
         DB::table('dpia_impacts')->truncate();
+        Schema::enableForeignKeyConstraints();
 
         $impacts = [
             ['name' => 'Perdita economica', 'description' => 'Impatto finanziario diretto sugli interessati', 'extra_value' => '3'],

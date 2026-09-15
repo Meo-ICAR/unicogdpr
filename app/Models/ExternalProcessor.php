@@ -7,10 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class ExternalProcessor extends Model
+class ExternalProcessor extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'company_id',
@@ -23,14 +28,44 @@ class ExternalProcessor extends Model
         'dpo_contact',            // Email o riferimento del DPO del responsabile
         'processing_description', // Descrizione del trattamento affidato (es. Hosting dati, Buste Paga)
         'contract_date',          // Data di firma dell'accordo DPA (Data Processing Agreement)
+        'has_dpa_signed',
+        'dpa_signed_at',
+        'dpa_expires_at',
         'is_active',
         'notes',
+        'general_authorization_granted',
+        'sub_processors_list_url',
     ];
 
     protected $casts = [
         'contract_date' => 'date',
+        'dpa_signed_at' => 'date',
+        'dpa_expires_at' => 'date',
         'is_active' => 'boolean',
+        'has_dpa_signed' => 'boolean',
+        'general_authorization_granted' => 'boolean',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn (string $eventName) => "Responsabile Esterno {$eventName}: {$this->name}")
+            ->useLogName('external_processor');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('dpa_contracts')
+            ->useDisk('private')
+            ->singleFile()
+            ->acceptsMimeTypes([
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ]);
+    }
 
     /**
      * Il Tenant a cui appartiene questo Responsabile Esterno.
@@ -62,5 +97,16 @@ class ExternalProcessor extends Model
     public function transferImpactAssessments(): HasMany
     {
         return $this->hasMany(TransferImpactAssessment::class);
+    }
+
+    /**
+     * Verifica se il DPA è in scadenza nei prossimi $days giorni.
+     */
+    public function isDpaExpiringSoon(int $days = 30): bool
+    {
+        return $this->dpa_expires_at
+            && $this->has_dpa_signed
+            && $this->dpa_expires_at->isFuture()
+            && now()->diffInDays($this->dpa_expires_at, false) <= $days;
     }
 }

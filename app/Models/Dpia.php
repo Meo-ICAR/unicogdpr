@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use RuntimeException;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\MediaLibrary\HasMedia;
@@ -15,13 +16,20 @@ class Dpia extends Model implements HasMedia
 {
     use InteractsWithMedia, LogsActivity, SoftDeletes;
 
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_UNDER_REVIEW = 'under_review';
+
+    public const STATUS_COMPLETED = 'completed';
+
     protected $table = 'dpias';
 
     protected $fillable = [
-        'company_id', 'name', 'registro_trattamenti_item_id', 'processing_activity_id',
+        'company_id', 'name', 'processing_activity_id',
         'description_of_processing', 'necessity_assessment',
         'is_necessary', 'is_proportional', 'status', 'dpo_opinion',
         'completion_date', 'next_review_date',
+        'dpo_signed_by', 'dpo_signed_at', 'dpo_signature_hash',
     ];
 
     protected $casts = [
@@ -29,6 +37,7 @@ class Dpia extends Model implements HasMedia
         'is_proportional' => 'boolean',
         'completion_date' => 'date',
         'next_review_date' => 'date',
+        'dpo_signed_at' => 'datetime',
     ];
 
     public function getActivitylogOptions(): LogOptions
@@ -56,17 +65,105 @@ class Dpia extends Model implements HasMedia
         return $this->belongsTo(Company::class);
     }
 
-    public function registroTrattamento(): BelongsTo
-    {
-        return $this->belongsTo(RegistroTrattamentiItem::class, 'registro_trattamenti_item_id');
-    }
-
     /**
      * Trattamento di riferimento nel registro canonico (Art. 30).
      */
     public function processingActivity(): BelongsTo
     {
         return $this->belongsTo(ProcessingActivity::class);
+    }
+
+    public function dpoSignedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dpo_signed_by');
+    }
+
+    public function isSignedByDpo(): bool
+    {
+        return $this->dpo_signed_at !== null;
+    }
+
+    /**
+     * Requisiti minimi (Art. 35) prima che il DPO possa formalizzare il parere:
+     * descrizione del trattamento, valutazione di necessità/proporzionalità,
+     * almeno un rischio analizzato e un parere testuale espresso.
+     *
+     * @return array<int, string> elenco dei requisiti mancanti, vuoto se pronta
+     */
+    public function missingSignOffRequirements(): array
+    {
+        $missing = [];
+
+        if (blank($this->description_of_processing)) {
+            $missing[] = 'Descrizione sistematica del trattamento mancante';
+        }
+
+        if (blank($this->necessity_assessment)) {
+            $missing[] = 'Valutazione di necessità e proporzionalità mancante';
+        }
+
+        if ($this->items()->doesntExist()) {
+            $missing[] = 'Nessun rischio analizzato nella sezione "Analisi dei Rischi"';
+        }
+
+        if (blank($this->dpo_opinion)) {
+            $missing[] = 'Parere del DPO non ancora espresso';
+        }
+
+        return $missing;
+    }
+
+    /**
+     * Impronta SHA-256 del contenuto sostanziale della DPIA, calcolata al
+     * momento della firma per rilevare eventuali modifiche successive
+     * (Art. 5.2 GDPR — Accountability).
+     */
+    public function computeContentHash(): string
+    {
+        $payload = [
+            'name' => $this->name,
+            'processing_activity_id' => $this->processing_activity_id,
+            'description_of_processing' => $this->description_of_processing,
+            'necessity_assessment' => $this->necessity_assessment,
+            'is_necessary' => $this->is_necessary,
+            'is_proportional' => $this->is_proportional,
+            'dpo_opinion' => $this->dpo_opinion,
+            'items' => $this->items()->orderBy('id')->get([
+                'risk_source', 'potential_impact', 'probability', 'severity',
+                'inherent_risk_score', 'residual_risk_score', 'privacy_security_id',
+            ])->toArray(),
+        ];
+
+        return hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * Formalizza il parere del DPO: verifica i requisiti minimi, marca la
+     * DPIA come completata e ne blocca il contenuto con un hash SHA-256
+     * a prova di manomissione (log immutabile di Accountability, Art. 5.2).
+     *
+     * @throws RuntimeException se i requisiti minimi non sono soddisfatti
+     */
+    public function signOffByDpo(User $dpo): void
+    {
+        $missing = $this->missingSignOffRequirements();
+
+        if ($missing !== []) {
+            throw new RuntimeException(implode('; ', $missing));
+        }
+
+        $this->dpo_signed_by = $dpo->id;
+        $this->dpo_signed_at = now();
+        $this->status = self::STATUS_COMPLETED;
+        $this->completion_date ??= now()->toDateString();
+        $this->dpo_signature_hash = $this->computeContentHash();
+        $this->save();
+
+        activity('dpia')
+            ->performedOn($this)
+            ->causedBy($dpo)
+            ->withProperties(['signature_hash' => $this->dpo_signature_hash])
+            ->log("DPIA \"{$this->name}\" validata formalmente dal DPO {$dpo->name}");
     }
 
     public function dpiaItems(): HasMany
@@ -93,7 +190,7 @@ class Dpia extends Model implements HasMedia
         $inherentRiskScore = $probability * $severity;
 
         // Il rischio residuo viene ridotto proporzionalmente dalla misura di mitigazione
-        $residualFactor = $data['privacy_security_id'] ? 0.6 : 1.0;
+        $residualFactor = ($data['privacy_security_id'] ?? null) ? 0.6 : 1.0;
         $residualRiskScore = (int) ceil($inherentRiskScore * $residualFactor);
 
         return $this->items()->create(array_merge($data, [

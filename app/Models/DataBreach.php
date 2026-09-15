@@ -106,15 +106,65 @@ class DataBreach extends Model implements HasMedia
     }
 
     /**
-     * Registra un data breach determinando automaticamente l'obbligo di notifica al Garante
-     * basandosi sulla gravità (Art. 33 GDPR — notifica entro 72 ore se gravità alta/media).
+     * Parole chiave che segnalano il coinvolgimento di categorie particolari di dati
+     * (Art. 9 GDPR) o di soggetti vulnerabili, elemento aggravante ai fini della
+     * valutazione del rischio ex Considerando 75-76.
+     *
+     * @var array<int, string>
+     */
+    protected static array $specialCategoryKeywords = [
+        'sanitari', 'salute', 'medic', 'biometric', 'genetic', 'genetici',
+        'origine razziale', 'etnic', 'orientamento sessuale', 'religios',
+        'sindacal', 'politic', 'minori', 'minore',
+    ];
+
+    /**
+     * Calcola un punteggio di rischio (1-5) combinando gravità dichiarata,
+     * categorie di dati coinvolte e numero di interessati, per determinare in
+     * modo più realistico l'obbligo di notifica (Art. 33/34 e Considerando 75-76),
+     * invece di un semplice mapping binario sulla sola gravità.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function calculateRiskScore(array $data): int
+    {
+        $severity = $data['severity'] ?? 'medium';
+        $categories = mb_strtolower((string) ($data['affected_data_categories'] ?? ''));
+        $recordsCount = (int) ($data['approximate_records_count'] ?? 0);
+
+        $score = match ($severity) {
+            'high' => 3,
+            'medium' => 2,
+            'low' => 1,
+            default => 2,
+        };
+
+        if (collect(static::$specialCategoryKeywords)->contains(fn (string $k) => str_contains($categories, $k))) {
+            $score++;
+        }
+
+        if ($recordsCount > 1000) {
+            $score++;
+        } elseif ($recordsCount > 100) {
+            $score += 0.5;
+        }
+
+        return (int) min(5, max(1, ceil($score)));
+    }
+
+    /**
+     * Registra un data breach determinando automaticamente l'obbligo di notifica
+     * tramite la matrice di rischio (Art. 33-34 GDPR), non più un mapping binario
+     * sulla sola gravità dichiarata.
      */
     public static function registerBreach(array $data): static
     {
-        $severity = $data['severity'] ?? 'medium';
+        $riskScore = static::calculateRiskScore($data);
 
-        $isNotifiableToAuthority = in_array($severity, ['high', 'medium']);
-        $isNotifiableToSubjects = $severity === 'high';
+        // Rischio (anche solo probabile) per i diritti e le libertà → notifica al Garante.
+        $isNotifiableToAuthority = $riskScore >= 2;
+        // Rischio elevato → notifica anche agli interessati (Art. 34).
+        $isNotifiableToSubjects = $riskScore >= 4;
 
         return static::create(array_merge([
             'status' => 'investigating',

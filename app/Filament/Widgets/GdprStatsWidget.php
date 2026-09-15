@@ -3,8 +3,8 @@
 namespace App\Filament\Widgets;
 
 use App\Models\DataBreach;
-use App\Models\DataProcessor;
 use App\Models\DataSubjectRequest;
+use App\Models\ExternalProcessor;
 use App\Models\IncomingEmail;
 use App\Models\MailAccount;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -29,7 +29,7 @@ class GdprStatsWidget extends BaseWidget
         $openBreachesCount = DataBreach::whereIn('status', ['investigating', 'contained'])->count();
 
         // 4. Accordi DPA in scadenza nei prossimi 30 giorni
-        $expiringDpaCount = DataProcessor::where('has_dpa_signed', true)
+        $expiringDpaCount = ExternalProcessor::where('has_dpa_signed', true)
             ->whereNotNull('dpa_expires_at')
             ->whereBetween('dpa_expires_at', [now(), now()->addDays(30)])
             ->count();

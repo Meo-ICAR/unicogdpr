@@ -1,9 +1,8 @@
 <?php
 
 use App\Http\Controllers\BpmBridgeController;
-use App\Models\Document;
+use App\Http\Controllers\VendorAuditQuestionnaireController;
 use Illuminate\Support\Facades\Route;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 Route::redirect('/', '/admin');
 
@@ -15,4 +14,9 @@ Route::get('/admin/manuale', function () {
     return response()->download(public_path('docs/Manuale Proforma.pdf'), 'Manuale Proforma.pdf');
 })->name('filament.admin.pages.manuale');
 
-
+// Portale pubblico (non autenticato) per la compilazione dei questionari
+// fornitori Art. 28 GDPR: l'accesso è protetto dal token univoco nell'URL.
+Route::get('/fornitori/questionario/{token}', [VendorAuditQuestionnaireController::class, 'show'])
+    ->name('vendor-audit.show');
+Route::post('/fornitori/questionario/{token}', [VendorAuditQuestionnaireController::class, 'submit'])
+    ->name('vendor-audit.submit');

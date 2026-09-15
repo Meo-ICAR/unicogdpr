@@ -12,17 +12,23 @@ class PrivacySecurity extends Model
 {
     use HasFactory, SoftDeletes;
 
-    public const TYPE_TECHNICAL     = 'technical';
+    public const TYPE_TECHNICAL = 'technical';
+
     public const TYPE_ORGANIZATIONAL = 'organizational';
-    public const TYPE_PHYSICAL      = 'physical';
+
+    public const TYPE_PHYSICAL = 'physical';
 
     public const STATUS_IMPLEMENTED = 'implemented';
-    public const STATUS_IN_PROGRESS = 'in_progress';
-    public const STATUS_PLANNED     = 'planned';
 
-    public const RISK_LOW    = 'low';
+    public const STATUS_IN_PROGRESS = 'in_progress';
+
+    public const STATUS_PLANNED = 'planned';
+
+    public const RISK_LOW = 'low';
+
     public const RISK_MEDIUM = 'medium';
-    public const RISK_HIGH   = 'high';
+
+    public const RISK_HIGH = 'high';
 
     protected $table = 'privacy_security';
 
@@ -41,7 +47,7 @@ class PrivacySecurity extends Model
 
     protected $casts = [
         'last_reviewed_at' => 'datetime',
-        'next_review_due'  => 'datetime',
+        'next_review_due' => 'datetime',
     ];
 
     public function company(): BelongsTo
@@ -62,16 +68,6 @@ class PrivacySecurity extends Model
         return $this->belongsToMany(
             ExternalProcessor::class,
             'external_processor_privacy_security'
-        );
-    }
-
-    public function registroTrattamentiItems(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            RegistroTrattamentiItem::class,
-            'privacy_security_registro_trattamenti_item',
-            'privacy_security_id',
-            'registro_trattamenti_item_id'
         );
     }
 }

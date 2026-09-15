@@ -4,8 +4,9 @@ namespace App\Services;
 
 use App\Models\Company;
 use App\Models\DataBreach;
-use App\Models\DataProcessor;
+use App\Models\Dpia;
 use App\Models\Employee;
+use App\Models\ExternalProcessor;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPdfWrapper;
 use Carbon\Carbon;
@@ -81,7 +82,7 @@ class DocumentGeneratorService
     /**
      * Genera l'Atto di Nomina a Sub-Responsabile del Trattamento (DPA Art. 28 GDPR)
      */
-    public function generateDpaSubresponsabile(DataProcessor $processor, array $options = []): DomPdfWrapper
+    public function generateDpaSubresponsabile(ExternalProcessor $processor, array $options = []): DomPdfWrapper
     {
         $company = $this->getCompany($processor->company);
         $date = isset($options['date']) ? Carbon::parse($options['date']) : ($processor->dpa_signed_at ?? now());
@@ -115,6 +116,25 @@ class DocumentGeneratorService
         ];
 
         return Pdf::loadView('documents.notifica-data-breach', $data)
+            ->setPaper('a4', 'portrait')
+            ->setOption(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+    }
+
+    /**
+     * Genera il report della Valutazione d'Impatto sulla Protezione dei Dati (DPIA - Art. 35 GDPR)
+     */
+    public function generateDpiaReport(Dpia $dpia, array $options = []): DomPdfWrapper
+    {
+        $company = $this->getCompany($dpia->company);
+        $date = isset($options['date']) ? Carbon::parse($options['date']) : now();
+
+        $data = [
+            'company' => $company,
+            'dpia' => $dpia->load(['items.riskCatalog', 'items.impactCatalog', 'processingActivity', 'dpoSignedBy']),
+            'date' => $date,
+        ];
+
+        return Pdf::loadView('documents.dpia-report', $data)
             ->setPaper('a4', 'portrait')
             ->setOption(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
     }

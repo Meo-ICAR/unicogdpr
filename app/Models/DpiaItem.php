@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 class DpiaItem extends Model
 {
     protected $fillable = [
-        'dpia_id', 'risk_source', 'potential_impact', 'probability',
-        'severity', 'inherent_risk_score', 'privacy_security_id', 'residual_risk_score',
+        'dpia_id', 'risk_source', 'dpia_risk_id', 'potential_impact', 'dpia_impact_id',
+        'probability', 'severity', 'inherent_risk_score', 'privacy_security_id', 'residual_risk_score',
     ];
 
     public function dpia(): BelongsTo
@@ -33,5 +33,15 @@ class DpiaItem extends Model
     public function securityMeasure(): BelongsTo
     {
         return $this->belongsTo(PrivacySecurity::class, 'privacy_security_id');
+    }
+
+    public function riskCatalog(): BelongsTo
+    {
+        return $this->belongsTo(DpiaRisk::class, 'dpia_risk_id');
+    }
+
+    public function impactCatalog(): BelongsTo
+    {
+        return $this->belongsTo(DpiaImpact::class, 'dpia_impact_id');
     }
 }
