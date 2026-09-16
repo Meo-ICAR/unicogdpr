@@ -7,23 +7,31 @@ use App\Filament\Resources\Employees\Pages\EditEmployee;
 use App\Filament\Resources\Employees\Pages\ListEmployees;
 use App\Filament\Resources\Employees\Schemas\EmployeeForm;
 use App\Filament\Resources\Employees\Tables\EmployeesTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\Employee;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class EmployeeResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = Employee::class;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Personale & Formazione';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
+
     protected static ?string $navigationLabel = 'Dipendenti / Operatori';
+
     protected static ?string $modelLabel = 'Dipendente / Operatore';
+
     protected static ?string $pluralModelLabel = 'Dipendenti / Operatori';
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema

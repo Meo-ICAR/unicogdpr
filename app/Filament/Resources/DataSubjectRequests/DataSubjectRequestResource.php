@@ -8,6 +8,7 @@ use App\Filament\Resources\DataSubjectRequests\Pages\EditDataSubjectRequest;
 use App\Filament\Resources\DataSubjectRequests\Pages\ListDataSubjectRequests;
 use App\Filament\Resources\DataSubjectRequests\Schemas\DataSubjectRequestForm;
 use App\Filament\Resources\DataSubjectRequests\Tables\DataSubjectRequestsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Mail\DsarResponseMail;
 use App\Models\DataSubjectRequest;
 use App\Models\EmailTemplate;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Mail;
 
 class DataSubjectRequestResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = DataSubjectRequest::class;
 
     protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';

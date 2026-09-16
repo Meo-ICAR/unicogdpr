@@ -9,6 +9,7 @@ use App\Filament\Resources\ExternalProcessors\RelationManagers\AuditsRelationMan
 use App\Filament\Resources\ExternalProcessors\RelationManagers\TransferImpactAssessmentsRelationManager;
 use App\Filament\Resources\ExternalProcessors\Schemas\ExternalProcessorForm;
 use App\Filament\Resources\ExternalProcessors\Tables\ExternalProcessorsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\ExternalProcessor;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ExternalProcessorResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = ExternalProcessor::class;
 
     protected static \UnitEnum|string|null $navigationGroup = 'Filiera & Fornitori';

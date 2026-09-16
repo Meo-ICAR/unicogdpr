@@ -7,6 +7,7 @@ use App\Filament\Resources\OptOuts\Pages\EditOptOut;
 use App\Filament\Resources\OptOuts\Pages\ListOptOuts;
 use App\Filament\Resources\OptOuts\Schemas\OptOutForm;
 use App\Filament\Resources\OptOuts\Tables\OptOutsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\OptOut;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OptOutResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = OptOut::class;
 
     protected static bool $isScopedToTenant = false;

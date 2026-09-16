@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ExternalProcessors\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use App\Models\ExternalProcessorAudit;
 use App\Notifications\VendorAuditQuestionnaireInvite;
 use Filament\Actions\Action;
@@ -26,6 +27,8 @@ use Illuminate\Support\Facades\Notification as NotificationFacade;
 
 class AuditsRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'audits';
 
     protected static ?string $title = 'Storico Audit';

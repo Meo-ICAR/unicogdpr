@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PrivacySecurities\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -11,6 +12,8 @@ use Filament\Tables\Table;
 
 class DpiaItemsRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'dpiaItems';
 
     protected static ?string $recordTitleAttribute = 'risk_source';

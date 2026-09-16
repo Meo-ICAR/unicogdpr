@@ -7,6 +7,7 @@ use App\Filament\Resources\MailAccounts\Pages\EditMailAccount;
 use App\Filament\Resources\MailAccounts\Pages\ListMailAccounts;
 use App\Filament\Resources\MailAccounts\Schemas\MailAccountForm;
 use App\Filament\Resources\MailAccounts\Tables\MailAccountsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\MailAccount;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -15,6 +16,8 @@ use Filament\Tables\Table;
 
 class MailAccountResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = MailAccount::class;
 
     protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';

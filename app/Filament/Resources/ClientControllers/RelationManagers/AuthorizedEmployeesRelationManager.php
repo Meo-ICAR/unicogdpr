@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ClientControllers\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -15,6 +16,8 @@ use Filament\Tables\Table;
 
 class AuthorizedEmployeesRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'authorizedEmployees';
 
     protected static ?string $title = 'Operatori / Dipendenti Autorizzati';

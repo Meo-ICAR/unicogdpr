@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Holdings\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -16,6 +17,8 @@ use Filament\Tables\Table;
 
 class CompaniesRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'companies';
 
     protected static ?string $title = 'Aziende del Gruppo';

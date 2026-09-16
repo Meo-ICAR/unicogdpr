@@ -7,6 +7,7 @@ use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Filament\Resources\Clients\Pages\ListClients;
 use App\Filament\Resources\Clients\Schemas\ClientForm;
 use App\Filament\Resources\Clients\Tables\ClientsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\Client;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -19,16 +20,21 @@ use UnitEnum;
 
 class ClientResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = Client::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
     protected static UnitEnum|string|null $navigationGroup = 'Anagrafiche';
 
-    protected static ?string $navigationLabel  = 'Clienti / Interessati';
-    protected static ?string $modelLabel       = 'Cliente';
+    protected static ?string $navigationLabel = 'Clienti / Interessati';
+
+    protected static ?string $modelLabel = 'Cliente';
+
     protected static ?string $pluralModelLabel = 'Clienti';
-    protected static ?int    $navigationSort   = 2;
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
@@ -48,9 +54,9 @@ class ClientResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListClients::route('/'),
+            'index' => ListClients::route('/'),
             'create' => CreateClient::route('/create'),
-            'edit'   => EditClient::route('/{record}/edit'),
+            'edit' => EditClient::route('/{record}/edit'),
         ];
     }
 

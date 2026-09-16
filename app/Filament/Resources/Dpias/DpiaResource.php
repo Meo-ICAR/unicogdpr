@@ -8,23 +8,31 @@ use App\Filament\Resources\Dpias\Pages\ListDpias;
 use App\Filament\Resources\Dpias\RelationManagers\DpiaItemsRelationManager;
 use App\Filament\Resources\Dpias\Schemas\DpiaForm;
 use App\Filament\Resources\Dpias\Tables\DpiasTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\Dpia;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DpiaResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = Dpia::class;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Governance & Accountability';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-beaker';
+
     protected static ?string $navigationLabel = 'Valutazioni Impatto (DPIA)';
+
     protected static ?string $modelLabel = 'DPIA';
+
     protected static ?string $pluralModelLabel = 'Valutazioni Impatto (DPIA)';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema

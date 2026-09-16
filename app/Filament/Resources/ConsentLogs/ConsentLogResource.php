@@ -7,21 +7,29 @@ use App\Filament\Resources\ConsentLogs\Pages\EditConsentLog;
 use App\Filament\Resources\ConsentLogs\Pages\ListConsentLogs;
 use App\Filament\Resources\ConsentLogs\Schemas\ConsentLogForm;
 use App\Filament\Resources\ConsentLogs\Tables\ConsentLogsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\ConsentLog;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class ConsentLogResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = ConsentLog::class;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
+
     protected static ?string $navigationLabel = 'Lotti Liste (Batch)';
+
     protected static ?string $modelLabel = 'Lotto Lista';
+
     protected static ?string $pluralModelLabel = 'Lotti Liste (Batch)';
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema

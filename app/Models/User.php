@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model; // Corretto
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <-- ASSICURATI CHE SIA QUESTO
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
@@ -20,7 +21,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'email_verified_at', 'remember_token', 'last_company_id', 'holding_id'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'email_verified_at', 'remember_token', 'last_company_id', 'holding_id'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -42,6 +43,16 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     public function employee(): HasMany
     {
         return $this->hasMany(Employee::class);
+    }
+
+    /**
+     * Profilo polimorfico dell'utente (allineato al pattern usato da unicobpm),
+     * usato dal motore RBAC condiviso (vedi App\Models\EmployeeType e helpers.php).
+     * In questa applicazione il collegamento già popolato resta employee().
+     */
+    public function profile(): MorphTo
+    {
+        return $this->morphTo();
     }
 
     public function canAccessPanel(Panel $panel): bool

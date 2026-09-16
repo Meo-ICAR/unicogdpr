@@ -7,23 +7,31 @@ use App\Filament\Resources\DataBreaches\Pages\EditDataBreach;
 use App\Filament\Resources\DataBreaches\Pages\ListDataBreaches;
 use App\Filament\Resources\DataBreaches\Schemas\DataBreachForm;
 use App\Filament\Resources\DataBreaches\Tables\DataBreachesTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\DataBreach;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DataBreachResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = DataBreach::class;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Governance & Accountability';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-exclamation-triangle';
+
     protected static ?string $navigationLabel = 'Registro Data Breach';
+
     protected static ?string $modelLabel = 'Data Breach';
+
     protected static ?string $pluralModelLabel = 'Registro Data Breach';
+
     protected static ?int $navigationSort = 3;
 
     public static function getNavigationBadge(): ?string

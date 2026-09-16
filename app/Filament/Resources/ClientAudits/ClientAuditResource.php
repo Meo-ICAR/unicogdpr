@@ -7,6 +7,7 @@ use App\Filament\Resources\ClientAudits\Pages\EditClientAudit;
 use App\Filament\Resources\ClientAudits\Pages\ListClientAudits;
 use App\Filament\Resources\ClientAudits\Schemas\CompanyForm;
 use App\Filament\Resources\ClientAudits\Tables\ClientAuditsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\ClientAudit;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -15,6 +16,8 @@ use Filament\Tables\Table;
 
 class ClientAuditResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = ClientAudit::class;
 
     protected static bool $isScopedToTenant = false;

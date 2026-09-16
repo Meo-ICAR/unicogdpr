@@ -19,12 +19,15 @@ class Employee extends Model implements Anonymizable
         'company_id', 'user_id', 'employee_type_id', 'first_name', 'last_name',
         'tax_code', 'email', 'phone', 'department', 'job_title', 'oam_code',
         'ivass_code', 'hired_at', 'terminated_at', 'anonymized_at',
+        'employee_roles',
     ];
 
     protected $casts = [
         'hired_at' => 'date',
         'terminated_at' => 'date',
         'anonymized_at' => 'datetime',
+        // Ruoli RBAC (App\Models\EmployeeType), come in unicobpm/unicooam.
+        'employee_roles' => 'array',
     ];
 
     /**

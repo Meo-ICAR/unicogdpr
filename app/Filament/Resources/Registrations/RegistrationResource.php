@@ -7,23 +7,31 @@ use App\Filament\Resources\Registrations\Pages\EditRegistration;
 use App\Filament\Resources\Registrations\Pages\ListRegistrations;
 use App\Filament\Resources\Registrations\Schemas\RegistrationForm;
 use App\Filament\Resources\Registrations\Tables\RegistrationsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\Registration;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class RegistrationResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = Registration::class;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-identification';
+
     protected static ?string $navigationLabel = 'Registrazioni Consensi';
+
     protected static ?string $modelLabel = 'Registrazione';
+
     protected static ?string $pluralModelLabel = 'Registrazioni Consensi';
+
     protected static ?int $navigationSort = 6;
 
     public static function form(Schema $schema): Schema

@@ -8,6 +8,7 @@ use App\Filament\Resources\Holdings\Pages\ListHoldings;
 use App\Filament\Resources\Holdings\RelationManagers\CompaniesRelationManager;
 use App\Filament\Resources\Holdings\Schemas\HoldingForm;
 use App\Filament\Resources\Holdings\Tables\HoldingsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\Holding;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -19,13 +20,22 @@ use Illuminate\Support\Facades\Auth;
 
 class HoldingResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = Holding::class;
+
     protected static bool $isScopedToTenant = false;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?string $navigationLabel = 'Holding / Gruppi';
+
     protected static ?string $modelLabel = 'Holding';
+
     protected static ?string $pluralModelLabel = 'Holding / Gruppi';
+
     protected static ?int $navigationSort = 11;
 
     public static function form(Schema $schema): Schema

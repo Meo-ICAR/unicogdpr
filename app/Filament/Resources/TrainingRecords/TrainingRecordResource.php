@@ -7,23 +7,31 @@ use App\Filament\Resources\TrainingRecords\Pages\EditTrainingRecord;
 use App\Filament\Resources\TrainingRecords\Pages\ListTrainingRecords;
 use App\Filament\Resources\TrainingRecords\Schemas\TrainingRecordForm;
 use App\Filament\Resources\TrainingRecords\Tables\TrainingRecordsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\TrainingRecord;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TrainingRecordResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = TrainingRecord::class;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Personale & Formazione';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
+
     protected static ?string $navigationLabel = 'Corsi Formazione';
+
     protected static ?string $modelLabel = 'Corso Formazione';
+
     protected static ?string $pluralModelLabel = 'Corsi Formazione';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema

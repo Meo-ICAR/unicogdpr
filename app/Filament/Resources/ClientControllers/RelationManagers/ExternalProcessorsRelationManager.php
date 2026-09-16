@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ClientControllers\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
@@ -17,6 +18,8 @@ use Filament\Tables\Table;
 
 class ExternalProcessorsRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'externalProcessors';
 
     protected static ?string $title = 'Sub-Responsabili (Fornitori) Autorizzati';

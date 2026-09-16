@@ -7,6 +7,7 @@ use App\Filament\Resources\IncomingEmails\Pages\ListIncomingEmails;
 use App\Filament\Resources\IncomingEmails\Pages\ViewIncomingEmail;
 use App\Filament\Resources\IncomingEmails\Schemas\IncomingEmailInfolist;
 use App\Filament\Resources\IncomingEmails\Tables\IncomingEmailsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Mail\InboxReplyMail;
 use App\Models\DataSubjectRequest;
 use App\Models\EmailTemplate;
@@ -22,6 +23,8 @@ use Illuminate\Support\Facades\Mail;
 
 class IncomingEmailResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = IncomingEmail::class;
 
     protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';

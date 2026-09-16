@@ -7,24 +7,33 @@ use App\Filament\Resources\EmailTemplates\Pages\EditEmailTemplate;
 use App\Filament\Resources\EmailTemplates\Pages\ListEmailTemplates;
 use App\Filament\Resources\EmailTemplates\Schemas\EmailTemplateForm;
 use App\Filament\Resources\EmailTemplates\Tables\EmailTemplatesTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\EmailTemplate;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class EmailTemplateResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = EmailTemplate::class;
+
     protected static bool $isScopedToTenant = false;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
+
     protected static ?string $navigationLabel = 'Template Email';
+
     protected static ?string $modelLabel = 'Template Email';
+
     protected static ?string $pluralModelLabel = 'Template Email';
+
     protected static ?int $navigationSort = 9;
 
     public static function form(Schema $schema): Schema

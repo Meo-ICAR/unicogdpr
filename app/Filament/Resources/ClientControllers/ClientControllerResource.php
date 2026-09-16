@@ -7,21 +7,29 @@ use App\Filament\Resources\ClientControllers\Pages\EditClientController;
 use App\Filament\Resources\ClientControllers\Pages\ListClientControllers;
 use App\Filament\Resources\ClientControllers\Schemas\ClientControllerForm;
 use App\Filament\Resources\ClientControllers\Tables\ClientControllersTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\ClientController;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class ClientControllerResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = ClientController::class;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Commesse & Clienti';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-office';
+
     protected static ?string $navigationLabel = 'Clienti / Committenti';
+
     protected static ?string $modelLabel = 'Cliente / Committente';
+
     protected static ?string $pluralModelLabel = 'Clienti / Committenti';
+
     protected static ?int $navigationSort = 1;
 
     public static function getNavigationBadge(): ?string
@@ -47,9 +55,9 @@ class ClientControllerResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListClientControllers::route('/'),
+            'index' => ListClientControllers::route('/'),
             'create' => CreateClientController::route('/create'),
-            'edit'   => EditClientController::route('/{record}/edit'),
+            'edit' => EditClientController::route('/{record}/edit'),
         ];
     }
 }

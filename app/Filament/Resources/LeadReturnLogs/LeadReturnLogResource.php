@@ -7,21 +7,29 @@ use App\Filament\Resources\LeadReturnLogs\Pages\EditLeadReturnLog;
 use App\Filament\Resources\LeadReturnLogs\Pages\ListLeadReturnLogs;
 use App\Filament\Resources\LeadReturnLogs\Schemas\LeadReturnLogForm;
 use App\Filament\Resources\LeadReturnLogs\Tables\LeadReturnLogsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\LeadReturnLog;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class LeadReturnLogResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = LeadReturnLog::class;
+
     protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-uturn-left';
+
     protected static ?string $navigationLabel = 'Resi Lead / KO';
+
     protected static ?string $modelLabel = 'Reso Lead';
+
     protected static ?string $pluralModelLabel = 'Resi Lead / KO';
+
     protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema

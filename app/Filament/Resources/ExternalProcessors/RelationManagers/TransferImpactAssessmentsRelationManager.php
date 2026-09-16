@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ExternalProcessors\RelationManagers;
 
+use App\Filament\Traits\HasRelationPlanAccess;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -14,6 +15,8 @@ use Filament\Tables\Table;
 
 class TransferImpactAssessmentsRelationManager extends RelationManager
 {
+    use HasRelationPlanAccess;
+
     protected static string $relationship = 'transferImpactAssessments';
 
     protected static ?string $title = 'TIA (Transfer Impact Assessments)';

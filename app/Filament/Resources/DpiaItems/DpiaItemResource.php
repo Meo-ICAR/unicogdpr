@@ -7,17 +7,20 @@ use App\Filament\Resources\DpiaItems\Pages\EditDpiaItem;
 use App\Filament\Resources\DpiaItems\Pages\ListDpiaItems;
 use App\Filament\Resources\DpiaItems\Schemas\DpiaItemForm;
 use App\Filament\Resources\DpiaItems\Tables\DpiaItemsTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\DpiaItem;
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class DpiaItemResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = DpiaItem::class;
+
     protected static ?string $tenantOwnershipRelationshipName = 'company';
+
     protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Schema $schema): Schema

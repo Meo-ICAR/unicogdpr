@@ -7,6 +7,7 @@ use App\Filament\Resources\ProcessingActivities\Pages\EditProcessingActivity;
 use App\Filament\Resources\ProcessingActivities\Pages\ListProcessingActivities;
 use App\Filament\Resources\ProcessingActivities\Schemas\ProcessingActivityForm;
 use App\Filament\Resources\ProcessingActivities\Tables\ProcessingActivitiesTable;
+use App\Filament\Traits\HasPlanAccess;
 use App\Models\ProcessingActivity;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -19,16 +20,21 @@ use UnitEnum;
 
 class ProcessingActivityResource extends Resource
 {
+    use HasPlanAccess;
+
     protected static ?string $model = ProcessingActivity::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
     protected static UnitEnum|string|null $navigationGroup = 'Governance & Accountability';
 
-    protected static ?string $navigationLabel  = 'Registro Trattamenti (Art. 30)';
-    protected static ?string $modelLabel       = 'Attività di Trattamento';
+    protected static ?string $navigationLabel = 'Registro Trattamenti (Art. 30)';
+
+    protected static ?string $modelLabel = 'Attività di Trattamento';
+
     protected static ?string $pluralModelLabel = 'Registro Trattamenti';
-    protected static ?int    $navigationSort   = 1;
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {
@@ -48,9 +54,9 @@ class ProcessingActivityResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListProcessingActivities::route('/'),
+            'index' => ListProcessingActivities::route('/'),
             'create' => CreateProcessingActivity::route('/create'),
-            'edit'   => EditProcessingActivity::route('/{record}/edit'),
+            'edit' => EditProcessingActivity::route('/{record}/edit'),
         ];
     }
 
