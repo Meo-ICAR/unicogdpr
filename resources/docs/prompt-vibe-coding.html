@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UnicoGDPR — Prompt per Vibe Coding</title>
+<style>
+    :root {
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --primary: #059669;
+        --primary-dark: #047857;
+        --code-bg: #0f172a;
+        --code-ink: #e2e8f0;
+        --warn-bg: #fffbeb;
+        --warn-border: #fde68a;
+        --warn-ink: #92400e;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.55;
+    }
+    .layout { display: flex; min-height: 100vh; }
+    nav.toc {
+        width: 280px;
+        flex-shrink: 0;
+        background: var(--panel);
+        border-right: 1px solid var(--border);
+        padding: 24px 16px;
+        position: sticky;
+        top: 0;
+        align-self: flex-start;
+        height: 100vh;
+        overflow-y: auto;
+    }
+    nav.toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 12px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+    nav.toc li { counter-increment: toc; margin-bottom: 4px; }
+    nav.toc a {
+        display: block;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 13.5px;
+    }
+    nav.toc a::before { content: counter(toc) ". "; color: var(--primary); font-weight: 600; }
+    nav.toc a:hover { background: #ecfdf5; color: var(--primary-dark); }
+    main { flex: 1; padding: 40px 56px 96px; max-width: 960px; }
+    header.hero {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 24px;
+        margin-bottom: 32px;
+    }
+    header.hero .kicker { color: var(--primary); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+    header.hero h1 { font-size: 30px; margin: 8px 0 8px; }
+    header.hero p.lead { color: var(--muted); font-size: 15px; max-width: 680px; }
+    section { margin-bottom: 48px; scroll-margin-top: 24px; }
+    h2 {
+        font-size: 21px;
+        margin: 0 0 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--primary);
+        display: inline-block;
+    }
+    h3 { font-size: 16px; margin: 28px 0 10px; }
+    p { margin: 0 0 12px; }
+    ul, ol { margin: 0 0 12px; padding-left: 22px; }
+    li { margin-bottom: 4px; }
+    code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        background: #eef2f7;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+    pre {
+        background: var(--code-bg);
+        color: var(--code-ink);
+        padding: 16px 18px;
+        border-radius: 10px;
+        overflow-x: auto;
+        font-size: 13px;
+        line-height: 1.55;
+        position: relative;
+    }
+    pre code { background: none; padding: 0; color: inherit; white-space: pre-wrap; }
+    .copy-btn {
+        position: absolute;
+        top: 10px; right: 10px;
+        background: #1e293b;
+        color: #e2e8f0;
+        border: 1px solid #334155;
+        border-radius: 6px;
+        font-size: 11.5px;
+        padding: 4px 9px;
+        cursor: pointer;
+    }
+    .copy-btn:hover { background: #334155; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13.5px; }
+    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: #f1f5f9; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+    }
+    .badge {
+        display: inline-block;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: var(--primary-dark);
+        margin-left: 6px;
+    }
+    .badge.warn { background: var(--warn-bg); color: var(--warn-ink); }
+    .badge.done { background: #ecfdf5; color: var(--primary-dark); }
+    .note {
+        background: var(--warn-bg);
+        border: 1px solid var(--warn-border);
+        color: var(--warn-ink);
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 13.5px;
+        margin: 12px 0;
+    }
+    footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 20px; margin-top: 56px; }
+    @media (max-width: 900px) {
+        .layout { flex-direction: column; }
+        nav.toc { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); }
+        main { padding: 28px 20px 72px; }
+    }
+</style>
+</head>
+<body>
+<div class="layout">
+    <nav class="toc" aria-label="Indice">
+        <h2>Indice</h2>
+        <ol>
+            <li><a href="#intro">Come usare questa pagina</a></li>
+            <li><a href="#sistema">Prompt di sistema (da riusare sempre)</a></li>
+            <li><a href="#prodotto">Prompt — contesto di prodotto</a></li>
+            <li><a href="#bpm">Prompt — integrazione con UnicoBPM</a></li>
+            <li><a href="#registro">Prompt — Registro Trattamenti</a></li>
+            <li><a href="#dpia">Prompt — DPIA</a></li>
+            <li><a href="#breach">Prompt — Data Breach</a></li>
+            <li><a href="#dsar">Prompt — DSAR</a></li>
+            <li><a href="#hardening">Prompt — hardening multicompany</a></li>
+            <li><a href="#test">Prompt — test</a></li>
+            <li><a href="#riferimento">Documento di riferimento completo</a></li>
+        </ol>
+    </nav>
+
+    <main>
+        <header class="hero">
+            <div class="kicker">UnicoGDPR — Documentazione</div>
+            <h1>Prompt per Vibe Coding</h1>
+            <p class="lead">Blocchi di prompt pronti da incollare in Claude Code / Cursor per far evolvere UnicoGDPR restando coerenti con l'architettura esistente: applicazione Laravel/Filament multicompany per un unico DPO, integrata con UnicoBPM nell'ecosistema Unico.</p>
+        </header>
+
+        <section id="intro">
+            <h2>1. Come usare questa pagina</h2>
+            <p>Ogni riquadro è un prompt autoconsistente: copiarlo e incollarlo integralmente nell'assistente AI insieme al contesto del repository. Il <strong>prompt di sistema (§2)</strong> va sempre fornito per primo, o mantenuto come istruzione persistente: definisce stack tecnologico, convenzioni Filament e regole di stile a cui ogni prompt successivo fa riferimento implicitamente.</p>
+            <div class="note">Questi prompt sono un punto di partenza operativo, non sostituiscono la revisione umana del codice generato. Il documento sorgente completo, con lo storico delle sessioni e i prompt di dettaglio per ogni modulo, è in <code>docs/PROMPTS-VIBE-CODING.md</code> (§11).</div>
+        </section>
+
+        <section id="sistema">
+            <h2>2. Prompt di sistema <span class="badge">da riusare sempre</span></h2>
+            <pre><code>Stai lavorando su "UnicoGDPR", applicazione dell'ecosistema Unico per un unico DPO (Data
+Protection Officer) che segue più aziende in modalità multicompany (holding, gruppi finanziari,
+reti di mediazione/agenzie).
+
+Stack:
+- Laravel 13 (PHP 8.4), Filament 5.8 come unico pannello ("admin", path /admin)
+- Multi-tenant Filament: il tenant è App\Models\Company (chiave UUID, trait HasUuids). Una
+  Company può appartenere a una Holding (holding_id).
+- L'utente DPO (App\Models\User) ha accesso a TUTTI i tenant: getTenants() ritorna Company::all(),
+  canAccessTenant() ritorna sempre true. Middleware RememberLastTenant salva user.last_company_id.
+- spatie/laravel-medialibrary 11 (allegati), spatie/laravel-activitylog 5 (audit trail)
+- webklex/laravel-imap per lettura IMAP/PEC
+- barryvdh/laravel-dompdf per generare PDF (App\Services\DocumentGeneratorService + viste in
+  resources/views/documents)
+- dutchcodingcompany/filament-socialite + socialiteproviders google/microsoft (login e OAuth mail)
+- Storage: disco 'private' (locale, allegati sensibili), disco 'r2'/'google' alias (Cloudflare R2,
+  evidenze audit fornitori e documenti TIA)
+- Integrazione con UnicoBPM (altro prodotto dell'ecosistema Unico, motore di orchestrazione
+  processi/workflow): bridge SSO in App\Http\Controllers\BpmBridgeController, verso l'URL
+  configurato in services.bpm.url
+
+Convenzioni Filament 5 di questo repo:
+- Ogni risorsa è in app/Filament/Resources/&lt;Nome&gt;/ con sottocartelle Pages/, Tables/, Schemas/,
+  RelationManagers/. Form in Schemas/&lt;Nome&gt;Form.php (classe con static configure(Schema): Schema),
+  tabella in Tables/&lt;Nome&gt;Table.php (static configure(Table): Table).
+- navigationGroup usati: "Commesse & Clienti", "Gestione Liste & Consensi", "Filiera & Fornitori",
+  "Personale & Formazione", "Governance & Accountability", "Configurazione & Tabellari",
+  "Documentazione". Le label UI sono in italiano.
+- I modelli tenant-scoped hanno company_id (foreignUuid). Filament applica lo scope automaticamente
+  se la relazione company() esiste sul modello e la Resource è sotto il pannello con tenant.
+- I comandi Artisan e i job in coda NON sono scopati automaticamente dal tenant Filament: qualunque
+  comando che invia notifiche o legge dati deve filtrare esplicitamente per company_id e ruolo del
+  destinatario (pattern $company->users()->wherePivotIn('role', ['dpo','admin'])).
+
+Regole:
+- Testi UI, label, helperText, commenti in italiano.
+- Non introdurre pacchetti nuovi senza chiedere; non cambiare le dipendenze senza approvazione.
+- Rispetta i cast 'encrypted' per i segreti; non loggare credenziali né corpi email in chiaro.
+- Codice nello stile dei file vicini (stessa densità di commenti, stessi import ordinati).
+- Segui le convenzioni Laravel/Filament esistenti: usa i comandi artisan make: per generare i file,
+  applica vendor/bin/pint --dirty dopo ogni modifica PHP.
+</code><button class="copy-btn" onclick="copyBlock(this)">Copia</button></pre>
+        </section>
+
+        <section id="prodotto">
+            <h2>3. Prompt — contesto di prodotto</h2>
+            <p>Utile quando si chiede all'assistente di valutare se una nuova funzionalità è coerente con il posizionamento del prodotto.</p>
+            <pre><code>UnicoGDPR è il modulo "governance privacy" dell'ecosistema Unico (vedi
+unicocompilance.it/prodotti/unicoGDPR.html). Le sue caratteristiche distintive dichiarate dal
+prodotto sono:
+- Matrice RACI Privacy nativa su ogni trattamento (Titolare, Contitolare, Responsabile, DPO).
+- Registro Trattamenti multicompany con isolamento (o condivisione controllata) dei dati tra
+  società (Art. 30).
+- DPIA Wizard con parere del DPO e log immutabile della firma (Art. 35).
+- Data Breach Protocol con countdown automatico 72 ore (Art. 33-34).
+- Vendor Risk Management con nomine automatiche e audit fornitori (Art. 28).
+- Gestione diritti DSAR (accesso, cancellazione, opposizione...).
+- Log immutabili con marca temporale cifrata (SHA-256) a fini di Accountability.
+- Dashboard di supervisione trasversale sulle società seguite.
+- Integrazione con UnicoBPM, UnicoCOGE e UnicoOAM.
+
+Quando proponi o implementi una nuova funzionalità, verifica che sia coerente con questo
+posizionamento e non duplichi funzionalità già presenti in un'altra app dell'ecosistema Unico
+(es. la Matrice RACI operativa è di UnicoBPM, non va reimplementata qui). Se una richiesta esce
+da questo perimetro, segnalalo prima di procedere.
+</code><button class="copy-btn" onclick="copyBlock(this)">Copia</button></pre>
+        </section>
+
+        <section id="bpm">
+            <h2>4. Prompt — integrazione con UnicoBPM</h2>
+            <p>UnicoBPM (<code>unicocompilance.it/prodotti/unicoBPM.html</code>) è il motore di Business Process Management dell'ecosistema Unico: converte le normative aziendali in workflow operativi, con lettura/scrittura sui database aziendali, controlli bloccanti, OCR/NLP per l'estrazione documentale e log immutabili SHA-256.</p>
+            <pre><code>Il collegamento oggi implementato tra UnicoGDPR e UnicoBPM è solo un bridge SSO:
+App\Http\Controllers\BpmBridgeController::handle() riceve un subject_id e un token da UnicoBPM,
+verifica il token via HTTP contro {services.bpm.url}/api/verify-token, autentica l'utente per
+email e lo reindirizza alla scheda corrispondente. NON esiste sincronizzazione dati reale tra i
+due sistemi (né import del Registro Trattamenti da UnicoBPM, né export verso UnicoBPM).
+
+Quando lavori su un prompt di integrazione con UnicoBPM:
+- Non assumere che i dati siano già sincronizzati: verifica sempre esplicitamente cosa arriva da
+  UnicoBPM (oggi solo subject_id + token + user_email nella query string del bridge SSO).
+- Qualsiasi nuovo endpoint che riceve dati da UnicoBPM deve validare l'origine (token/HMAC) prima
+  di fidarsi del payload, e scrivere solo su modelli tenant-scoped (company_id esplicito, mai
+  dedotto per fallback silenzioso — vedi il bug storico di DocumentGeneratorService::getCompany()).
+- Se il prompt richiede di importare i "flussi dati" censiti in UnicoBPM per popolare il Registro
+  Trattamenti, progetta un comando/job idempotente (upsert per un identificativo esterno univoco),
+  sul modello di App\Jobs\FetchMailAccountJob, non un import distruttivo.
+- Logga ogni scrittura originata da UnicoBPM in activitylog con causer esplicito (o un causer
+  di sistema dedicato "unicobpm-sync"), mai senza tracciabilità.
+</code><button class="copy-btn" onclick="copyBlock(this)">Copia</button></pre>
+        </section>
+
+        <section id="registro">
+            <h2>5. Prompt — Registro Trattamenti</h2>
+            <pre><code>Introduci una vista/pagina Filament "Registro di Gruppo" che aggreghi ProcessingActivity di
+tutte le Company appartenenti alla stessa Holding dell'azienda correntemente selezionata dal DPO.
+- Nuova pagina in app/Filament/Pages/, navigationGroup 'Governance & Accountability'.
+- Tabella sola lettura: colonna Azienda in più rispetto a ProcessingActivitiesTable, filtro per
+  Company e per ruolo (Titolare/Responsabile), raggruppamento opzionale per Company.
+- Visibile solo se la Company corrente ha holding_id valorizzato; altrimenti nascondi la voce di
+  menu o mostra un messaggio esplicativo.
+- Rispetta l'accesso: il DPO deve avere ruolo dpo/admin su tutte le Company della holding che
+  compaiono in tabella, non solo su quella corrente.
+</code><button class="copy-btn" onclick="copyBlock(this)">Copia</button></pre>
+        </section>
+
+        <section id="dpia">
+            <h2>6. Prompt — DPIA</h2>
+            <pre><code>ProcessingActivity::requiresDpia() oggi è solo un indicatore visuale nel Registro Trattamenti,
+non un vincolo che impedisce di attivare un trattamento ad alto rischio senza una DPIA collegata
+e completata.
+
+Aggiungi un'opzione di configurazione (config/gdpr.php: 'enforce_dpia_requirement', default false)
+che, se attiva, impedisce di impostare is_active=true su un ProcessingActivity con
+requiresDpia()=true finché non esiste una Dpia collegata con status=completed. Mostra un errore di
+validazione chiaro nel form Filament. Lascia il comportamento attuale (solo warning visuale) come
+default per non bloccare l'inserimento di dati storici in migrazione. Documenta l'opzione nel
+manuale tecnico.
+</code><button class="copy-btn" onclick="copyBlock(this)">Copia</button></pre>
+        </section>
+
+        <section id="breach">
+            <h2>7. Prompt — Data Breach</h2>
+            <pre><code>DataBreachesTable ha l'azione "mark_subjects_notified" ma nessuna generazione automatica della
+comunicazione da inviare agli interessati (oggi solo la notifica al Garante ha un dossier PDF via
+DocumentGeneratorService::generateNotificaDataBreach).
+
+Aggiungi DocumentGeneratorService::generateComunicazioneInteressati(DataBreach $breach): il
+metodo genera il PDF descrittivo dell'incidente per gli interessati coinvolti (linguaggio non
+tecnico, misure adottate, contatti del DPO). Aggiungi un'azione Filament "Genera comunicazione
+interessati", visibile solo se is_notifiable_to_subjects = true. Non implementare l'invio massivo
+automatico in questo prompt: limita lo scope alla generazione del documento.
+</code><button class="copy-btn" onclick="copyBlock(this)">Copia</button></pre>
+        </section>
+
+        <section id="dsar">
+            <h2>8. Prompt — DSAR</h2>
+            <pre><code>DataSubjectRequest.extended_until esiste a DB ma nessun metodo lo valorizza.
+
+Aggiungi DataSubjectRequest::extendDeadline(): sposta deadline_at di ulteriori 60 giorni
+(Art. 12.3, richieste complesse), imposta extended_until e status = DsarStatus::Extended, SOLO
+se lo stato attuale non è già bloccato da isBlockedByIdentityCheck(). Esponi un'azione Filament
+"Proroga 60gg" con motivazione testuale obbligatoria, registrata in activitylog (log name 'dsar').
+Aggiungi un test feature che verifichi sia il caso di successo sia il blocco quando l'identità
+non è verificata.
+</code><button class="copy-btn" onclick="copyBlock(this)">Copia</button></pre>
+        </section>
+
+        <section id="hardening">
+            <h2>9. Prompt — hardening multicompany <span class="badge warn">prioritario</span></h2>
+            <pre><code>[Multicompany hardening — richiede una scelta architetturale, procedere con cautela]
+Introduci app/Policies con una Policy per ciascun modello tenant-scoped, e un trait
+BelongsToCompany con Global Scope che filtri automaticamente per company_id anche fuori dal
+pannello Filament (comandi Artisan, job, coda).
+
+Applica subito il fix al leak noto: in dsar:deadline-check la notifica va oggi a User::all()
+invece che ai soli utenti con ruolo dpo/admin della company della singola DSAR. Allinea al
+pattern già usato da breach:deadline-check e vendor:audit-reminders:
+$company->users()->wherePivotIn('role', ['dpo','admin']).
+
+Aggiungi test che verifichino che un utente con ruolo dpo su una sola Company non riceva mai
+notifiche relative a un'altra Company.
+</code><button class="copy-btn" onclick="copyBlock(this)">Copia</button></pre>
+        </section>
+
+        <section id="test">
+            <h2>10. Prompt — test</h2>
+            <pre><code>Per ogni prompt eseguito da questa pagina, applica anche questa regola: se il prompt introduce
+o modifica un comando schedulato, un job, un'azione Filament con effetti sui dati, o un endpoint
+pubblico, aggiungi (o aggiorna) un test feature PHPUnit che copra:
+- il caso "felice" (comportamento atteso con dati validi);
+- lo scoping per company (nessun leak tra tenant diversi);
+- il caso di errore/rifiuto più probabile (es. dato mancante, permesso insufficiente, token non
+  valido).
+Esegui `php artisan test --compact` sul file interessato prima di considerare il prompt concluso.
+Esegui `vendor/bin/pint --dirty --format agent` su ogni file PHP modificato.
+</code><button class="copy-btn" onclick="copyBlock(this)">Copia</button></pre>
+        </section>
+
+        <section id="riferimento">
+            <h2>11. Documento di riferimento completo</h2>
+            <p>Questa pagina raccoglie i prompt operativi principali e sempre attuali. Lo storico completo delle sessioni di vibe coding, i prompt di dettaglio per ogni feature (inbox email, classificatore, hardening OAuth, bounce...) e l'elenco esteso delle migliorie suggerite per il DPO restano nel documento sorgente del repository: <code>docs/PROMPTS-VIBE-CODING.md</code>.</p>
+            <div class="card">
+                <p><strong>Ordine di impatto consigliato</strong> per la prossima sessione di sviluppo: hardening multicompany (§9, rischio di sicurezza reale) → log immutabile di accountability esteso a tutti i moduli → portale self-service DSAR per l'interessato → resto in base a priorità di prodotto.</p>
+            </div>
+        </section>
+
+        <footer>
+            UnicoGDPR — Prompt per Vibe Coding. Da usare insieme al Manuale Tecnico per il contesto architetturale completo.
+        </footer>
+    </main>
+</div>
+<script>
+function copyBlock(btn) {
+    var pre = btn.closest('pre');
+    var text = pre.querySelector('code').innerText;
+    navigator.clipboard.writeText(text).then(function () {
+        var original = btn.textContent;
+        btn.textContent = 'Copiato!';
+        setTimeout(function () { btn.textContent = original; }, 1500);
+    });
+}
+</script>
+</body>
+</html>

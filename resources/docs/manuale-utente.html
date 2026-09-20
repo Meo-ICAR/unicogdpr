@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UnicoGDPR — Manuale Utente</title>
+<style>
+    :root {
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --primary: #059669;
+        --primary-dark: #047857;
+        --code-bg: #0f172a;
+        --code-ink: #e2e8f0;
+        --warn-bg: #fffbeb;
+        --warn-border: #fde68a;
+        --warn-ink: #92400e;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.55;
+    }
+    .layout { display: flex; min-height: 100vh; }
+    nav.toc {
+        width: 280px;
+        flex-shrink: 0;
+        background: var(--panel);
+        border-right: 1px solid var(--border);
+        padding: 24px 16px;
+        position: sticky;
+        top: 0;
+        align-self: flex-start;
+        height: 100vh;
+        overflow-y: auto;
+    }
+    nav.toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 12px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+    nav.toc li { counter-increment: toc; margin-bottom: 4px; }
+    nav.toc a {
+        display: block;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 13.5px;
+    }
+    nav.toc a::before { content: counter(toc) ". "; color: var(--primary); font-weight: 600; }
+    nav.toc a:hover { background: #ecfdf5; color: var(--primary-dark); }
+    main { flex: 1; padding: 40px 56px 96px; max-width: 920px; }
+    header.hero {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 24px;
+        margin-bottom: 32px;
+    }
+    header.hero .kicker { color: var(--primary); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+    header.hero h1 { font-size: 30px; margin: 8px 0 8px; }
+    header.hero p.lead { color: var(--muted); font-size: 15px; max-width: 640px; }
+    section { margin-bottom: 48px; scroll-margin-top: 24px; }
+    h2 {
+        font-size: 21px;
+        margin: 0 0 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--primary);
+        display: inline-block;
+    }
+    h3 { font-size: 16px; margin: 28px 0 10px; }
+    p { margin: 0 0 12px; }
+    ul, ol { margin: 0 0 12px; padding-left: 22px; }
+    li { margin-bottom: 4px; }
+    code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        background: #eef2f7;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13.5px; }
+    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: #f1f5f9; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+    }
+    .badge {
+        display: inline-block;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: var(--primary-dark);
+        margin-left: 6px;
+    }
+    .badge.warn { background: var(--warn-bg); color: var(--warn-ink); }
+    .note {
+        background: var(--warn-bg);
+        border: 1px solid var(--warn-border);
+        color: var(--warn-ink);
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 13.5px;
+        margin: 12px 0;
+    }
+    .steps { counter-reset: step; list-style: none; padding-left: 0; }
+    .steps li {
+        counter-increment: step;
+        position: relative;
+        padding-left: 36px;
+        margin-bottom: 14px;
+    }
+    .steps li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0; top: 0;
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #fff;
+        font-size: 12.5px;
+        font-weight: 700;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 20px; margin-top: 56px; }
+    @media (max-width: 900px) {
+        .layout { flex-direction: column; }
+        nav.toc { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); }
+        main { padding: 28px 20px 72px; }
+        .grid-2 { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+<div class="layout">
+    <nav class="toc" aria-label="Indice">
+        <h2>Indice</h2>
+        <ol>
+            <li><a href="#introduzione">Cos'è UnicoGDPR</a></li>
+            <li><a href="#accesso">Accesso e cambio azienda</a></li>
+            <li><a href="#registro">Registro dei Trattamenti</a></li>
+            <li><a href="#dpia">Valutazione d'Impatto (DPIA)</a></li>
+            <li><a href="#breach">Data Breach</a></li>
+            <li><a href="#fornitori">Fornitori e Responsabili esterni</a></li>
+            <li><a href="#dsar">Richieste degli interessati (DSAR)</a></li>
+            <li><a href="#posta">Posta in arrivo</a></li>
+            <li><a href="#conservazione">Conservazione dei dati</a></li>
+            <li><a href="#cruscotto">Cruscotto del DPO</a></li>
+            <li><a href="#bpm">Collegamento con UnicoBPM</a></li>
+            <li><a href="#faq">Domande frequenti</a></li>
+        </ol>
+    </nav>
+
+    <main>
+        <header class="hero">
+            <div class="kicker">UnicoGDPR — Documentazione</div>
+            <h1>Manuale Utente</h1>
+            <p class="lead">Guida pratica all'uso di UnicoGDPR per il Data Protection Officer (DPO) e i referenti privacy che seguono più aziende, holding o reti agenziali all'interno dell'ecosistema Unico.</p>
+        </header>
+
+        <section id="introduzione">
+            <h2>1. Cos'è UnicoGDPR</h2>
+            <p>UnicoGDPR è l'applicazione dell'ecosistema Unico dedicata alla governance della privacy. È pensata per un <strong>unico DPO (o team di compliance) che segue più aziende</strong> — una holding, un gruppo finanziario o una rete di agenzie/mediatori — da un solo pannello, senza dover accedere separatamente a ciascuna società.</p>
+            <div class="card">
+                <p><strong>Cosa fa, in sintesi:</strong></p>
+                <ul>
+                    <li>Tiene il <strong>Registro dei Trattamenti</strong> di ogni azienda seguita (Art. 30 GDPR).</li>
+                    <li>Guida la compilazione delle <strong>DPIA</strong> (valutazioni d'impatto, Art. 35) con la firma del DPO.</li>
+                    <li>Gestisce gli <strong>incidenti (Data Breach)</strong> con il conto alla rovescia delle 72 ore verso il Garante (Art. 33-34).</li>
+                    <li>Traccia <strong>fornitori e responsabili esterni</strong>, le nomine e i questionari di adeguatezza (Art. 28).</li>
+                    <li>Gestisce le <strong>richieste degli interessati</strong> (accesso, cancellazione, opposizione...) con le relative scadenze.</li>
+                    <li>Applica le <strong>policy di conservazione</strong> dei dati (cancellazione/anonimizzazione automatica quando previsto).</li>
+                    <li>Offre un <strong>cruscotto trasversale</strong> su tutte le aziende seguite, e uno collegato a <strong>UnicoBPM</strong> per i processi operativi.</li>
+                </ul>
+            </div>
+            <p>Tutti i testi dell'applicazione sono in italiano ed è pensata per l'uso quotidiano da parte di chi si occupa di compliance, senza necessità di competenze tecniche.</p>
+        </section>
+
+        <section id="accesso">
+            <h2>2. Accesso e cambio azienda</h2>
+            <p>UnicoGDPR è un'applicazione <strong>multicompany</strong>: un solo account DPO ha visibilità su tutte le aziende che gli sono state assegnate, ciascuna con i propri dati completamente separati.</p>
+            <ol class="steps">
+                <li>Accedere dalla pagina di login con le proprie credenziali (email e password, oppure Google/Microsoft se abilitato dall'amministratore).</li>
+                <li>Al primo accesso, oppure dal menu del profilo in alto a destra, selezionare <strong>"Cambia Azienda"</strong> per scegliere la società su cui lavorare.</li>
+                <li>L'applicazione ricorda l'ultima azienda selezionata: ai successivi accessi si viene indirizzati direttamente lì.</li>
+                <li>Tutti i menu, le tabelle e i dati mostrati (Registro, DPIA, Breach, Fornitori, DSAR...) si riferiscono <strong>sempre e solo</strong> all'azienda correntemente selezionata.</li>
+            </ol>
+            <div class="note">Per avere una visione d'insieme su <em>tutte</em> le aziende seguite senza dover cambiare continuamente azienda, usare il <a href="#cruscotto">Cruscotto del DPO</a> (§10).</div>
+        </section>
+
+        <section id="registro">
+            <h2>3. Registro dei Trattamenti <span class="badge">Art. 30</span></h2>
+            <p>È l'elenco di tutte le attività di trattamento dati dell'azienda selezionata: per ciascuna si indicano finalità, base giuridica, categorie di dati e interessati, misure di sicurezza applicate ed eventuali trasferimenti extra-UE.</p>
+            <ul>
+                <li>Per ogni trattamento va indicato se l'azienda agisce come <strong>Titolare</strong> o come <strong>Responsabile</strong> (in questo secondo caso, collegato al Titolare committente).</li>
+                <li>Un'icona segnala i trattamenti che, per la natura dei dati o per i trasferimenti extra-UE coinvolti, <strong>richiederebbero una DPIA</strong>: è un avviso, non un blocco — resta compito del DPO valutare se avviarla.</li>
+                <li>Il registro è esportabile e stampabile per le verifiche del Titolare o le ispezioni del Garante.</li>
+            </ul>
+        </section>
+
+        <section id="dpia">
+            <h2>4. Valutazione d'Impatto — DPIA <span class="badge">Art. 35</span></h2>
+            <p>La compilazione di una DPIA segue una procedura guidata in 4 passaggi:</p>
+            <ol class="steps">
+                <li><strong>Identificazione</strong> del trattamento da valutare e descrizione del contesto.</li>
+                <li><strong>Necessità e proporzionalità</strong>: perché il trattamento è necessario e proporzionato alla finalità.</li>
+                <li><strong>Analisi dei rischi</strong>: per ogni rischio individuato si indica probabilità e gravità (il sistema calcola automaticamente il livello di rischio) e, se disponibile, la misura di sicurezza che lo mitiga.</li>
+                <li><strong>Parere del DPO</strong>: il DPO esprime la propria valutazione finale.</li>
+            </ol>
+            <p>Quando la DPIA è completa, il DPO usa l'azione <strong>"Firma e Completa DPIA"</strong>: da quel momento la valutazione è bloccata e certificata con un'impronta digitale univoca (hash) che rende rilevabile qualsiasi modifica successiva ai contenuti. È possibile generare in ogni momento il <strong>PDF del report</strong> della DPIA, comprensivo dei dati della firma.</p>
+        </section>
+
+        <section id="breach">
+            <h2>5. Data Breach <span class="badge">Art. 33-34</span></h2>
+            <p>In caso di violazione dei dati, la registrazione dell'incidente calcola automaticamente un punteggio di rischio (gravità dichiarata, tipo di dati coinvolti, numero di persone interessate) da cui derivano due indicazioni:</p>
+            <ul>
+                <li>se è necessaria la <strong>notifica al Garante</strong> entro 72 ore dalla scoperta;</li>
+                <li>se è necessaria anche la <strong>comunicazione agli interessati</strong>.</li>
+            </ul>
+            <p>Un conto alla rovescia mostra lo stato della scadenza (nei termini, in scadenza entro 12 ore, scaduta, già notificata) e il sistema invia automaticamente un promemoria via email al DPO/referente quando la scadenza si avvicina o è superata. Le azioni <strong>"Notificato al Garante"</strong> e <strong>"Comunicato agli interessati"</strong> registrano l'avvenuto adempimento.</p>
+        </section>
+
+        <section id="fornitori">
+            <h2>6. Fornitori e Responsabili esterni <span class="badge">Art. 28</span></h2>
+            <p>L'anagrafica fornitori tiene traccia dei Responsabili del trattamento esterni (subresponsabili), della relativa nomina (DPA) e delle date di firma e scadenza.</p>
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="margin-top:0">Nomina (DPA)</h3>
+                    <p>Dalla scheda fornitore, l'azione <strong>"Genera DPA (PDF)"</strong> produce il documento di nomina pronto per la firma, che può poi essere caricato come allegato una volta sottoscritto.</p>
+                </div>
+                <div class="card">
+                    <h3 style="margin-top:0">Questionario di adeguatezza</h3>
+                    <p>L'azione <strong>"Invia Questionario"</strong> invia al fornitore un link personale e riservato dove può compilare online, senza bisogno di credenziali, le informazioni sulle proprie misure di sicurezza e caricare le evidenze richieste. Il DPO riceve una notifica alla sottomissione.</p>
+                </div>
+            </div>
+            <p>Un promemoria automatico avvisa il DPO quando un DPA o un audit fornitore si avvicina alla scadenza.</p>
+        </section>
+
+        <section id="dsar">
+            <h2>7. Richieste degli interessati — DSAR</h2>
+            <p>Ogni richiesta di un interessato (accesso, rettifica, cancellazione, opposizione, portabilità...) viene registrata con una scadenza automatica di <strong>30 giorni</strong> dal ricevimento (Art. 12.3).</p>
+            <ul>
+                <li>Finché l'<strong>identità del richiedente non è verificata</strong>, la richiesta non può avanzare agli stati successivi (in lavorazione, proroga, completata): è una protezione contro risposte a soggetti non legittimati.</li>
+                <li>Il sistema segnala automaticamente le richieste in scadenza o scadute.</li>
+                <li>La risposta all'interessato si invia direttamente dalla scheda della richiesta, utilizzando i modelli di testo predefiniti.</li>
+            </ul>
+        </section>
+
+        <section id="posta">
+            <h2>8. Posta in arrivo</h2>
+            <p>Le caselle di posta (email e PEC) collegate all'azienda vengono lette periodicamente dal sistema: i nuovi messaggi possono generare automaticamente una richiesta DSAR da lavorare, riducendo il rischio di dimenticare una richiesta arrivata via email.</p>
+        </section>
+
+        <section id="conservazione">
+            <h2>9. Conservazione dei dati <span class="badge">Art. 5.1.e</span></h2>
+            <p>Le policy di conservazione definiscono per quanto tempo un dato può essere mantenuto. Quando una policy viene collegata esplicitamente a un archivio dati dell'azienda e attivata dal DPO, il sistema applica automaticamente, con cadenza notturna, l'anonimizzazione o la cancellazione dei record scaduti.</p>
+            <div class="note">Nessuna cancellazione automatica avviene "di default": una policy resta puramente documentale finché il DPO non la attiva esplicitamente.</div>
+        </section>
+
+        <section id="cruscotto">
+            <h2>10. Cruscotto del DPO</h2>
+            <p>Il Cruscotto del DPO offre una vista <strong>trasversale su tutte le aziende seguite</strong> (non solo quella correntemente selezionata), con il riepilogo di:</p>
+            <ul>
+                <li>violazioni con notifica al Garante scaduta o in scadenza;</li>
+                <li>DPIA in attesa del parere del DPO;</li>
+                <li>richieste DSAR aperte, scadute o in scadenza;</li>
+                <li>fornitori con nomina (DPA) in scadenza.</li>
+            </ul>
+            <p>È il punto di partenza consigliato per iniziare la giornata di lavoro quando si seguono più aziende in contemporanea.</p>
+        </section>
+
+        <section id="bpm">
+            <h2>11. Collegamento con UnicoBPM</h2>
+            <p>UnicoGDPR fa parte dell'ecosistema <strong>Unico</strong> insieme a <strong>UnicoBPM</strong>, il motore che trasforma le procedure aziendali (onboarding, deroghe, reclami, antiriciclaggio...) in workflow operativi con log immutabili e tracciabilità certificata.</p>
+            <ul>
+                <li>I due prodotti condividono lo stesso modello di governance dei ruoli: mentre UnicoBPM applica la matrice RACI operativa (chi esegue, chi autorizza, chi è consultato, chi è informato su ogni processo), UnicoGDPR applica la <strong>Matrice RACI sui trattamenti dati</strong> (Titolare, Contitolare, Responsabile, DPO).</li>
+                <li>È disponibile un collegamento di <strong>accesso automatico (SSO)</strong>: da UnicoBPM è possibile aprire direttamente la scheda corrispondente in UnicoGDPR senza dover effettuare nuovamente il login, mantenendo la coerenza tra i due sistemi.</li>
+                <li>L'obiettivo del collegamento è evitare la duplicazione dei dati anagrafici e delle verifiche di conformità tra il processo operativo (UnicoBPM) e la governance privacy (UnicoGDPR).</li>
+            </ul>
+            <div class="note">Il collegamento con UnicoBPM riguarda oggi l'accesso automatico (SSO) tra i due pannelli; l'eventuale sincronizzazione automatica dei dati del Registro dei Trattamenti con i flussi censiti in UnicoBPM è un'evoluzione futura, non ancora attiva.</div>
+        </section>
+
+        <section id="faq">
+            <h2>12. Domande frequenti</h2>
+            <div class="card">
+                <p><strong>Non vedo i dati di un'azienda che dovrei seguire.</strong><br>Verificare di aver selezionato l'azienda corretta da "Cambia Azienda"; se l'azienda non compare nell'elenco, contattare l'amministratore per l'assegnazione dell'utenza.</p>
+            </div>
+            <div class="card">
+                <p><strong>Perché non riesco a completare una DSAR?</strong><br>Controllare che l'identità del richiedente sia stata verificata: è un requisito obbligatorio prima di poter avanzare lo stato della richiesta (vedi §7).</p>
+            </div>
+            <div class="card">
+                <p><strong>Come faccio a sapere se un incidente va notificato al Garante?</strong><br>Il sistema lo calcola automaticamente alla registrazione dell'incidente e mostra il conto alla rovescia delle 72 ore nella scheda del Data Breach (vedi §5).</p>
+            </div>
+            <div class="card">
+                <p><strong>Dove trovo la documentazione tecnica per sviluppatori?</strong><br>Nel menu "Documentazione" è disponibile anche il <em>Manuale Tecnico</em>, riferimento per amministratori di sistema e sviluppatori.</p>
+            </div>
+        </section>
+
+        <footer>
+            UnicoGDPR — Manuale Utente. Prodotto dell'ecosistema Unico, integrato con UnicoBPM. Per approfondimenti sulla piattaforma consultare <code>unicocompilance.it</code>.
+        </footer>
+    </main>
+</div>
+</body>
+</html>

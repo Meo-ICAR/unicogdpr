@@ -78,6 +78,20 @@ class AdminPanelProvider extends PanelProvider
                     ->url(fn () => route('filament.admin.pages.manuale'))
                     ->openUrlInNewTab()
                     ->sort(2),
+
+                NavigationItem::make('Manuale Utente')
+                    ->group('Documentazione')
+                    ->icon('heroicon-o-book-open')
+                    ->url(fn () => route('filament.admin.pages.manuale-utente'))
+                    ->openUrlInNewTab()
+                    ->sort(3),
+
+                NavigationItem::make('Prompt Vibe Coding')
+                    ->group('Documentazione')
+                    ->icon('heroicon-o-sparkles')
+                    ->url(fn () => route('filament.admin.pages.prompt-vibe-coding'))
+                    ->openUrlInNewTab()
+                    ->sort(4),
             ])
 
             ->login()

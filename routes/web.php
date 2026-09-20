@@ -6,8 +6,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/admin');
 
-// La rotta riceve l'ID del soggetto (es: l'agente) e il token di sicurezza nei parametri
-Route::get('/bpm-landing/{subject_id}', [BpmBridgeController::class, 'handle'])
+// La rotta riceve l'ID del soggetto (es: l'agente) e il token di sicurezza nei parametri.
+// Throttling per limitare il brute force sul token.
+Route::get('/bpm-landing/{subjectId}', [BpmBridgeController::class, 'handle'])
+    ->middleware('throttle:10,1')
     ->name('bpm.landing');
 
 Route::get('/admin/manuale', function () {
@@ -18,6 +20,16 @@ Route::get('/admin/manuale-tecnico', function () {
     return response(file_get_contents(resource_path('manuals/manuale-tecnico.html')))
         ->header('Content-Type', 'text/html; charset=utf-8');
 })->name('filament.admin.pages.manuale-tecnico');
+
+Route::get('/admin/manuale-utente', function () {
+    return response(file_get_contents(resource_path('docs/manuale-utente.html')))
+        ->header('Content-Type', 'text/html; charset=utf-8');
+})->name('filament.admin.pages.manuale-utente');
+
+Route::get('/admin/prompt-vibe-coding', function () {
+    return response(file_get_contents(resource_path('docs/prompt-vibe-coding.html')))
+        ->header('Content-Type', 'text/html; charset=utf-8');
+})->name('filament.admin.pages.prompt-vibe-coding');
 
 // Portale pubblico (non autenticato) per la compilazione dei questionari
 // fornitori Art. 28 GDPR: l'accesso è protetto dal token univoco nell'URL.

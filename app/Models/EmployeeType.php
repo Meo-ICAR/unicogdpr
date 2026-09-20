@@ -86,4 +86,13 @@ class EmployeeType extends Model
     {
         return $this->hasMany(EmployeeTypePermission::class, 'employee_type_id');
     }
+
+    /**
+     * Preset di accesso totale (tutte le azioni CRUD) sulle risorse,
+     * affiancati alla matrice granulare di permissions(), come in unicobpm.
+     */
+    public function resourcePresets(): HasMany
+    {
+        return $this->hasMany(EmployeeTypeResourcePreset::class, 'employee_type_id');
+    }
 }
