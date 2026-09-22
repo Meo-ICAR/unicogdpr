@@ -7,6 +7,7 @@ use App\Filament\Resources\ClientControllers\Pages\EditClientController;
 use App\Filament\Resources\ClientControllers\Pages\ListClientControllers;
 use App\Filament\Resources\ClientControllers\Schemas\ClientControllerForm;
 use App\Filament\Resources\ClientControllers\Tables\ClientControllersTable;
+use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Filament\Traits\HasPlanAccess;
 use App\Models\ClientController;
 use BackedEnum;
@@ -49,7 +50,9 @@ class ClientControllerResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            DocumentsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

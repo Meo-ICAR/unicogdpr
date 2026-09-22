@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\BpmBridgeController;
+use App\Http\Controllers\CompanyPortal\DocumentDownloadController;
+use App\Http\Controllers\CompanyPortal\DpiaReportController;
 use App\Http\Controllers\VendorAuditQuestionnaireController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,3 +39,15 @@ Route::get('/fornitori/questionario/{token}', [VendorAuditQuestionnaireControlle
     ->name('vendor-audit.show');
 Route::post('/fornitori/questionario/{token}', [VendorAuditQuestionnaireController::class, 'submit'])
     ->name('vendor-audit.submit');
+
+// Portale di sola consultazione per gli admin/titolari delle company: download
+// del report PDF di una DPIA, protetto dal guard 'web' + verifica di appartenenza.
+Route::get('/portale-dpia/{dpia}/report', DpiaReportController::class)
+    ->middleware('auth')
+    ->name('company-portal.dpia.report');
+
+// Portale di sola consultazione: download di un documento aziendale (disco
+// privato 'documenti'), protetto dal guard 'web' + verifica di appartenenza.
+Route::get('/portale-documenti/{document}/download', DocumentDownloadController::class)
+    ->middleware('auth')
+    ->name('company-portal.document.download');

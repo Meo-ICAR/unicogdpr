@@ -9,6 +9,7 @@ use App\Filament\Resources\ExternalProcessors\RelationManagers\AuditsRelationMan
 use App\Filament\Resources\ExternalProcessors\RelationManagers\TransferImpactAssessmentsRelationManager;
 use App\Filament\Resources\ExternalProcessors\Schemas\ExternalProcessorForm;
 use App\Filament\Resources\ExternalProcessors\Tables\ExternalProcessorsTable;
+use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Filament\Traits\HasPlanAccess;
 use App\Models\ExternalProcessor;
 use BackedEnum;
@@ -51,6 +52,7 @@ class ExternalProcessorResource extends Resource
         return [
             'audits' => AuditsRelationManager::class,
             'transferImpactAssessments' => TransferImpactAssessmentsRelationManager::class,
+            DocumentsRelationManager::class,
         ];
     }
 

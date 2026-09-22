@@ -48,6 +48,19 @@ return [
             'report' => false,
         ],
 
+        // Documenti aziendali (visura, contratti, registro trattamenti, nomine, ecc.),
+        // organizzati per company/tipo su un percorso leggibile da filesystem senza
+        // passare dall'app. La root è configurabile via env perché in produzione
+        // punterà altrove (es. volume/NAS dedicato).
+        'documenti' => [
+            'driver' => 'local',
+            'root' => env('DOCUMENTS_ROOT', storage_path('app/private/documenti')),
+            'serve' => false,
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

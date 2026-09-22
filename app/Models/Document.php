@@ -10,17 +10,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Document extends Model
+class Document extends Model implements HasMedia
 {
-    use HasFactory, HasUuids,  SoftDeletes;
+    use HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
 
     protected $connection = 'mysql_unicooam';
 
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('documents')
-            ->useDisk('public');
+            ->useDisk('documenti');
     }
 
     protected $orderBy = 'name';
@@ -108,7 +110,7 @@ class Document extends Model
     }
 
     /**
-     * Relazione: Tenant proprietario
+     * Relazione: Tenant proprietario.
      */
     public function company(): BelongsTo
     {

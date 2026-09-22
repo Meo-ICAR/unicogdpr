@@ -106,6 +106,17 @@ class ComplaintRegistry extends Model
     // ==========================================
 
     /**
+     * Il Tenant a cui appartiene il reclamo. A differenza di Audit/Branch,
+     * complaint_registry.company_id non ha un vincolo di FK verso
+     * unicooam.companies, quindi può referenziare regolarmente le Company di
+     * questa app (connessione di default).
+     */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    /**
      * L'agente o collaboratore della rete commerciale coinvolto nel reclamo.
      */
     public function agent(): BelongsTo

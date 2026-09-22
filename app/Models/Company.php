@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesDefaultConnection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Company extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, UsesDefaultConnection;
 
     protected $fillable = [
         'name',
@@ -124,5 +126,10 @@ class Company extends Model
     public function dataBreaches(): HasMany
     {
         return $this->hasMany(DataBreach::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

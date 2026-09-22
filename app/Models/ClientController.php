@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesDefaultConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ClientController extends Model
 {
-    use HasFactory;
+    use HasFactory, UsesDefaultConnection;
 
     protected $fillable = [
         'company_id',
@@ -59,5 +61,10 @@ class ClientController extends Model
         return $this->belongsToMany(Employee::class, 'client_controller_employee')
             ->withPivot(['status', 'nda_signed', 'approved_at', 'notes'])
             ->withTimestamps();
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

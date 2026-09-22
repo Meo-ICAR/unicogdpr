@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TrainingRecords;
 
+use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\TrainingRecords\Pages\CreateTrainingRecord;
 use App\Filament\Resources\TrainingRecords\Pages\EditTrainingRecord;
 use App\Filament\Resources\TrainingRecords\Pages\ListTrainingRecords;
@@ -47,7 +48,7 @@ class TrainingRecordResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            DocumentsRelationManager::class,
         ];
     }
 

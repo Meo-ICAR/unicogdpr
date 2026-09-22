@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesDefaultConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -15,7 +17,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class ExternalProcessor extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes;
+    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes, UsesDefaultConnection;
 
     protected $fillable = [
         'company_id',
@@ -108,5 +110,10 @@ class ExternalProcessor extends Model implements HasMedia
             && $this->has_dpa_signed
             && $this->dpa_expires_at->isFuture()
             && now()->diffInDays($this->dpa_expires_at, false) <= $days;
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

@@ -2,12 +2,10 @@
 
 namespace App\Filament\Resources\RelationManagers;
 
-// use App\Enums\DocumentStatus;
-// use App\Filament\Exports\DynamicGroupExport;
 // use App\Filament\Traits\HasRelationPlanAccess;
+use App\Filament\Exports\DynamicGroupExport;
 use App\Models\Document;
 use App\Models\DocumentType;
-use App\ValueObjects\OamSemester;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -33,6 +31,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 // CORRETTO
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use pxlrbt\FilamentExcel\Actions\ExportAction; // <-- Importa il trait
 
@@ -152,23 +151,7 @@ class DocumentsRelationManager extends RelationManager
                     ->label('Documento')
                     ->searchable()
                     ->sortable()
-                    ->default('Senza documento')
-                    ->html()
-                    ->formatStateUsing(function ($state, Document $record) {
-                        $url = $record->getFirstMedia('documents')
-                            ? route('documents.download', $record)
-                            : (! empty($record->document_url) ? $record->document_url : null);
-
-                        if (! $url) {
-                            return $state;
-                        }
-
-                        return sprintf(
-                            '<a href="%s" target="_blank" style="color:#2563eb;text-decoration:underline;">%s</a>',
-                            e($url),
-                            e($state)
-                        );
-                    }),
+                    ->default('Senza documento'),
                 TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
@@ -199,15 +182,6 @@ class DocumentsRelationManager extends RelationManager
 
             ])
             ->filters([
-                Filter::make('semestre_attuale')
-                    ->label('Solo semestre in corso')
-                    ->toggle() // <--- Trasforma la Checkbox in un interruttore Toggle grafico
-                    ->default(true)
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $data['isActive']
-                            ? $query->perSemestreOam(OamSemester::getInBaseAlMeseCorrente())
-                            : $query;
-                    }),
                 SelectFilter::make('document_type_id')
                     ->label('Tipo documento')
                     ->relationship('documentType', 'name')
@@ -216,7 +190,12 @@ class DocumentsRelationManager extends RelationManager
                 SelectFilter::make('status')
                     ->label('Stato')
                     ->multiple()
-                    ->options(DocumentStatus::class),
+                    ->options(fn (): array => Document::query()
+                        ->whereNotNull('status')
+                        ->distinct()
+                        ->orderBy('status')
+                        ->pluck('status', 'status')
+                        ->all()),
                 SelectFilter::make('doctype')
                     ->label('Tipo documento')
                     ->multiple()
@@ -231,10 +210,9 @@ class DocumentsRelationManager extends RelationManager
                     ->query(fn ($query) => $query->where('is_monitored', true)),
                 TernaryFilter::make('is_expired')
                     ->label('Scaduto')
-                    ->default(false)
                     ->queries(
-                        true: fn ($query) => $query->where('status', DocumentStatus::EXPIRED->value),
-                        false: fn ($query) => $query->where('status', '!=', DocumentStatus::EXPIRED->value),
+                        true: fn ($query) => $query->whereNotNull('expires_at')->where('expires_at', '<', now()),
+                        false: fn ($query) => $query->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>=', now())),
                     ),
                 TrashedFilter::make(),
             ])
@@ -254,6 +232,23 @@ class DocumentsRelationManager extends RelationManager
                     ->color('success'),
             ])
             ->recordActions([
+                Action::make('download')
+                    ->label('Scarica')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->visible(fn (Document $record) => $record->getFirstMedia('documents') !== null)
+                    ->action(function (Document $record) {
+                        $media = $record->getFirstMedia('documents');
+
+                        return response()->download($media->getPath(), $media->file_name);
+                    }),
+                Action::make('open_external_url')
+                    ->label('Apri link')
+                    ->icon('heroicon-o-arrow-top-right-on-square')
+                    ->color('gray')
+                    ->visible(fn (Document $record) => $record->getFirstMedia('documents') === null && ! empty($record->document_url))
+                    ->url(fn (Document $record) => str_starts_with($record->document_url, 'http') ? $record->document_url : "https://{$record->document_url}")
+                    ->openUrlInNewTab(),
                 EditAction::make(),
                 /*
                 Action::make('renew')

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\TrainingRecords\Tables;
 
+use App\Models\TrainingRecord;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -40,14 +42,14 @@ class TrainingRecordsTable
                     ->label('Esito')
                     ->colors([
                         'success' => 'passed',
-                        'danger'  => 'failed',
-                        'info'    => 'attended',
+                        'danger' => 'failed',
+                        'info' => 'attended',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'passed'   => 'Superato',
-                        'failed'   => 'Non superato',
+                        'passed' => 'Superato',
+                        'failed' => 'Non superato',
                         'attended' => 'Frequentato',
-                        default    => ucfirst($state),
+                        default => ucfirst($state),
                     }),
                 IconColumn::make('certificate_issued')
                     ->label('Attestato')
@@ -62,13 +64,23 @@ class TrainingRecordsTable
                 SelectFilter::make('outcome')
                     ->label('Esito')
                     ->options([
-                        'passed'   => 'Superato',
-                        'failed'   => 'Non superato',
+                        'passed' => 'Superato',
+                        'failed' => 'Non superato',
                         'attended' => 'Frequentato',
                     ]),
                 TrashedFilter::make(),
             ])
             ->recordActions([
+                Action::make('download_certificate')
+                    ->label('Attestato')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->visible(fn (TrainingRecord $record) => $record->getFirstMedia('certificates') !== null)
+                    ->action(function (TrainingRecord $record) {
+                        $media = $record->getFirstMedia('certificates');
+
+                        return response()->download($media->getPath(), $media->file_name);
+                    }),
                 EditAction::make(),
             ])
             ->toolbarActions([

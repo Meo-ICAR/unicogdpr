@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\Anonymizable;
+use App\Models\Concerns\UsesDefaultConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,7 +15,7 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Employee extends Model implements Anonymizable
 {
-    use LogsActivity, SoftDeletes;
+    use LogsActivity, SoftDeletes, UsesDefaultConnection;
 
     protected $fillable = [
         'company_id', 'user_id', 'employee_type_id', 'branch_id', 'coordinated_by_id',
@@ -128,6 +129,11 @@ class Employee extends Model implements Anonymizable
     public function assets(): MorphMany
     {
         return $this->morphMany(PrivacyAsset::class, 'ownerable');
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 
     public function getFullNameAttribute(): string

@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesDefaultConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
@@ -11,7 +13,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class TrainingRecord extends Model implements HasMedia
 {
-    use SoftDeletes, InteractsWithMedia;
+    use InteractsWithMedia, SoftDeletes, UsesDefaultConnection;
 
     protected $fillable = [
         'company_id', 'ownerable_type', 'ownerable_id', 'course_name',
@@ -21,17 +23,17 @@ class TrainingRecord extends Model implements HasMedia
     ];
 
     protected $casts = [
-        'training_date'       => 'date',
-        'expiry_date'         => 'date',
-        'certificate_issued'  => 'boolean',
-        'hours'               => 'decimal:1',
-        'score'               => 'decimal:2',
+        'training_date' => 'date',
+        'expiry_date' => 'date',
+        'certificate_issued' => 'boolean',
+        'hours' => 'decimal:1',
+        'score' => 'decimal:2',
     ];
 
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('certificates')
-            ->useDisk('private')
+            ->useDisk('documenti')
             ->singleFile()
             ->acceptsMimeTypes([
                 'application/pdf',
@@ -48,5 +50,10 @@ class TrainingRecord extends Model implements HasMedia
     public function ownerable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

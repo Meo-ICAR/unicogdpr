@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\TrainingRecords\Schemas;
 
 use App\Models\Employee;
+use App\Models\ExternalProcessor;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\MorphToSelect;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -29,6 +31,9 @@ class TrainingRecordForm
                                 MorphToSelect\Type::make(Employee::class)
                                     ->titleAttribute('first_name')
                                     ->label('Dipendente / Collaboratore'),
+                                MorphToSelect\Type::make(ExternalProcessor::class)
+                                    ->titleAttribute('name')
+                                    ->label('Responsabile Esterno del Trattamento'),
                             ])
                             ->searchable()
                             ->preload(),
@@ -108,6 +113,12 @@ class TrainingRecordForm
                         TextInput::make('certificate_number')
                             ->label('Numero Attestato')
                             ->maxLength(255),
+                        SpatieMediaLibraryFileUpload::make('certificate')
+                            ->label('Allegato attestato')
+                            ->collection('certificates')
+                            ->disk('documenti')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->columnSpanFull(),
                     ]),
 
                 // ── Sezione 4: Note ──────────────────────────────────────────────

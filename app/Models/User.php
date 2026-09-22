@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
@@ -57,17 +58,30 @@ class User extends Authenticatable implements FilamentUser, HasTenants
 
     public function canAccessPanel(Panel $panel): bool
     {
+        if ($panel->getId() === 'company-admin') {
+            // Il portale di sola consultazione è riservato a chi è collegato ad almeno una company
+            return $this->companies()->exists();
+        }
+
         return true; // Il DPO accede a Filament
     }
 
     // Restituisce tutte le aziende censite (il DPO le gestisce tutte)
     public function getTenants(Panel $panel): array|Collection
     {
+        if ($panel->getId() === 'company-admin') {
+            return $this->companies;
+        }
+
         return Company::all();
     }
 
     public function canAccessTenant(Model $tenant): bool
     {
+        if (Filament::getCurrentPanel()?->getId() === 'company-admin') {
+            return $this->companies()->whereKey($tenant->getKey())->exists();
+        }
+
         return true; // Il DPO ha accesso a qualsiasi tenant
     }
 
