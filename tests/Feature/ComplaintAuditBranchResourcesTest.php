@@ -6,6 +6,7 @@ use App\Enums\AuditStatus;
 use App\Enums\ComplaintStatus;
 use App\Models\Audit;
 use App\Models\Branch;
+use App\Models\Clienti;
 use App\Models\Company;
 use App\Models\ComplaintRegistry;
 use App\Models\User;
@@ -110,6 +111,28 @@ class ComplaintAuditBranchResourcesTest extends TestCase
 
         $this->actingAs($dpo)
             ->get(route('filament.admin.resources.branches.edit', ['tenant' => $company->id, 'record' => $branch->id]))
+            ->assertOk();
+    }
+
+    /**
+     * Clienti vive sulla connessione condivisa 'proforma': a differenza
+     * degli altri test qui, non creiamo righe (evitiamo di dover gestire
+     * anche quella connessione in transazione) e usiamo invece un record
+     * reale già presente, in sola lettura.
+     */
+    public function test_dpo_can_open_the_clienti_edit_page_with_the_documents_and_audits_relation_managers(): void
+    {
+        $cliente = Clienti::first();
+
+        if (! $cliente) {
+            $this->markTestSkipped('Nessun Clienti disponibile su cui verificare la pagina.');
+        }
+
+        $company = Company::factory()->create();
+        $dpo = User::factory()->create();
+
+        $this->actingAs($dpo)
+            ->get(route('filament.admin.resources.clientis.edit', ['tenant' => $company->id, 'record' => $cliente->id]))
             ->assertOk();
     }
 }

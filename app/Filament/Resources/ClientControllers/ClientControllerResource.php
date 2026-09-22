@@ -7,6 +7,7 @@ use App\Filament\Resources\ClientControllers\Pages\EditClientController;
 use App\Filament\Resources\ClientControllers\Pages\ListClientControllers;
 use App\Filament\Resources\ClientControllers\Schemas\ClientControllerForm;
 use App\Filament\Resources\ClientControllers\Tables\ClientControllersTable;
+use App\Filament\Resources\RelationManagers\AuditsRelationManager;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Filament\Traits\HasPlanAccess;
 use App\Models\ClientController;
@@ -52,6 +53,7 @@ class ClientControllerResource extends Resource
     {
         return [
             DocumentsRelationManager::class,
+            AuditsRelationManager::class,
         ];
     }
 

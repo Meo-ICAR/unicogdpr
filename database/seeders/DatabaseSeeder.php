@@ -98,7 +98,6 @@ class DatabaseSeeder extends Seeder
         // 7. AUDIT, TIA, PIVOT OPERATORI
         // ════════════════════════════════════════════════════════════════
         $this->call([
-            ClientAuditSeeder::class,
             ExternalProcessorAuditSeeder::class,
             TransferImpactAssessmentSeeder::class,
             ClientControllerEmployeeSeeder::class,

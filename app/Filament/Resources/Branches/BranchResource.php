@@ -41,6 +41,16 @@ class BranchResource extends Resource
 
     protected static ?int $navigationSort = 13;
 
+    /**
+     * Niente voce di menu propria: le sedi si raggiungono dalla scheda
+     * Company (tramite BranchesRelationManager). La risorsa/pagina resta
+     * comunque raggiungibile — serve per la scheda completa coi documenti.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return BranchForm::configure($schema);

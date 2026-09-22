@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Audits\Schemas;
 
 use App\Enums\AuditStatus;
 use App\Models\ClientController;
+use App\Models\Clienti;
 use App\Models\Company;
 use App\Models\Employee;
 use App\Models\ExternalProcessor;
@@ -33,6 +34,7 @@ class AuditForm
                                 MorphToSelect\Type::make(Fornitore::class)->titleAttribute('name')->label('Fornitore'),
                                 MorphToSelect\Type::make(ExternalProcessor::class)->titleAttribute('name')->label('Responsabile Esterno'),
                                 MorphToSelect\Type::make(ClientController::class)->titleAttribute('name')->label('Cliente / Committente'),
+                                MorphToSelect\Type::make(Clienti::class)->titleAttribute('name')->label('Cliente (mandato OAM)'),
                             ])
                             ->searchable()
                             ->preload(),

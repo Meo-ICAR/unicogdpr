@@ -50,9 +50,9 @@ class ClientController extends Model
         return $this->hasMany(ProcessingActivity::class);
     }
 
-    public function audits(): HasMany
+    public function audits(): MorphMany
     {
-        return $this->hasMany(ClientAudit::class);
+        return $this->morphMany(Audit::class, 'auditable');
     }
 
     public function authorizedEmployees(): BelongsToMany

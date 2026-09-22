@@ -41,6 +41,18 @@ class AuditResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
+    /**
+     * Niente voce di menu propria: gli audit si raggiungono nel contesto in
+     * cui hanno senso (scheda Company o Cliente/ClientController, tramite
+     * AuditsRelationManager), non come sezione trasversale separata. La
+     * risorsa/pagina resta comunque raggiungibile — serve per la scheda
+     * completa con i documenti collegati.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return AuditForm::configure($schema);

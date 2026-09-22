@@ -7,6 +7,9 @@ use App\Filament\Resources\Companies\Pages\EditCompany;
 use App\Filament\Resources\Companies\Pages\ListCompanies;
 use App\Filament\Resources\Companies\Schemas\CompanyForm;
 use App\Filament\Resources\Companies\Tables\CompaniesTable;
+use App\Filament\Resources\RelationManagers\AuditsRelationManager;
+use App\Filament\Resources\RelationManagers\BranchesRelationManager;
+use App\Filament\Resources\RelationManagers\ComplaintsRelationManager;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Filament\Traits\HasPlanAccess;
 use App\Models\Company;
@@ -51,6 +54,9 @@ class CompanyResource extends Resource
     {
         return [
             DocumentsRelationManager::class,
+            BranchesRelationManager::class,
+            ComplaintsRelationManager::class,
+            AuditsRelationManager::class,
         ];
     }
 

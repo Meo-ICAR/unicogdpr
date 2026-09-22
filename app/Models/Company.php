@@ -132,4 +132,19 @@ class Company extends Model
     {
         return $this->morphMany(Document::class, 'documentable');
     }
+
+    public function branches(): MorphMany
+    {
+        return $this->morphMany(Branch::class, 'branchable');
+    }
+
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(ComplaintRegistry::class);
+    }
+
+    public function audits(): MorphMany
+    {
+        return $this->morphMany(Audit::class, 'auditable');
+    }
 }

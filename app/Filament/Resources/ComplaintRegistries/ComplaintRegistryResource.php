@@ -30,6 +30,16 @@ class ComplaintRegistryResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    /**
+     * Niente voce di menu propria: i reclami si raggiungono dalla scheda
+     * Company (tramite ComplaintsRelationManager). La risorsa/pagina resta
+     * comunque raggiungibile — serve per la scheda completa coi documenti.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return ComplaintRegistryForm::configure($schema);

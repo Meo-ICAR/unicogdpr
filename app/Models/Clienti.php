@@ -146,6 +146,11 @@ class Clienti extends Model
         return $this->morphMany(Branch::class, 'branchable');
     }
 
+    public function audits(): MorphMany
+    {
+        return $this->morphMany(Audit::class, 'auditable');
+    }
+
     public function websites(): MorphMany
     {
         return $this->morphMany(Website::class, 'websiteable');

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\RelationManagers;
 
 // use App\Filament\Traits\HasRelationPlanAccess;
 use App\Filament\Exports\DynamicGroupExport;
+use App\Models\Audit;
 use App\Models\Document;
 use App\Models\DocumentType;
 use Filament\Actions\Action;
@@ -230,6 +231,65 @@ class DocumentsRelationManager extends RelationManager
                     ])
                     ->label('Esporta Excel')
                     ->color('success'),
+                // Per gli audit esterni subiti da un cliente (auditable_type
+                // 'client_controller'), la prassi è allegare come evidenza
+                // documenti "principal" già esistenti nel catalogo (non
+                // nuovi upload): il Document viene duplicato — con il suo
+                // file — e collegato a questo audit, perché il morph
+                // 'documentable' lega ogni Document a un solo proprietario.
+                Action::make('attach_existing_principal_document')
+                    ->label('Allega documento esistente')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('gray')
+                    ->visible(fn () => $this->getOwnerRecord() instanceof Audit)
+                    ->form([
+                        Select::make('source_document_id')
+                            ->label('Documento esistente (solo tipo "Principal")')
+                            ->options(fn (): array => Document::query()
+                                ->whereHas('documentType', fn (Builder $query) => $query->where('is_principal', true))
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->all())
+                            ->searchable()
+                            ->required(),
+                    ])
+                    ->action(function (array $data): void {
+                        $source = Document::find($data['source_document_id']);
+
+                        if (! $source) {
+                            return;
+                        }
+
+                        $owner = $this->getOwnerRecord();
+
+                        $copy = Document::create([
+                            'company_id' => $owner->company_id ?? $owner->id,
+                            'documentable_type' => 'audit',
+                            'documentable_id' => $owner->id,
+                            'document_type_id' => $source->document_type_id,
+                            'name' => $source->name,
+                            'docnumber' => $source->docnumber,
+                            'status' => $source->status,
+                            'is_signed' => $source->is_signed,
+                            'emitted_at' => $source->emitted_at,
+                            'expires_at' => $source->expires_at,
+                            'description' => $source->description,
+                        ]);
+
+                        $sourceMedia = $source->getFirstMedia('documents');
+
+                        if ($sourceMedia) {
+                            $copy->addMedia($sourceMedia->getPath())
+                                ->preservingOriginal()
+                                ->toMediaCollection('documents');
+                        }
+
+                        Notification::make()
+                            ->title('Documento allegato')
+                            ->body("\"{$source->name}\" è stato collegato a questo audit.")
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->recordActions([
                 Action::make('download')
