@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Contracts\ImapConnector;
 use App\Models\Audit;
+use App\Models\AuditChecklistEvaluation;
 use App\Models\Branch;
 use App\Models\ClientController;
 use App\Models\Clienti;
@@ -40,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Relation::morphMap([
             'audit' => Audit::class,
+            'audit_checklist_evaluation' => AuditChecklistEvaluation::class,
             'branch' => Branch::class,
             'client_controller' => ClientController::class,
             'cliente' => Clienti::class,

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Company;
+use App\Models\ComplaintRegistry;
 use App\Models\DataBreach;
 use App\Models\Dpia;
 use App\Models\Employee;
@@ -135,6 +136,61 @@ class DocumentGeneratorService
         ];
 
         return Pdf::loadView('documents.dpia-report', $data)
+            ->setPaper('a4', 'portrait')
+            ->setOption(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+    }
+
+    /**
+     * Genera la Scheda Pratica Transazionale di un fascicolo reclami: aggrega
+     * tutti gli eventi di complaint_registry che condividono lo stesso
+     * protocol_number (un fascicolo = più righe/eventi in cronologia) in
+     * un'unica scheda con intestazione di sintesi e registro cronologico
+     * completo.
+     */
+    public function generateSchedaReclamo(string $protocolNumber, array $options = []): DomPdfWrapper
+    {
+        $events = ComplaintRegistry::where('protocol_number', $protocolNumber)
+            ->orderBy('event_sequence')
+            ->get();
+
+        if ($events->isEmpty()) {
+            throw new InvalidArgumentException("Nessun evento trovato per il protocollo {$protocolNumber}.");
+        }
+
+        $first = $events->first();
+        $last = $events->last();
+        $company = $this->getCompany($first->company);
+        $date = isset($options['date']) ? Carbon::parse($options['date']) : now();
+
+        $titolareResponsabile = collect([
+            $first->master_agency ? "{$first->master_agency} (Resp. Trattamento)" : null,
+            $first->mandating_company ? "{$first->mandating_company} (Titolare)" : null,
+        ])->filter()->implode(' / ');
+
+        // Sintesi automatica ricavata dagli eventi (non campi dedicati a livello di
+        // fascicolo): elenco dei sub-fornitori distinti citati in cronologia e,
+        // come esito finale, azione/blacklist/log freeze dell'ultimo evento.
+        $vendorTerzi = $events->pluck('sub_supplier')->filter()->unique()->implode(' | ');
+        $esitoFinale = collect([$last->operational_action, $last->dnc_blacklist_status, $last->log_freeze_retention])
+            ->filter()
+            ->implode(' | ');
+
+        $data = [
+            'company' => $company,
+            'protocolNumber' => $protocolNumber,
+            'events' => $events,
+            'last' => $last,
+            'date' => $date,
+            'complainantName' => $first->complainant_name,
+            'complainantFiscalCode' => $first->complainant_fiscal_code,
+            'complainantContact' => collect([$first->complainant_phone ? "Tel: {$first->complainant_phone}" : null, $first->complainant_email ? "PEC: {$first->complainant_email}" : null])->filter()->implode(' / '),
+            'titolareResponsabile' => $titolareResponsabile,
+            'vendorTerzi' => $vendorTerzi,
+            'oggetto' => $first->description,
+            'esitoFinale' => $esitoFinale,
+        ];
+
+        return Pdf::loadView('documents.scheda-reclamo', $data)
             ->setPaper('a4', 'portrait')
             ->setOption(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
     }

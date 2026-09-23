@@ -149,7 +149,7 @@
             </td>
             <td class="doc-meta" style="vertical-align: middle;">
                 <strong>Data emissione:</strong> {{ $date->format('d/m/Y') }}<br>
-                <strong>Rif. Interno:</strong> GDPR-DOC-{{ $date->format('Y') }}-{{ substr(md5($employee->id ?? $processor->id ?? $breach->id ?? rand()), 0, 6) }}
+                <strong>Rif. Interno:</strong> GDPR-DOC-{{ $date->format('Y') }}-{{ substr(md5($employee->id ?? $processor->id ?? $breach->id ?? $protocolNumber ?? rand()), 0, 6) }}
             </td>
         </tr>
     </table>

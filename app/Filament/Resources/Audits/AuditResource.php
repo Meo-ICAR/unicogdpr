@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Audits;
 use App\Filament\Resources\Audits\Pages\CreateAudit;
 use App\Filament\Resources\Audits\Pages\EditAudit;
 use App\Filament\Resources\Audits\Pages\ListAudits;
+use App\Filament\Resources\Audits\RelationManagers\AuditChecklistEvaluationsRelationManager;
 use App\Filament\Resources\Audits\Schemas\AuditForm;
 use App\Filament\Resources\Audits\Tables\AuditsTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
@@ -66,6 +67,7 @@ class AuditResource extends Resource
     public static function getRelations(): array
     {
         return [
+            AuditChecklistEvaluationsRelationManager::class,
             DocumentsRelationManager::class,
         ];
     }

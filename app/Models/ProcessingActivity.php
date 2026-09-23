@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesDefaultConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProcessingActivity extends Model
 {
-    use HasFactory, SoftDeletes;
+    // UsesDefaultConnection: necessario perché AuditChecklistEvaluation
+    // (mysql_unicooam) lo referenzia tramite belongsToMany.
+    use HasFactory, SoftDeletes, UsesDefaultConnection;
 
     protected $fillable = [
         'company_id',

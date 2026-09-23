@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             DpiaRiskSeeder::class,
             EmailTemplateSeeder::class,
             RemediationSeeder::class,
+            AuditChecklistItemSeeder::class,
             // Catalogo globale misure sicurezza (privacy_securities, senza company_id)
             // Distinto da privacy_security (registro operativo tenant-scoped)
             PrivacySecuritiesCatalogSeeder::class,
@@ -118,6 +119,14 @@ class DatabaseSeeder extends Seeder
             LeadReturnLogSeeder::class,        // dipende da Client
             DataBreachSeeder::class,           // dipende da Company
             IncomingEmailSeeder::class,        // dipende da MailAccount
+        ]);
+
+        // ════════════════════════════════════════════════════════════════
+        // 9. REGISTRO RECLAMI — connessione condivisa mysql_unicooam
+        //    Dipende da Company (per il company_id del reclamo)
+        // ════════════════════════════════════════════════════════════════
+        $this->call([
+            ComplaintRegistrySeeder::class,
         ]);
     }
 }
