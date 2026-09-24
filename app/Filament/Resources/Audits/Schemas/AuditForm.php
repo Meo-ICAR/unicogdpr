@@ -23,9 +23,14 @@ class AuditForm
     {
         return $schema
             ->components([
-                Section::make('Soggetto Controllato')
+                Section::make('Soggetto Controllato / controllante')
+                    ->label('Soggetto Controllato / controllabile')
+                    ->description('Seleziona il soggetto che è oggetto dell\'audit.')
+                    ->columnSpanFull()
+                    ->columns(2)
                     ->icon('heroicon-o-magnifying-glass')
                     ->schema([
+
                         MorphToSelect::make('auditable')
                             ->label('Soggetto Sottoposto ad Audit')
                             ->types([
@@ -42,7 +47,8 @@ class AuditForm
 
                 Section::make('Dati Audit')
                     ->icon('heroicon-o-clipboard-document-check')
-                    ->columns(2)
+                    ->columnSpanFull()
+                    ->columns(6)
                     ->schema([
                         TextInput::make('protocol_number')
                             ->label('Numero Protocollo')

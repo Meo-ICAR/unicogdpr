@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\IsCollapsible;
 use App\Models\Dpia;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -10,7 +11,11 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class HighRiskDpiaWidget extends BaseWidget
 {
-    protected static ?int $sort = 2;
+    use IsCollapsible;
+
+    protected string $view = 'filament.widgets.collapsible-table-widget';
+
+    protected static ?int $sort = 11;
 
     protected int|string|array $columnSpan = 'full';
 
@@ -21,7 +26,7 @@ class HighRiskDpiaWidget extends BaseWidget
         return $table
             ->query(
                 Dpia::query()
-                    ->with(['processingActivity', 'registroTrattamento', 'items'])
+                    ->with(['processingActivity', 'items'])
                     ->latest()
             )
             ->columns([
@@ -32,7 +37,6 @@ class HighRiskDpiaWidget extends BaseWidget
                 TextColumn::make('processing_activity')
                     ->label('Trattamento Correlato')
                     ->state(fn (Dpia $record) => $record->processingActivity?->name
-                        ?? $record->registroTrattamento?->activity
                         ?? 'Non specificato')
                     ->badge()
                     ->color('info'),

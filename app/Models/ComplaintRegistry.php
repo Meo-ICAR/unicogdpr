@@ -26,6 +26,7 @@ class ComplaintRegistry extends Model
     protected $fillable = [
         'company_id',
         'protocol_number',
+        'data_subject_request_id',
         'event_sequence',
         'event_at',
         'event_phase',
@@ -139,6 +140,16 @@ class ComplaintRegistry extends Model
     }
 
     /**
+     * La DSAR "master" del fascicolo (App\Models\DataSubjectRequest, sulla
+     * connessione di default): riferimento debole, opzionale — un reclamo
+     * può esistere senza DSAR collegata (dispute non legate a diritti GDPR).
+     */
+    public function dataSubjectRequest(): BelongsTo
+    {
+        return $this->belongsTo(DataSubjectRequest::class);
+    }
+
+    /**
      * L'agente o collaboratore della rete commerciale coinvolto nel reclamo.
      */
     public function agent(): BelongsTo
@@ -174,5 +185,23 @@ class ComplaintRegistry extends Model
         }
 
         return $this->deadline_at && $this->deadline_at->isPast();
+    }
+
+    /**
+     * Genera il prossimo protocollo libero per l'anno corrente nel formato
+     * "REG-{anno}-{progressivo a 3 cifre}" (es. REG-2026-006), usato per
+     * aprire un nuovo fascicolo (event_sequence 1) quando non se ne indica
+     * uno esistente — es. dalla classificazione automatica delle email.
+     */
+    public static function generateNextProtocolNumber(): string
+    {
+        $prefix = 'REG-'.now()->year.'-';
+
+        $lastNumber = static::where('protocol_number', 'like', "{$prefix}%")
+            ->get(['protocol_number'])
+            ->map(fn (self $c) => (int) mb_substr($c->protocol_number, mb_strlen($prefix)))
+            ->max();
+
+        return $prefix.str_pad((string) (($lastNumber ?? 0) + 1), 3, '0', STR_PAD_LEFT);
     }
 }

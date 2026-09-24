@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\IsCollapsible;
 use App\Models\DataBreach;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -9,7 +10,11 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class BreachSlaWidget extends BaseWidget
 {
-    protected static ?int $sort = 3;
+    use IsCollapsible;
+
+    protected string $view = 'filament.widgets.collapsible-table-widget';
+
+    protected static ?int $sort = 10;
 
     protected int|string|array $columnSpan = 'full';
 

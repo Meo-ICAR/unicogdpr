@@ -6,6 +6,7 @@ use App\Enums\DsarStatus;
 use App\Filament\Resources\DataSubjectRequests\Pages\CreateDataSubjectRequest;
 use App\Filament\Resources\DataSubjectRequests\Pages\EditDataSubjectRequest;
 use App\Filament\Resources\DataSubjectRequests\Pages\ListDataSubjectRequests;
+use App\Filament\Resources\DataSubjectRequests\RelationManagers\ComplaintEventsRelationManager;
 use App\Filament\Resources\DataSubjectRequests\Schemas\DataSubjectRequestForm;
 use App\Filament\Resources\DataSubjectRequests\Tables\DataSubjectRequestsTable;
 use App\Filament\Traits\HasPlanAccess;
@@ -29,7 +30,7 @@ class DataSubjectRequestResource extends Resource
 
     protected static ?string $model = DataSubjectRequest::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';
+    protected static \UnitEnum|string|null $navigationGroup = 'Commesse & Clienti';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-inbox-arrow-down';
 
@@ -63,7 +64,9 @@ class DataSubjectRequestResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            ComplaintEventsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

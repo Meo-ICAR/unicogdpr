@@ -3,7 +3,10 @@
 namespace App\Jobs;
 
 use App\Contracts\ImapConnector;
+use App\Enums\ComplaintStatus;
 use App\Enums\EmailClassification;
+use App\Enums\ReceptionChannel;
+use App\Models\ComplaintRegistry;
 use App\Models\DataSubjectRequest;
 use App\Models\IncomingEmail;
 use App\Models\MailAccount;
@@ -56,6 +59,7 @@ class FetchMailAccountJob implements ShouldQueue
 
         $imported = 0;
         $dsarCreated = 0;
+        $complaintCreated = 0;
 
         foreach ($messages as $message) {
             $fromAddress = $message->getFrom()[0]->mail ?? null;
@@ -140,6 +144,31 @@ class FetchMailAccountJob implements ShouldQueue
                 $dsarCreated++;
             }
 
+            if ($this->shouldCreateComplaint($classification)) {
+                $complaint = $this->createComplaintFromEmail($email, $account);
+                $email->complaint_registry_id = $complaint->id;
+                $email->save();
+
+                // A differenza di DataSubjectRequest, ComplaintRegistry non
+                // implementa Spatie HasMedia (i suoi allegati passano dal
+                // morphMany documents()/Document, non da una media
+                // collection propria): gli allegati restano sull'email
+                // collegata, non vengono copiati automaticamente qui.
+
+                activity('complaint')
+                    ->performedOn($complaint)
+                    ->withProperties([
+                        'origin' => 'imap_fetch',
+                        'mail_account_id' => $account->id,
+                        'classification' => $classification->value,
+                        'from' => $email->from_email,
+                        'data_subject_request_id' => $complaint->data_subject_request_id,
+                    ])
+                    ->log('Reclamo creato automaticamente da email in arrivo');
+
+                $complaintCreated++;
+            }
+
             $message->setFlag('Seen');
         }
 
@@ -150,12 +179,87 @@ class FetchMailAccountJob implements ShouldQueue
             'mail_account_id' => $account->id,
             'imported' => $imported,
             'dsar_created' => $dsarCreated,
+            'complaint_created' => $complaintCreated,
         ]);
     }
 
     private function shouldCreateDsar(EmailClassification $classification): bool
     {
         return config('gdpr.auto_create_dsar', true) && $classification->isDsar();
+    }
+
+    private function shouldCreateComplaint(EmailClassification $classification): bool
+    {
+        return config('gdpr.auto_create_complaint', true) && $classification === EmailClassification::Complaint;
+    }
+
+    /**
+     * Crea l'evento del reclamo per questa email. Se un'altra email della
+     * stessa conversazione è già collegata a un reclamo, questo diventa un
+     * nuovo evento sullo stesso protocollo (invece di aprirne uno nuovo) e
+     * ne eredita la DSAR collegata, se presente. Altrimenti apre un nuovo
+     * protocollo e prova ad abbinarsi a una DSAR già aperta dello stesso
+     * reclamante (per email o telefono estratto dal testo).
+     */
+    private function createComplaintFromEmail(IncomingEmail $email, MailAccount $account): ComplaintRegistry
+    {
+        $previousComplaint = $email->threadMessages()
+            ->whereNotNull('complaint_registry_id')
+            ->first()
+            ?->complaintRegistry;
+
+        $reception = $account->type === 'pec' ? ReceptionChannel::Pec->value : ReceptionChannel::Email->value;
+        $bodyText = $email->body_text ?: strip_tags((string) $email->body_html);
+
+        if ($previousComplaint) {
+            return ComplaintRegistry::create([
+                'company_id' => $account->company_id,
+                'protocol_number' => $previousComplaint->protocol_number,
+                'data_subject_request_id' => $previousComplaint->data_subject_request_id,
+                'event_sequence' => ComplaintRegistry::where('protocol_number', $previousComplaint->protocol_number)->max('event_sequence') + 1,
+                'event_at' => $email->received_at,
+                'event_phase' => 'Email in arrivo',
+                'received_at' => $previousComplaint->received_at,
+                'reception_channel' => $reception,
+                'complainant_name' => $email->from_name,
+                'complainant_email' => $email->from_email,
+                'description' => $bodyText,
+                'status' => ComplaintStatus::Received->value,
+            ]);
+        }
+
+        $phoneCandidate = $this->extractPhoneCandidate($bodyText);
+        $matchedDsar = DataSubjectRequest::findOpenForContact($email->from_email, $phoneCandidate);
+
+        return ComplaintRegistry::create([
+            'company_id' => $account->company_id,
+            'protocol_number' => ComplaintRegistry::generateNextProtocolNumber(),
+            'data_subject_request_id' => $matchedDsar?->id,
+            'event_sequence' => 1,
+            'event_at' => $email->received_at,
+            'event_phase' => '1° Email/PEC Reclamo',
+            'received_at' => $email->received_at,
+            'reception_channel' => $reception,
+            'complainant_name' => $email->from_name,
+            'complainant_email' => $email->from_email,
+            'complainant_phone' => $phoneCandidate,
+            'description' => $bodyText,
+            'status' => ComplaintStatus::Received->value,
+        ]);
+    }
+
+    /**
+     * Estrae un numero di cellulare italiano plausibile dal testo (best
+     * effort): usato solo per provare l'abbinamento a una DSAR aperta dello
+     * stesso reclamante, non viene validato oltre il pattern.
+     */
+    private function extractPhoneCandidate(string $text): ?string
+    {
+        if (preg_match('/\b3\d{8,9}\b/', preg_replace('/[\s.-]+/', '', $text) ?? '', $matches)) {
+            return $matches[0];
+        }
+
+        return null;
     }
 
     private function storeAttachments(object $message, IncomingEmail $email): void

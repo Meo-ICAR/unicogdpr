@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\UsesDefaultConnection;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,16 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class Company extends Model
 {
     use HasFactory, HasUuids, UsesDefaultConnection;
+
+    protected static function booted(): void
+    {
+        // Colonna qualificata: questo global scope si applica anche quando
+        // Company viene raggiunta da una relazione annidata (es. tenant
+        // scoping automatico di Filament su DpiaItem->company() attraverso
+        // Dpia), dove un `orderBy('name')` non qualificato diventa ambiguo
+        // se la tabella joinata ha anch'essa una colonna `name` (es. dpias).
+        static::addGlobalScope('alphabetical', fn (Builder $query) => $query->orderBy('companies.name'));
+    }
 
     protected $fillable = [
         'name',

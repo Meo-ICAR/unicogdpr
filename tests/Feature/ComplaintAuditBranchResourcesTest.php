@@ -5,6 +5,11 @@ namespace Tests\Feature;
 use App\Enums\AuditChecklistGapStatus;
 use App\Enums\AuditStatus;
 use App\Enums\ComplaintStatus;
+use App\Filament\Resources\ComplaintRegistries\Pages\CreateComplaintRegistry;
+use App\Filament\Resources\DataSubjectRequests\Pages\EditDataSubjectRequest;
+use App\Filament\Resources\DataSubjectRequests\RelationManagers\ComplaintEventsRelationManager;
+use App\Filament\Widgets\AuditsOverviewWidget;
+use App\Filament\Widgets\DsarOverviewWidget;
 use App\Models\Audit;
 use App\Models\AuditChecklistEvaluation;
 use App\Models\AuditChecklistItem;
@@ -12,13 +17,16 @@ use App\Models\Branch;
 use App\Models\Clienti;
 use App\Models\Company;
 use App\Models\ComplaintRegistry;
+use App\Models\DataSubjectRequest;
 use App\Models\ProcessingActivity;
 use App\Models\User;
 use App\Services\DocumentGeneratorService;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -281,6 +289,159 @@ class ComplaintAuditBranchResourcesTest extends TestCase
             ->get(route('filament.admin.resources.audit-checklist-evaluations.edit', ['tenant' => $company->id, 'record' => $evaluation->id]))
             ->assertOk()
             ->assertSee('Trattamenti Aziendali Coinvolti');
+    }
+
+    public function test_dpo_can_see_multicompany_audit_and_dsar_widgets_on_the_dashboard(): void
+    {
+        $company = Company::factory()->create(['name' => 'Azienda Widget Test']);
+        $unicooamCompanyId = $this->makeUnicooamCompanyId();
+
+        Audit::create([
+            'company_id' => $unicooamCompanyId,
+            'auditable_type' => 'company',
+            'auditable_id' => $company->id,
+            'protocol_number' => 'AUDIT-WIDGET-TEST-001',
+            'auditor_name' => 'Auditor Widget Test',
+            'status' => AuditStatus::InProgress->value,
+        ]);
+
+        DataSubjectRequest::create([
+            'company_id' => $company->id,
+            'requester_name' => 'Richiedente Widget Test',
+            'requester_email' => 'widget.test@example.com',
+            'request_type' => 'access',
+            'status' => 'received',
+            'received_at' => now(),
+            'deadline_at' => now()->addDays(30),
+        ]);
+
+        $dpo = User::factory()->create();
+        $this->actingAs($dpo);
+
+        // Le tabelle dei widget si caricano via un componente Livewire a sé
+        // stante (lazy-load nella dashboard): li testiamo direttamente
+        // invece di cercarne il contenuto nell'HTML iniziale della pagina.
+        Livewire::test(AuditsOverviewWidget::class)
+            ->assertSee('AUDIT-WIDGET-TEST-001');
+
+        Livewire::test(DsarOverviewWidget::class)
+            ->assertSee('Richiedente Widget Test');
+    }
+
+    public function test_dsar_overview_widget_filters_by_deadline_range(): void
+    {
+        $company = Company::factory()->create();
+
+        DataSubjectRequest::create([
+            'company_id' => $company->id,
+            'requester_name' => 'Richiedente Scadenza Agosto',
+            'requester_email' => 'agosto.test@example.com',
+            'request_type' => 'access',
+            'status' => 'received',
+            'received_at' => '2026-07-15',
+            'deadline_at' => '2026-08-15',
+        ]);
+
+        DataSubjectRequest::create([
+            'company_id' => $company->id,
+            'requester_name' => 'Richiedente Scadenza Ottobre',
+            'requester_email' => 'ottobre.test@example.com',
+            'request_type' => 'access',
+            'status' => 'received',
+            'received_at' => '2026-09-15',
+            'deadline_at' => '2026-10-15',
+        ]);
+
+        $dpo = User::factory()->create();
+        $this->actingAs($dpo);
+
+        Livewire::test(DsarOverviewWidget::class)
+            ->filterTable('deadline_at', ['deadline_from' => '2026-08-01', 'deadline_until' => '2026-08-31'])
+            ->assertSee('Richiedente Scadenza Agosto')
+            ->assertDontSee('Richiedente Scadenza Ottobre');
+    }
+
+    /**
+     * DataSubjectRequest è il "master" del fascicolo: complaint_registry
+     * (mysql_unicooam) referenzia data_subject_request_id (riferimento
+     * debole, connessione di default) — non è più un abbinamento per sola
+     * stringa protocol_number.
+     */
+    public function test_dsar_edit_page_shows_complaint_events_sharing_the_same_protocol_number(): void
+    {
+        $company = Company::factory()->create();
+
+        $dsar = DataSubjectRequest::create([
+            'company_id' => $company->id,
+            'protocol_number' => 'REC-TEST-005',
+            'requester_name' => 'Richiedente Collegato Test',
+            'requester_email' => 'collegato.test@example.com',
+            'request_type' => 'access',
+            'status' => 'received',
+            'received_at' => now(),
+            'deadline_at' => now()->addDays(30),
+        ]);
+
+        foreach ([1, 2] as $sequence) {
+            ComplaintRegistry::create([
+                'company_id' => $company->id,
+                'protocol_number' => 'REC-TEST-005',
+                'data_subject_request_id' => $dsar->id,
+                'event_sequence' => $sequence,
+                'event_phase' => "Evento di test {$sequence}",
+                'received_at' => now(),
+                'description' => "Descrizione evento {$sequence}.",
+                'phase_status' => 'In Lavorazione',
+                'status' => ComplaintStatus::Received->value,
+            ]);
+        }
+
+        $this->assertCount(2, $dsar->complaintRegistryEntries);
+
+        $dpo = User::factory()->create();
+        $this->actingAs($dpo);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setTenant($company);
+
+        Livewire::test(ComplaintEventsRelationManager::class, [
+            'ownerRecord' => $dsar,
+            'pageClass' => EditDataSubjectRequest::class,
+        ])
+            ->assertSee('Evento di test 1')
+            ->assertSee('Evento di test 2');
+    }
+
+    /**
+     * Il form Reclami precompila N° Progressivo e i dati anagrafici/filiera
+     * dall'ultimo evento quando si digita un protocollo già esistente,
+     * cosi da poter aggiungere un nuovo evento a un fascicolo senza doverli
+     * riscrivere da capo.
+     */
+    public function test_complaint_registry_create_form_prefills_next_event_from_existing_protocol(): void
+    {
+        $company = Company::factory()->create();
+
+        ComplaintRegistry::create([
+            'company_id' => $company->id,
+            'protocol_number' => 'REC-TEST-006',
+            'event_sequence' => 1,
+            'mandating_company' => 'Titolare Test S.p.A.',
+            'complainant_name' => 'Mario Rossi',
+            'received_at' => now(),
+            'description' => 'Primo evento.',
+            'status' => ComplaintStatus::Received->value,
+        ]);
+
+        $dpo = User::factory()->create();
+        $this->actingAs($dpo);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setTenant($company);
+
+        Livewire::test(CreateComplaintRegistry::class)
+            ->set('data.protocol_number', 'REC-TEST-006')
+            ->assertSet('data.event_sequence', 2)
+            ->assertSet('data.mandating_company', 'Titolare Test S.p.A.')
+            ->assertSet('data.complainant_name', 'Mario Rossi');
     }
 
     public function test_dpo_can_open_the_branch_edit_page_with_the_documents_relation_manager(): void

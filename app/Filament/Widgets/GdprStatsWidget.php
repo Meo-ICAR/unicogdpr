@@ -7,12 +7,18 @@ use App\Models\DataSubjectRequest;
 use App\Models\ExternalProcessor;
 use App\Models\IncomingEmail;
 use App\Models\MailAccount;
+use Filament\Schemas\Components\Component;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class GdprStatsWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
+
+    public function getSectionContentComponent(): Component
+    {
+        return parent::getSectionContentComponent()->collapsible();
+    }
 
     protected function getStats(): array
     {

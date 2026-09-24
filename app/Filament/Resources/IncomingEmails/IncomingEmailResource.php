@@ -2,19 +2,23 @@
 
 namespace App\Filament\Resources\IncomingEmails;
 
+use App\Enums\ComplaintStatus;
 use App\Enums\DsarStatus;
+use App\Enums\ReceptionChannel;
 use App\Filament\Resources\IncomingEmails\Pages\ListIncomingEmails;
 use App\Filament\Resources\IncomingEmails\Pages\ViewIncomingEmail;
 use App\Filament\Resources\IncomingEmails\Schemas\IncomingEmailInfolist;
 use App\Filament\Resources\IncomingEmails\Tables\IncomingEmailsTable;
 use App\Filament\Traits\HasPlanAccess;
 use App\Mail\InboxReplyMail;
+use App\Models\ComplaintRegistry;
 use App\Models\DataSubjectRequest;
 use App\Models\EmailTemplate;
 use App\Models\IncomingEmail;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -123,6 +127,55 @@ class IncomingEmailResource extends Resource
                     Notification::make()
                         ->title('Richiesta DSAR creata')
                         ->body("DSAR #{$dsar->id} collegata a questa email.")
+                        ->success()
+                        ->send();
+                }),
+
+            Action::make('createComplaint')
+                ->label('Crea Reclamo')
+                ->icon('heroicon-o-exclamation-triangle')
+                ->color('danger')
+                ->visible(fn (IncomingEmail $record) => $record->complaint_registry_id === null)
+                ->schema([
+                    TextInput::make('protocol_number')
+                        ->label('Numero Protocollo')
+                        ->default(fn () => ComplaintRegistry::generateNextProtocolNumber())
+                        ->required()
+                        ->maxLength(255)
+                        ->helperText('Riusa il protocollo di un fascicolo esistente per aggiungere questo come nuovo evento.'),
+                ])
+                ->action(function (IncomingEmail $record, array $data): void {
+                    $bodyText = $record->body_text ?: strip_tags((string) $record->body_html);
+                    $isNewProtocol = ! ComplaintRegistry::where('protocol_number', $data['protocol_number'])->exists();
+
+                    $matchedDsar = $record->data_subject_request_id
+                        ? $record->dataSubjectRequest
+                        : ($isNewProtocol
+                            ? DataSubjectRequest::findOpenForContact($record->from_email, null)
+                            : null);
+
+                    $complaint = ComplaintRegistry::create([
+                        'company_id' => $record->company_id,
+                        'protocol_number' => $data['protocol_number'],
+                        'data_subject_request_id' => $matchedDsar?->id,
+                        'event_sequence' => $isNewProtocol
+                            ? 1
+                            : ComplaintRegistry::where('protocol_number', $data['protocol_number'])->max('event_sequence') + 1,
+                        'event_at' => $record->received_at,
+                        'event_phase' => 'Email in arrivo',
+                        'received_at' => $record->received_at,
+                        'reception_channel' => $record->mailAccount?->type === 'pec' ? ReceptionChannel::Pec->value : ReceptionChannel::Email->value,
+                        'complainant_name' => $record->from_name,
+                        'complainant_email' => $record->from_email,
+                        'description' => $bodyText,
+                        'status' => ComplaintStatus::Received->value,
+                    ]);
+
+                    $record->update(['complaint_registry_id' => $complaint->id, 'is_read' => true]);
+
+                    Notification::make()
+                        ->title('Reclamo creato')
+                        ->body("Protocollo {$complaint->protocol_number} (evento #{$complaint->event_sequence}) collegato a questa email.")
                         ->success()
                         ->send();
                 }),

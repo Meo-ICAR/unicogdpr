@@ -49,9 +49,23 @@ class DataSubjectRequestForm
                             ->default('email'),
                     ]),
 
+                Section::make('Verifica Identità')
+                    ->icon('heroicon-o-shield-check')
+                    ->columns(2)
+                    ->schema([
+                        Toggle::make('identity_verified')
+                            ->label('Identità verificata')
+                            ->default(false)
+                            ->live(),
+                        TextInput::make('identity_verification_method')
+                            ->label('Metodo di verifica')
+                            ->placeholder('Es. Documento d\'identità, SPID...')
+                            ->maxLength(255),
+                    ]),
                 Section::make('Richiesta')
                     ->icon('heroicon-o-document-text')
-                    ->columns(2)
+                    ->columnSpanFull()
+                    ->columns(3)
                     ->schema([
                         Select::make('request_type')
                             ->label('Tipo di diritto esercitato')
@@ -88,6 +102,10 @@ class DataSubjectRequestForm
                             ->label('Proroga fino al (+60 gg)'),
                         DatePicker::make('completed_at')
                             ->label('Data completamento'),
+                        TextInput::make('protocol_number')
+                            ->label('N. Protocollo Fascicolo Collegato')
+                            ->maxLength(255)
+                            ->helperText('Es. il protocollo del reclamo collegato in Registro Reclami.'),
                         Textarea::make('request_description')
                             ->label('Descrizione richiesta')
                             ->rows(4)
@@ -103,19 +121,6 @@ class DataSubjectRequestForm
                             ->columnSpanFull(),
                     ]),
 
-                Section::make('Verifica Identità')
-                    ->icon('heroicon-o-shield-check')
-                    ->columns(2)
-                    ->schema([
-                        Toggle::make('identity_verified')
-                            ->label('Identità verificata')
-                            ->default(false)
-                            ->live(),
-                        TextInput::make('identity_verification_method')
-                            ->label('Metodo di verifica')
-                            ->placeholder('Es. Documento d\'identità, SPID...')
-                            ->maxLength(255),
-                    ]),
             ]);
     }
 }

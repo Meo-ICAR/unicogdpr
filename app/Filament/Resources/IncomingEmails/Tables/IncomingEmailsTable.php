@@ -49,6 +49,12 @@ class IncomingEmailsTable
                     ->trueIcon('heroicon-o-link')
                     ->falseIcon('heroicon-o-minus')
                     ->falseColor('gray'),
+                IconColumn::make('complaint_registry_id')
+                    ->label('Reclamo')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-exclamation-triangle')
+                    ->falseIcon('heroicon-o-minus')
+                    ->falseColor('gray'),
                 TextColumn::make('received_at')
                     ->label('Ricevuta')
                     ->dateTime('d/m/Y H:i')
@@ -69,6 +75,10 @@ class IncomingEmailsTable
                     ->label('Con DSAR collegata')
                     ->toggle()
                     ->query(fn (Builder $query) => $query->whereNotNull('data_subject_request_id')),
+                Filter::make('with_complaint')
+                    ->label('Con Reclamo collegato')
+                    ->toggle()
+                    ->query(fn (Builder $query) => $query->whereNotNull('complaint_registry_id')),
                 TrashedFilter::make(),
             ])
             ->recordActions([

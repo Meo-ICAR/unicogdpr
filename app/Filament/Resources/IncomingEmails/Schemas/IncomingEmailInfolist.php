@@ -34,7 +34,11 @@ class IncomingEmailInfolist
                     TextEntry::make('dataSubjectRequest.id')
                         ->label('DSAR collegata')
                         ->formatStateUsing(fn ($state) => $state ? "DSAR #{$state}" : null)
-                        ->placeholder('Nessuna')
+                        ->placeholder('Nessuna'),
+                    TextEntry::make('complaintRegistry.protocol_number')
+                        ->label('Reclamo collegato')
+                        ->formatStateUsing(fn ($state, IncomingEmail $record) => $state ? "{$state} (evento #{$record->complaintRegistry?->event_sequence})" : null)
+                        ->placeholder('Nessuno')
                         ->columnSpanFull(),
                 ]),
 

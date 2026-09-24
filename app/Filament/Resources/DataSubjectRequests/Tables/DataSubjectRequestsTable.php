@@ -26,6 +26,10 @@ class DataSubjectRequestsTable
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
+                TextColumn::make('protocol_number')
+                    ->label('Protocollo')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('requester_email')
                     ->label('Email')
                     ->searchable()

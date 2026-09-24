@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Enums\DsarStatus;
+use App\Models\Concerns\UsesDefaultConnection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -16,10 +18,13 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class DataSubjectRequest extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes;
+    // UsesDefaultConnection: la DSAR è il "master" del fascicolo — viene
+    // referenziata (belongsTo) da ComplaintRegistry, che vive sulla
+    // connessione condivisa mysql_unicooam.
+    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes, UsesDefaultConnection;
 
     protected $fillable = [
-        'company_id', 'registrable_type', 'registrable_id', 'requester_name',
+        'company_id', 'protocol_number', 'registrable_type', 'registrable_id', 'requester_name',
         'requester_email', 'requester_phone', 'request_type', 'status',
         'received_at', 'deadline_at', 'extended_until', 'completed_at',
         'request_description', 'response_notes', 'rejection_reason',
@@ -59,6 +64,49 @@ class DataSubjectRequest extends Model implements HasMedia
     public function registrable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /**
+     * Eventi del registro reclami (complaint_registry, connessione condivisa
+     * mysql_unicooam) di cui questa DSAR è il "master": riferimento debole
+     * per id (complaint_registry.data_subject_request_id), nessun vincolo FK
+     * reale dato che le due tabelle vivono su connessioni/database separati.
+     * Un reclamo può comunque esistere senza DSAR collegata (dispute non
+     * legate a diritti GDPR).
+     */
+    public function complaintRegistryEntries(): HasMany
+    {
+        return $this->hasMany(ComplaintRegistry::class)->orderBy('event_sequence');
+    }
+
+    /**
+     * Cerca una DSAR ancora aperta dello stesso reclamante, per email o
+     * telefono (se disponibili) — usata per abbinare automaticamente un
+     * reclamo appena creato da email a una richiesta diritti già in corso,
+     * invece di lasciarli scollegati o crearne una duplicata.
+     */
+    public static function findOpenForContact(?string $email = null, ?string $phone = null): ?self
+    {
+        $email = filled($email) ? trim($email) : null;
+        $phone = filled($phone) ? preg_replace('/\D+/', '', $phone) : null;
+
+        if (blank($email) && blank($phone)) {
+            return null;
+        }
+
+        return static::query()
+            ->whereIn('status', array_map(fn (DsarStatus $s) => $s->value, DsarStatus::open()))
+            ->where(function ($query) use ($email, $phone) {
+                if (filled($email)) {
+                    $query->orWhere('requester_email', $email);
+                }
+
+                if (filled($phone)) {
+                    $query->orWhereRaw("REPLACE(REPLACE(REPLACE(requester_phone, ' ', ''), '-', ''), '+', '') LIKE ?", ["%{$phone}"]);
+                }
+            })
+            ->latest('received_at')
+            ->first();
     }
 
     /**

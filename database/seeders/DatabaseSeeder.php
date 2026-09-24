@@ -128,5 +128,17 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ComplaintRegistrySeeder::class,
         ]);
+
+        // ════════════════════════════════════════════════════════════════
+        // 10. AUDIT ECOM E DSAR D'IPPOLITO — dipendono da ClientController
+        //     (sezione 5) e dal fascicolo REG-2026-005 (sezione 9)
+        // ════════════════════════════════════════════════════════════════
+        $this->call([
+            EcomAuditAndDsarSeeder::class,
+            ProfessioneCreditoComplaintSeeder::class,
+            Lead2ComGdlComplaintSeeder::class,
+            DigitalRevGdlComplaintSeeder::class,
+            ForteDigitalRevComplaintSeeder::class,
+        ]);
     }
 }

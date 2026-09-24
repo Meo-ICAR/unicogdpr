@@ -21,6 +21,8 @@ class DpiaItemResource extends Resource
 
     protected static ?string $tenantOwnershipRelationshipName = 'company';
 
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+
     protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Schema $schema): Schema

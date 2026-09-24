@@ -21,7 +21,7 @@ class IncomingEmail extends Model implements HasMedia
         'company_id', 'mail_account_id', 'message_id', 'in_reply_to', 'references',
         'thread_id', 'from_email', 'from_name', 'to', 'cc', 'subject',
         'body_text', 'body_html', 'received_at', 'is_read', 'classification',
-        'data_subject_request_id',
+        'data_subject_request_id', 'complaint_registry_id',
     ];
 
     protected $casts = [
@@ -35,7 +35,7 @@ class IncomingEmail extends Model implements HasMedia
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['is_read', 'classification', 'data_subject_request_id', 'deleted_at'])
+            ->logOnly(['is_read', 'classification', 'data_subject_request_id', 'complaint_registry_id', 'deleted_at'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges()
             ->setDescriptionForEvent(fn (string $event) => "Email in arrivo {$event}: {$this->subject}")
@@ -60,6 +60,16 @@ class IncomingEmail extends Model implements HasMedia
     public function dataSubjectRequest(): BelongsTo
     {
         return $this->belongsTo(DataSubjectRequest::class);
+    }
+
+    /**
+     * Riferimento debole (nessun vincolo FK reale): ComplaintRegistry vive
+     * sulla connessione condivisa mysql_unicooam, questo modello sulla
+     * connessione di default.
+     */
+    public function complaintRegistry(): BelongsTo
+    {
+        return $this->belongsTo(ComplaintRegistry::class);
     }
 
     /**

@@ -16,6 +16,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Creazione automatica Reclamo da email
+    |--------------------------------------------------------------------------
+    |
+    | Se true, il fetch IMAP apre automaticamente una riga in
+    | complaint_registry quando il classificatore riconosce un'email come
+    | reclamo. Se l'email fa parte di una conversazione già collegata a un
+    | reclamo, viene aggiunta come nuovo evento sullo stesso protocollo
+    | invece di aprirne uno nuovo. Se possibile, il reclamo viene abbinato
+    | automaticamente a una DSAR aperta dello stesso reclamante.
+    |
+    */
+    'auto_create_complaint' => (bool) env('GDPR_AUTO_CREATE_COMPLAINT', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Retention della posta in arrivo
     |--------------------------------------------------------------------------
     |

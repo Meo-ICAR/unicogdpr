@@ -90,6 +90,8 @@ class FakeImapMessage
         public string $textBody = 'Corpo del messaggio.',
         public string $messageId = 'msg-1@example.com',
         public array $attachments = [],
+        public string $inReplyTo = '',
+        public string $references = '',
     ) {}
 
     public function getFrom(): array
@@ -129,12 +131,12 @@ class FakeImapMessage
 
     public function getInReplyTo(): FakeImapAttribute
     {
-        return new FakeImapAttribute([]);
+        return new FakeImapAttribute($this->inReplyTo === '' ? [] : [$this->inReplyTo]);
     }
 
     public function getReferences(): FakeImapAttribute
     {
-        return new FakeImapAttribute([]);
+        return new FakeImapAttribute($this->references === '' ? [] : [$this->references]);
     }
 
     public function getDate(): string
