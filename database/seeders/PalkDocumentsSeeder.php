@@ -88,6 +88,12 @@ class PalkDocumentsSeeder extends Seeder
         $this->seedDocument($company, 'company', $company->id, 'palk/trattamenti/SOP_DB_03_Gestione_Database_v2 (1).pdf', 'Procedura di Sicurezza', 'SOP DB-03 — Gestione Database v2');
         $this->seedDocument($company, 'company', $company->id, 'palk/trattamenti/SOP_DIR_04_Gestione_Diritti_Opposizioni_v3.pdf', 'Procedura di Sicurezza', 'SOP DIR-04 — Gestione Diritti e Opposizioni v3');
         $this->seedDocument($company, 'company', $company->id, 'palk/trattamenti/SOP_TEL_01_Procedure_Teleselling_v2.pdf', 'Procedura di Sicurezza', 'SOP TEL-01 — Procedure Teleselling v2');
+        $this->seedDocument($company, 'company', $company->id, 'palk/trattamenti/TIT-HR-01.docx', 'Registro dei Trattamenti', 'TIT-HR-01 — Scheda Trattamento HR');
+        $this->seedDocument($company, 'company', $company->id, 'palk/trattamenti/TIT-MKT-03 - Blacklist.docx', 'Registro dei Trattamenti', 'TIT-MKT-03 — Scheda Trattamento Marketing / Blacklist DNC');
+        $this->seedDocument($company, 'company', $company->id, 'palk-srl/trattamenti/TIT-SEC-02 - Sicurezza informatica.docx', 'Procedura di Sicurezza', 'TIT-SEC-02 — Sicurezza Informatica');
+        $this->seedDocument($company, 'company', $company->id, 'palk-srl/trattamenti/SOP-DIR-01 - Diritti interessato.docx', 'Procedura di Sicurezza', 'SOP-DIR-01 — Gestione Diritti Interessato');
+        $this->seedDocument($company, 'company', $company->id, 'palk/training/FormazionePrivacy_Assunzione.pdf', 'Materiale Corso', 'Kit Formativo Privacy — Assunzione');
+        $this->seedDocument($company, 'company', $company->id, 'palk/fornitores/IT/Innovatech_VA_PT_2026.pdf', 'Relazione audit semestrale', 'Innovatech VA/PT 2026 — Vulnerability Assessment / PenTest');
 
         // Responsabile esterno "People Group"
         $this->seedDocument($company, 'external_processor', $peopleGroup->id, 'palk/Nomina amministratore di sistema esterno People Group per Palk.docx', 'Nomina Amministratore di Sistema', 'Nomina Amministratore di Sistema — People Group');
@@ -96,6 +102,9 @@ class PalkDocumentsSeeder extends Seeder
         // Cliente per cui PALK agisce da responsabile del trattamento: "ECOM"
         $this->seedDocument($company, 'client_controller', $ecom->id, 'palk/client/ecom/AUTORIZZAZIONE SUB-RESPONSABILE_PALK SRL_IRON CONTACT SRLS.pdf', 'Autorizzazione Sub-responsabile', 'Autorizzazione Sub-responsabile — Iron Contact Srls');
         $this->seedDocument($company, 'client_controller', $ecom->id, 'palk/client/ecom/PALK S.R.L._Addendum Contratto_dl bollette_QC (1).pdf', 'Addendum Contratto Cliente', 'Addendum Contratto — DL Bollette QC');
+        $this->seedDocument($company, 'client_controller', $ecom->id, 'palk-srl/trattamenti/TRAT-EC-02 - Lead generation.docx', 'Registro dei Trattamenti', 'TRAT-EC-02 — Scheda Trattamento Lead Generation');
+        $this->seedDocument($company, 'client_controller', $ecom->id, 'palk-srl/trattamenti/TRAT-EC-02-V3 - ECOM.docx', 'Registro dei Trattamenti', 'TRAT-EC-02-V3 — Scheda Trattamento ECOM');
+        $this->seedDocument($company, 'client_controller', $ecom->id, 'palk/client/ecom/TRAT-EC-02-V4 - ECOM.docx', 'Registro dei Trattamenti', 'TRAT-EC-02-V4 — Scheda Trattamento ECOM');
     }
 
     private function seedDocument(

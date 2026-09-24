@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\CompanyAdmin\Pages\CompanyOverview;
+use App\Filament\Resources\AuditChecklistEvaluations\AuditChecklistEvaluationResource;
 use App\Models\Company;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -23,6 +24,12 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
  * clienti: nessuna risorsa DPO viene esposta qui (nessun discoverResources
  * né discoverPages sulla cartella condivisa app/Filament), solo la pagina
  * riepilogativa CompanyOverview per il tenant a cui l'utente è collegato.
+ *
+ * Unica eccezione: AuditChecklistEvaluationResource, registrata
+ * esplicitamente qui in sola visualizzazione (creazione/eliminazione
+ * disabilitate, form disabilitato) per consentire all'azienda di vedere lo
+ * stato della checklist di audit e caricare i documenti di evidenza tramite
+ * la DocumentsRelationManager — vedi AuditChecklistEvaluationResource::isCompanyAdminPanel().
  */
 class CompanyAdminPanelProvider extends PanelProvider
 {
@@ -42,6 +49,9 @@ class CompanyAdminPanelProvider extends PanelProvider
             ])
             ->pages([
                 CompanyOverview::class,
+            ])
+            ->resources([
+                AuditChecklistEvaluationResource::class,
             ])
             ->middleware([
                 EncryptCookies::class,

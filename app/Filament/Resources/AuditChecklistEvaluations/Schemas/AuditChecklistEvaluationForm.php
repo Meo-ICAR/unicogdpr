@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\AuditChecklistEvaluations\Schemas;
 
 use App\Enums\AuditChecklistGapStatus;
+use App\Filament\Resources\AuditChecklistEvaluations\AuditChecklistEvaluationResource;
 use App\Models\AuditChecklistItem;
 use App\Models\ExternalProcessor;
 use Filament\Forms\Components\DatePicker;
@@ -18,6 +19,7 @@ class AuditChecklistEvaluationForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->disabled(AuditChecklistEvaluationResource::isCompanyAdminPanel())
             ->components([
                 Section::make('Voce di Checklist')
                     ->icon('heroicon-o-clipboard-document-check')

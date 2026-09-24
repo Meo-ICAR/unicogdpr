@@ -11,9 +11,12 @@ use App\Filament\Resources\AuditChecklistEvaluations\Tables\AuditChecklistEvalua
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
 use App\Models\AuditChecklistEvaluation;
 use BackedEnum;
+use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class AuditChecklistEvaluationResource extends Resource
 {
@@ -23,6 +26,9 @@ class AuditChecklistEvaluationResource extends Resource
      * audit_checklist_evaluations.audit_id fa riferimento ad audits.company_id
      * (unicooam.companies), non alle Company di questa app: stesso motivo
      * per cui AuditResource disattiva lo scoping automatico per tenant.
+     * Nel pannello company-admin (/portale) lo scoping viene comunque
+     * applicato manualmente in getEloquentQuery(), perché gli id delle due
+     * tabelle "companies" per PALK coincidono nei dati attuali.
      */
     protected static bool $isScopedToTenant = false;
 
@@ -36,15 +42,44 @@ class AuditChecklistEvaluationResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Valutazioni Checklist';
 
+    protected static ?int $navigationSort = 1;
+
     /**
-     * Niente voce di menu propria: si raggiunge dalla scheda Audit tramite
-     * AuditChecklistEvaluationsRelationManager ("Apri scheda"). La
-     * risorsa/pagina resta comunque raggiungibile — ospita i documenti di
-     * evidenza e i trattamenti aziendali collegati.
+     * Nel portale company-admin (PALK/ECOM) l'utente vede solo le proprie
+     * valutazioni, non può crearne/eliminarne di nuove: la selezione delle
+     * voci di checklist da valutare resta una decisione del DPO nel
+     * pannello /admin. Il portale consente comunque di aprire ogni voce e
+     * caricare documenti di evidenza tramite la DocumentsRelationManager.
      */
-    public static function shouldRegisterNavigation(): bool
+    public static function isCompanyAdminPanel(): bool
     {
-        return false;
+        return Filament::getCurrentPanel()?->getId() === 'company-admin';
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        if (static::isCompanyAdminPanel() && ($tenant = Filament::getTenant())) {
+            $query->whereHas('audit', fn (Builder $q) => $q->where('company_id', $tenant->id));
+        }
+
+        return $query;
+    }
+
+    public static function canCreate(): bool
+    {
+        return ! static::isCompanyAdminPanel();
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return ! static::isCompanyAdminPanel();
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return ! static::isCompanyAdminPanel();
     }
 
     public static function form(Schema $schema): Schema
@@ -59,10 +94,9 @@ class AuditChecklistEvaluationResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            DocumentsRelationManager::class,
-            ProcessingActivitiesRelationManager::class,
-        ];
+        return static::isCompanyAdminPanel()
+            ? [DocumentsRelationManager::class]
+            : [DocumentsRelationManager::class, ProcessingActivitiesRelationManager::class];
     }
 
     public static function getPages(): array

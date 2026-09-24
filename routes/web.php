@@ -3,11 +3,13 @@
 use App\Http\Controllers\BpmBridgeController;
 use App\Http\Controllers\CompanyPortal\DocumentDownloadController;
 use App\Http\Controllers\CompanyPortal\DpiaReportController;
+use App\Http\Controllers\GoogleDriveController;
 use App\Http\Controllers\VendorAuditQuestionnaireController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/admin');
 
+Route::get('/drive/files', [GoogleDriveController::class, 'listFiles']);
 // La rotta riceve l'ID del soggetto (es: l'agente) e il token di sicurezza nei parametri.
 // Throttling per limitare il brute force sul token.
 Route::get('/bpm-landing/{subjectId}', [BpmBridgeController::class, 'handle'])

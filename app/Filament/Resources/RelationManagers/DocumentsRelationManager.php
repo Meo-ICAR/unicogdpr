@@ -102,24 +102,11 @@ class DocumentsRelationManager extends RelationManager
                     TextInput::make('docnumber')
                         ->label('Protocollo documento')
                         ->placeholder('es. CI-2024-001'),
-                    /*
-                    Select::make('doctype')
-                        ->label('Tipo documento')
-                        ->options([
-                            'modulo' => 'Modulo',
-                            'procedura' => 'Procedura',
-                            'template' => 'Template',
-                        ]),
-
                     Textarea::make('description')
-                        ->label('Descrizione supplementare')
+                        ->label('Paragrafi/sezioni di riferimento')
+                        ->helperText('Indica i paragrafi o le sezioni del documento rilevanti per la voce di checklist.')
                         ->rows(2)
                         ->columnSpanFull(),
-                    Textarea::make('internal_notes')
-                        ->label('Note interne')
-                        ->rows(2)
-                        ->columnSpanFull(),
-                        */
                 ]),
             Section::make('File Allegato')
                 ->columnSpanFull()
@@ -153,6 +140,12 @@ class DocumentsRelationManager extends RelationManager
                     ->searchable()
                     ->sortable()
                     ->default('Senza documento'),
+                TextColumn::make('description')
+                    ->label('Paragrafi di riferimento')
+                    ->limit(60)
+                    ->tooltip(fn (?string $state) => $state)
+                    ->wrap()
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
