@@ -34,6 +34,12 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
 
             ->navigationGroups([
+                // In cima alla sidebar: le anagrafiche/entità operative più
+                // consultate quotidianamente (reclami, clienti, azienda,
+                // personale, fornitori), nell'ordine richiesto.
+                NavigationGroup::make('Panoramica')
+                    ->collapsible(false),
+
                 NavigationGroup::make('Commesse & Clienti')
                   //  ->icon('heroicon-o-building-office-2')
                     ->collapsible(false),
@@ -52,6 +58,9 @@ class AdminPanelProvider extends PanelProvider
 
                 NavigationGroup::make('Governance & Accountability')
                   //  ->icon('heroicon-o-shield-check')
+                    ->collapsible(true),
+
+                NavigationGroup::make('Anagrafiche')
                     ->collapsible(true),
 
                 NavigationGroup::make('Configurazione & Tabellari')

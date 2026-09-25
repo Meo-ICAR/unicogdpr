@@ -23,7 +23,7 @@ class EmployeeResource extends Resource
 
     protected static ?string $model = Employee::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Personale & Formazione';
+    protected static \UnitEnum|string|null $navigationGroup = 'Panoramica';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
 
@@ -33,7 +33,7 @@ class EmployeeResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Dipendenti / Operatori';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

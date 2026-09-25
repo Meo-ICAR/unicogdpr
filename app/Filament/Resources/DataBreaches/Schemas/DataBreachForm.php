@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\DataBreaches\Schemas;
 
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -16,6 +18,23 @@ class DataBreachForm
     {
         return $schema
             ->components([
+                Section::make('Dati del Segnalante')
+                    ->description('Da compilare a cura di chi scopre l\'evento o del referente aziendale.')
+                    ->icon('heroicon-o-user')
+                    ->columns(3)
+                    ->schema([
+                        TextInput::make('reporter_name')
+                            ->label('Nome e Cognome')
+                            ->maxLength(255),
+                        TextInput::make('reporter_role')
+                            ->label('Ruolo/Azienda')
+                            ->placeholder('es. Dipendente Palk / Operatore esterno')
+                            ->maxLength(255),
+                        TextInput::make('reporter_contact')
+                            ->label('Recapito Telefonico / E-mail')
+                            ->maxLength(255),
+                    ]),
+
                 Section::make('Informazioni Incidente')
                     ->icon('heroicon-o-exclamation-triangle')
                     ->columns(2)
@@ -50,6 +69,11 @@ class DataBreachForm
                             ->required(),
                         DateTimePicker::make('occurred_at')
                             ->label('Data/ora stimata dell\'evento'),
+                        TextInput::make('affected_system')
+                            ->label('Luogo o Sistema coinvolto')
+                            ->placeholder('es. Sidial, Mail, Smartphone')
+                            ->maxLength(255)
+                            ->columnSpanFull(),
                         Textarea::make('description')
                             ->label('Descrizione dell\'incidente')
                             ->rows(4)
@@ -73,9 +97,27 @@ class DataBreachForm
                             ->label('N° record coinvolti (stimato)')
                             ->numeric()
                             ->minValue(0),
-                        Textarea::make('affected_data_categories')
+                        Radio::make('involved_mandate')
+                            ->label('Mandataria coinvolta')
+                            ->options([
+                                'ECOM' => 'ECOM',
+                                'Palk' => 'Palk (Dati propri)',
+                                'Altro' => 'Altro',
+                            ])
+                            ->inline(),
+                        CheckboxList::make('affected_data_categories')
                             ->label('Categorie di dati interessati')
-                            ->rows(2)
+                            ->options([
+                                'Anagrafici' => 'Anagrafici',
+                                'Contatti' => 'Contatti',
+                                'Documenti' => 'Documenti',
+                                'IBAN' => 'IBAN',
+                            ])
+                            ->afterStateHydrated(function (CheckboxList $component, $state): void {
+                                $component->state(is_string($state) ? array_filter(array_map('trim', explode(',', $state))) : ($state ?? []));
+                            })
+                            ->dehydrateStateUsing(fn ($state) => is_array($state) ? implode(', ', $state) : $state)
+                            ->columns(4)
                             ->columnSpanFull(),
                         Textarea::make('affected_individuals')
                             ->label('Categorie di interessati coinvolti')

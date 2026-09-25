@@ -18,7 +18,7 @@ class ComplaintRegistryResource extends Resource
 {
     protected static ?string $model = ComplaintRegistry::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Governance & Accountability';
+    protected static \UnitEnum|string|null $navigationGroup = 'Panoramica';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-exclamation-triangle';
 
@@ -28,7 +28,7 @@ class ComplaintRegistryResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Reclami';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 1;
 
     /**
      * Niente voce di menu propria: i reclami si raggiungono dalla scheda

@@ -147,4 +147,17 @@ class Employee extends Model implements Anonymizable
             ->withPivot(['status', 'nda_signed', 'approved_at', 'notes'])
             ->withTimestamps();
     }
+
+    /**
+     * Inversa di ExternalProcessor::authorizedEmployees(): necessaria perché
+     * Filament\Actions\AttachAction deduce automaticamente questa relazione
+     * per il controllo anti-duplicati quando si autorizza un dipendente da
+     * ExternalProcessors/RelationManagers/AuthorizedEmployeesRelationManager.
+     */
+    public function externalProcessors(): BelongsToMany
+    {
+        return $this->belongsToMany(ExternalProcessor::class, 'external_processor_employee')
+            ->withPivot(['status', 'nda_signed', 'approved_at', 'notes'])
+            ->withTimestamps();
+    }
 }

@@ -42,7 +42,7 @@ class AuditChecklistEvaluationResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Valutazioni Checklist';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 5;
 
     /**
      * Nel portale company-admin (PALK/ECOM) l'utente vede solo le proprie

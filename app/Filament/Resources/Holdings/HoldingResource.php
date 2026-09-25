@@ -36,7 +36,7 @@ class HoldingResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Holding / Gruppi';
 
-    protected static ?int $navigationSort = 11;
+    protected static ?int $navigationSort = 14;
 
     public static function form(Schema $schema): Schema
     {

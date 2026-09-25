@@ -32,7 +32,7 @@ class DataBreachResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Registro Data Breach';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     public static function getNavigationBadge(): ?string
     {

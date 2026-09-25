@@ -28,7 +28,7 @@ class CompanyResource extends Resource
 
     protected static bool $isScopedToTenant = false;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static \UnitEnum|string|null $navigationGroup = 'Panoramica';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-library';
 
@@ -38,7 +38,7 @@ class CompanyResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Aziende / Tenant';
 
-    protected static ?int $navigationSort = 12;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

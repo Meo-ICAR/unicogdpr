@@ -42,7 +42,11 @@ class DocumentGeneratorService
      */
     public function generateNominaIncaricato(Employee $employee, array $options = []): DomPdfWrapper
     {
-        $company = $this->getCompany($employee->company);
+        // 'company' opzionale: consente di intestare la nomina a un'azienda
+        // diversa dal datore di lavoro dell'operatore (es. il Titolare presso
+        // cui presta la propria attività come collaboratore esterno, quando
+        // il dipendente appartiene a un sub-fornitore come People Group).
+        $company = $this->getCompany($options['company'] ?? $employee->company);
         $date = isset($options['date']) ? Carbon::parse($options['date']) : now();
         $customInstructions = $options['custom_instructions'] ?? null;
 
@@ -117,6 +121,27 @@ class DocumentGeneratorService
         ];
 
         return Pdf::loadView('documents.notifica-data-breach', $data)
+            ->setPaper('a4', 'portrait')
+            ->setOption(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+    }
+
+    /**
+     * Genera il Modulo di Segnalazione Incident/Data Breach (intake compilato dal
+     * segnalante/responsabile IT), distinto dal Dossier di Notifica Art. 33/34
+     * generato da generateNotificaDataBreach() per la comunicazione al Garante.
+     */
+    public function generateSegnalazioneDataBreach(DataBreach $breach, array $options = []): DomPdfWrapper
+    {
+        $company = $this->getCompany($breach->company ?? null);
+        $date = isset($options['date']) ? Carbon::parse($options['date']) : now();
+
+        $data = [
+            'company' => $company,
+            'breach' => $breach,
+            'date' => $date,
+        ];
+
+        return Pdf::loadView('documents.segnalazione-data-breach', $data)
             ->setPaper('a4', 'portrait')
             ->setOption(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
     }

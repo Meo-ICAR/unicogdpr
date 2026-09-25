@@ -22,7 +22,7 @@ class ClientControllerResource extends Resource
 
     protected static ?string $model = ClientController::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Commesse & Clienti';
+    protected static \UnitEnum|string|null $navigationGroup = 'Panoramica';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-office';
 
@@ -32,7 +32,7 @@ class ClientControllerResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Clienti / Committenti';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function getNavigationBadge(): ?string
     {

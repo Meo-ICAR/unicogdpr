@@ -3,6 +3,9 @@
 namespace App\Filament\Resources\ClientControllers\RelationManagers;
 
 use App\Filament\Traits\HasRelationPlanAccess;
+use Filament\Actions\AttachAction;
+use Filament\Actions\DetachAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -10,7 +13,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
-use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -63,7 +66,7 @@ class AuthorizedEmployeesRelationManager extends RelationManager
                         'danger' => 'revoked',
                     ]),
 
-                Tables\Columns\IconColumn::make('nda_signed')
+                IconColumn::make('nda_signed')
                     ->label('NDA')
                     ->boolean(),
 
@@ -72,10 +75,10 @@ class AuthorizedEmployeesRelationManager extends RelationManager
                     ->date(),
             ])
             ->headerActions([
-                Tables\Actions\AttachAction::make()
+                AttachAction::make()
                     ->label('Assegna Dipendenti')
                     ->preloadRecordSelect() // Utile se non hai migliaia di dipendenti
-                    ->form(fn (Tables\Actions\AttachAction $action): array => [
+                    ->form(fn (AttachAction $action): array => [
                         $action->getRecordSelect(),
                         Select::make('status')
                             ->label('Stato Autorizzazione')
@@ -94,9 +97,9 @@ class AuthorizedEmployeesRelationManager extends RelationManager
                             ->default(now()),
                     ]),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DetachAction::make()->label('Rimuovi dalla commessa'),
+            ->recordActions([
+                EditAction::make(),
+                DetachAction::make()->label('Rimuovi dalla commessa'),
             ]);
     }
 }

@@ -6,6 +6,7 @@ use App\Filament\Resources\ExternalProcessors\Pages\CreateExternalProcessor;
 use App\Filament\Resources\ExternalProcessors\Pages\EditExternalProcessor;
 use App\Filament\Resources\ExternalProcessors\Pages\ListExternalProcessors;
 use App\Filament\Resources\ExternalProcessors\RelationManagers\AuditsRelationManager;
+use App\Filament\Resources\ExternalProcessors\RelationManagers\AuthorizedEmployeesRelationManager;
 use App\Filament\Resources\ExternalProcessors\RelationManagers\TransferImpactAssessmentsRelationManager;
 use App\Filament\Resources\ExternalProcessors\Schemas\ExternalProcessorForm;
 use App\Filament\Resources\ExternalProcessors\Tables\ExternalProcessorsTable;
@@ -25,7 +26,7 @@ class ExternalProcessorResource extends Resource
 
     protected static ?string $model = ExternalProcessor::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Filiera & Fornitori';
+    protected static \UnitEnum|string|null $navigationGroup = 'Panoramica';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cpu-chip';
 
@@ -35,7 +36,7 @@ class ExternalProcessorResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Fornitori (Sub-Responsabili)';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema
     {
@@ -52,6 +53,7 @@ class ExternalProcessorResource extends Resource
         return [
             'audits' => AuditsRelationManager::class,
             'transferImpactAssessments' => TransferImpactAssessmentsRelationManager::class,
+            'authorizedEmployees' => AuthorizedEmployeesRelationManager::class,
             DocumentsRelationManager::class,
         ];
     }

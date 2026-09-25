@@ -18,7 +18,8 @@ class DataBreach extends Model implements HasMedia
     use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $fillable = [
-        'company_id', 'name', 'discovered_at', 'occurred_at', 'description',
+        'company_id', 'name', 'reporter_name', 'reporter_role', 'reporter_contact',
+        'discovered_at', 'occurred_at', 'affected_system', 'involved_mandate', 'description',
         'nature_of_breach', 'approximate_records_count', 'severity', 'status',
         'affected_data_categories', 'affected_individuals', 'root_cause',
         'corrective_actions', 'preventive_measures', 'is_notifiable_to_authority',

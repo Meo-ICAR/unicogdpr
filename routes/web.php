@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DocumentSignedDownloadController;
 use App\Http\Controllers\BpmBridgeController;
 use App\Http\Controllers\CompanyPortal\DocumentDownloadController;
 use App\Http\Controllers\CompanyPortal\DpiaReportController;
@@ -53,3 +54,11 @@ Route::get('/portale-dpia/{dpia}/report', DpiaReportController::class)
 Route::get('/portale-documenti/{document}/download', DocumentDownloadController::class)
     ->middleware('auth')
     ->name('company-portal.document.download');
+
+// Download multiplo (non-ZIP) di documenti dal pannello DPO: ogni file viene
+// aperto dal browser con una propria URL firmata a breve scadenza, generata
+// solo dopo l'esecuzione di una bulk action autorizzata (vedi
+// HasNominaIncaricatoBulkActions::downloadNominaBulkAction()).
+Route::get('/admin-documenti/{document}/scarica', DocumentSignedDownloadController::class)
+    ->middleware('signed')
+    ->name('admin.document.signed-download');

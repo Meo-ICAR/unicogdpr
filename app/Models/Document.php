@@ -97,6 +97,13 @@ class Document extends Model implements HasMedia
     }
 
     /**
+     * Guardia anti-ricorsione per la propagazione di document_url: gli
+     * update generati dalla propagazione stessa non devono a loro volta
+     * innescare un'altra propagazione.
+     */
+    protected static bool $isPropagatingDocumentUrl = false;
+
+    /**
      * I "Booted" del Modello.
      * Intercetta le azioni del ciclo di vita di Eloquent.
      */
@@ -105,6 +112,42 @@ class Document extends Model implements HasMedia
         static::updating(function (Document $document) {
             if (empty($document->expires_at) && ! empty($document->emitted_at)) {
                 $document->expires_at = $document->documentType?->durationCalculate($document->emitted_at);
+            }
+        });
+
+        /**
+         * Propagazione di document_url: più righe Document possono puntare
+         * allo stesso file sorgente (es. copie collegate a più schede, come
+         * per le 3 valutazioni TIA-PALK-INV-2026-01). Quando si aggiorna
+         * document_url su una di esse, tutte le altre che condividevano lo
+         * STESSO valore precedente (non vuoto) vengono allineate allo stesso
+         * nuovo valore, così non serve aggiornarle una per una a mano.
+         */
+        static::updated(function (Document $document) {
+            if (static::$isPropagatingDocumentUrl) {
+                return;
+            }
+
+            if (! $document->wasChanged('document_url')) {
+                return;
+            }
+
+            $previousUrl = $document->getOriginal('document_url');
+
+            if (blank($previousUrl)) {
+                return;
+            }
+
+            static::$isPropagatingDocumentUrl = true;
+
+            try {
+                static::withoutGlobalScopes()
+                    ->where('document_url', $previousUrl)
+                    ->where('id', '!=', $document->id)
+                    ->get()
+                    ->each(fn (Document $sibling) => $sibling->update(['document_url' => $document->document_url]));
+            } finally {
+                static::$isPropagatingDocumentUrl = false;
             }
         });
     }

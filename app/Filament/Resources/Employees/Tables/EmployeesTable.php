@@ -2,6 +2,10 @@
 
 namespace App\Filament\Resources\Employees\Tables;
 
+use App\Filament\Concerns\HasNominaIncaricatoBulkActions;
+use App\Models\Employee;
+use App\Services\DocumentGeneratorService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -10,9 +14,12 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class EmployeesTable
 {
+    use HasNominaIncaricatoBulkActions;
+
     public static function configure(Table $table): Table
     {
         return $table
@@ -48,28 +55,30 @@ class EmployeesTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                \Filament\Actions\Action::make('generate_nomina')
+                Action::make('generate_nomina')
                     ->label('Nomina Art. 29 (PDF)')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('primary')
-                    ->action(function (\App\Models\Employee $record, \App\Services\DocumentGeneratorService $service) {
+                    ->action(function (Employee $record, DocumentGeneratorService $service) {
                         $pdf = $service->generateNominaIncaricato($record);
-                        $fileName = 'Nomina_Art29_' . \Illuminate\Support\Str::slug($record->full_name) . '.pdf';
+                        $fileName = 'Nomina_Art29_'.Str::slug($record->full_name).'.pdf';
+
                         return response()->streamDownload(
-                            fn () => print($pdf->output()),
+                            fn () => print ($pdf->output()),
                             $fileName,
                             ['Content-Type' => 'application/pdf']
                         );
                     }),
-                \Filament\Actions\Action::make('generate_nda')
+                Action::make('generate_nda')
                     ->label('Accordo NDA (PDF)')
                     ->icon('heroicon-o-shield-check')
                     ->color('gray')
-                    ->action(function (\App\Models\Employee $record, \App\Services\DocumentGeneratorService $service) {
+                    ->action(function (Employee $record, DocumentGeneratorService $service) {
                         $pdf = $service->generateAccordoRiservatezza($record);
-                        $fileName = 'Accordo_NDA_' . \Illuminate\Support\Str::slug($record->full_name) . '.pdf';
+                        $fileName = 'Accordo_NDA_'.Str::slug($record->full_name).'.pdf';
+
                         return response()->streamDownload(
-                            fn () => print($pdf->output()),
+                            fn () => print ($pdf->output()),
                             $fileName,
                             ['Content-Type' => 'application/pdf']
                         );
@@ -78,6 +87,9 @@ class EmployeesTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    static::generateNominaBulkAction(),
+                    static::downloadNominaBulkAction(),
+                    static::uploadSignedNominaBulkAction(),
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),

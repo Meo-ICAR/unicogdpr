@@ -165,6 +165,20 @@ class DataBreachesTable
                             ['Content-Type' => 'application/pdf']
                         );
                     }),
+                Action::make('generate_segnalazione')
+                    ->label('Modulo Segnalazione (PDF)')
+                    ->icon('heroicon-o-printer')
+                    ->color('gray')
+                    ->action(function (DataBreach $record, DocumentGeneratorService $service) {
+                        $pdf = $service->generateSegnalazioneDataBreach($record);
+                        $fileName = 'Modulo_Segnalazione_DataBreach_'.Str::slug($record->name).'.pdf';
+
+                        return response()->streamDownload(
+                            fn () => print ($pdf->output()),
+                            $fileName,
+                            ['Content-Type' => 'application/pdf']
+                        );
+                    }),
                 EditAction::make(),
             ])
             ->toolbarActions([

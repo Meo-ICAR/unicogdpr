@@ -12,7 +12,6 @@ use Filament\Forms\Components\TextArea;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -70,7 +69,7 @@ class ExternalProcessorsRelationManager extends RelationManager
             ->headerActions([
                 // L'azione Attach permette di collegare un fornitore esistente al cliente
                 AttachAction::make()
-                    ->form(fn (Tables\Actions\AttachAction $action): array => [
+                    ->form(fn (AttachAction $action): array => [
                         $action->getRecordSelect(),
                         Select::make('status')
                             ->label('Stato Autorizzazione')
@@ -86,7 +85,7 @@ class ExternalProcessorsRelationManager extends RelationManager
                             ->default(now()),
                     ]),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(), // Per modificare i campi pivot (es. da Pending a Approved)
                 DetachAction::make(), // Rimuove l'associazione, non elimina il fornitore dal DB
             ]);

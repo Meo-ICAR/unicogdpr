@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\CompanyAdmin\Pages\CompanyOverview;
 use App\Filament\Resources\AuditChecklistEvaluations\AuditChecklistEvaluationResource;
+use App\Filament\Resources\DataBreaches\DataBreachResource;
 use App\Models\Company;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -25,11 +26,15 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
  * né discoverPages sulla cartella condivisa app/Filament), solo la pagina
  * riepilogativa CompanyOverview per il tenant a cui l'utente è collegato.
  *
- * Unica eccezione: AuditChecklistEvaluationResource, registrata
- * esplicitamente qui in sola visualizzazione (creazione/eliminazione
- * disabilitate, form disabilitato) per consentire all'azienda di vedere lo
- * stato della checklist di audit e caricare i documenti di evidenza tramite
- * la DocumentsRelationManager — vedi AuditChecklistEvaluationResource::isCompanyAdminPanel().
+ * Eccezioni registrate esplicitamente qui:
+ * - AuditChecklistEvaluationResource, in sola visualizzazione (creazione/
+ *   eliminazione disabilitate, form disabilitato) per consentire
+ *   all'azienda di vedere lo stato della checklist di audit e caricare i
+ *   documenti di evidenza tramite la DocumentsRelationManager — vedi
+ *   AuditChecklistEvaluationResource::isCompanyAdminPanel().
+ * - DataBreachResource, ad accesso pieno (compilazione + stampa PDF): il
+ *   responsabile IT/referente aziendale deve poter segnalare autonomamente
+ *   un incidente da qui, senza passare dal pannello DPO.
  */
 class CompanyAdminPanelProvider extends PanelProvider
 {
@@ -52,6 +57,7 @@ class CompanyAdminPanelProvider extends PanelProvider
             ])
             ->resources([
                 AuditChecklistEvaluationResource::class,
+                DataBreachResource::class,
             ])
             ->middleware([
                 EncryptCookies::class,

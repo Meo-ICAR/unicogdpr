@@ -116,4 +116,18 @@ class ExternalProcessor extends Model implements HasMedia
     {
         return $this->morphMany(Document::class, 'documentable');
     }
+
+    /**
+     * Dipendenti del sub-fornitore autorizzati ad operare sui sistemi/dati del
+     * Titolare (Company): stesso pattern di ClientController::authorizedEmployees(),
+     * usato per tracciare — in modo GDPR-compliant e senza dare al Titolare
+     * visibilità sull'intera anagrafica dipendenti del fornitore — chi è
+     * formalmente autorizzato (es. amministratori di sistema esterni).
+     */
+    public function authorizedEmployees(): BelongsToMany
+    {
+        return $this->belongsToMany(Employee::class, 'external_processor_employee')
+            ->withPivot(['status', 'nda_signed', 'approved_at', 'notes'])
+            ->withTimestamps();
+    }
 }

@@ -31,6 +31,8 @@ class AuditsRelationManager extends RelationManager
 
     protected static string $relationship = 'audits';
 
+    protected static bool $isLazy = false;
+
     protected static ?string $title = 'Storico Audit';
 
     public function form(Schema $schema): Schema
@@ -128,7 +130,7 @@ class AuditsRelationManager extends RelationManager
 
                 CreateAction::make(),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('send_questionnaire')
                     ->label('Invia Questionario')
                     ->icon('heroicon-o-paper-airplane')

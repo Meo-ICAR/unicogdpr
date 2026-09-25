@@ -3,14 +3,20 @@
 namespace App\Filament\Resources\ExternalProcessors\RelationManagers;
 
 use App\Filament\Traits\HasRelationPlanAccess;
-use Filament\Forms;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class TransferImpactAssessmentsRelationManager extends RelationManager
@@ -19,13 +25,15 @@ class TransferImpactAssessmentsRelationManager extends RelationManager
 
     protected static string $relationship = 'transferImpactAssessments';
 
+    protected static bool $isLazy = false;
+
     protected static ?string $title = 'TIA (Transfer Impact Assessments)';
 
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Forms\Components\Section::make('Informazioni Generali Trasferimento')
+                Section::make('Informazioni Generali Trasferimento')
                     ->columns(2)
                     ->schema([
                         TextInput::make('destination_country')
@@ -51,12 +59,12 @@ class TransferImpactAssessmentsRelationManager extends RelationManager
                         DatePicker::make('next_review_date')
                             ->label('Prossima Revisione'),
 
-                        Forms\Components\Toggle::make('fisa_702_applicable')
+                        Toggle::make('fisa_702_applicable')
                             ->label('Soggetto a normative di sorveglianza governativa (es. FISA 702, EO 12333)?')
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Misure Supplementari (Raccomandazioni EDPB)')
+                Section::make('Misure Supplementari (Raccomandazioni EDPB)')
                     ->description('Da compilare in assenza di Decisione di Adeguatezza o in presenza di rischio sorveglianza.')
                     ->collapsed()
                     ->schema([
@@ -73,7 +81,7 @@ class TransferImpactAssessmentsRelationManager extends RelationManager
                             ->placeholder('Es. Obbligo di opporsi a richieste di accesso governative, obbligo di notifica al Titolare...'),
                     ]),
 
-                Forms\Components\Section::make('Esito e Documentazione')
+                Section::make('Esito e Documentazione')
                     ->schema([
                         Select::make('result')
                             ->label('Esito TIA')
@@ -100,11 +108,11 @@ class TransferImpactAssessmentsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('destination_country')
             ->columns([
-                Tables\Columns\TextColumn::make('destination_country')
+                TextColumn::make('destination_country')
                     ->label('Paese')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('transfer_mechanism')
+                TextColumn::make('transfer_mechanism')
                     ->label('Meccanismo')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'adequacy_decision' => 'Adeguatezza',
@@ -114,11 +122,11 @@ class TransferImpactAssessmentsRelationManager extends RelationManager
                         default => $state,
                     }),
 
-                Tables\Columns\IconColumn::make('fisa_702_applicable')
+                IconColumn::make('fisa_702_applicable')
                     ->label('Rischio Sorveglianza')
                     ->boolean(),
 
-                Tables\Columns\TextColumn::make('result')
+                TextColumn::make('result')
                     ->label('Esito')
                     ->badge()
                     ->colors([
@@ -127,16 +135,16 @@ class TransferImpactAssessmentsRelationManager extends RelationManager
                         'danger' => 'rejected',
                     ]),
 
-                Tables\Columns\TextColumn::make('assessment_date')
+                TextColumn::make('assessment_date')
                     ->date()
                     ->label('Data'),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                CreateAction::make(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ]);
     }
 }
