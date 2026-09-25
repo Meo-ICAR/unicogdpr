@@ -6,6 +6,7 @@ use App\Filament\Resources\Audits\Pages\CreateAudit;
 use App\Filament\Resources\Audits\Pages\EditAudit;
 use App\Filament\Resources\Audits\Pages\ListAudits;
 use App\Filament\Resources\Audits\RelationManagers\AuditChecklistEvaluationsRelationManager;
+use App\Filament\Resources\Audits\RelationManagers\FindingsRelationManager;
 use App\Filament\Resources\Audits\Schemas\AuditForm;
 use App\Filament\Resources\Audits\Tables\AuditsTable;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
@@ -42,18 +43,6 @@ class AuditResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
-    /**
-     * Niente voce di menu propria: gli audit si raggiungono nel contesto in
-     * cui hanno senso (scheda Company o Cliente/ClientController, tramite
-     * AuditsRelationManager), non come sezione trasversale separata. La
-     * risorsa/pagina resta comunque raggiungibile — serve per la scheda
-     * completa con i documenti collegati.
-     */
-    public static function shouldRegisterNavigation(): bool
-    {
-        return false;
-    }
-
     public static function form(Schema $schema): Schema
     {
         return AuditForm::configure($schema);
@@ -68,6 +57,7 @@ class AuditResource extends Resource
     {
         return [
             AuditChecklistEvaluationsRelationManager::class,
+            FindingsRelationManager::class,
             DocumentsRelationManager::class,
         ];
     }

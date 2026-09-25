@@ -129,4 +129,14 @@ class Audit extends Model
     {
         return $this->hasMany(AuditChecklistEvaluation::class);
     }
+
+    /**
+     * Rilievi (non conformità) emersi da questo audit, ciascuno con
+     * eventuale azione correttiva, scadenza e stato di risoluzione —
+     * il piano di remediation strutturato riga per riga.
+     */
+    public function findings(): HasMany
+    {
+        return $this->hasMany(AuditFinding::class);
+    }
 }

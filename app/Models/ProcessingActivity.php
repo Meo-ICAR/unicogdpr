@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProcessingActivity extends Model
@@ -79,6 +80,19 @@ class ProcessingActivity extends Model
     public function dpias(): HasMany
     {
         return $this->hasMany(Dpia::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
+    }
+
+    /**
+     * Software/SaaS effettivamente impiegati in questo trattamento.
+     */
+    public function softwareApplications(): BelongsToMany
+    {
+        return $this->belongsToMany(SoftwareApplication::class);
     }
 
     /**

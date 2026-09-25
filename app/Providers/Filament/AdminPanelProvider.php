@@ -44,10 +44,6 @@ class AdminPanelProvider extends PanelProvider
                   //  ->icon('heroicon-o-building-office-2')
                     ->collapsible(false),
 
-                NavigationGroup::make('Gestione Liste & Consensi')
-                  //  ->icon('heroicon-o-queue-list')
-                    ->collapsible(false),
-
                 NavigationGroup::make('Filiera & Fornitori')
                  //   ->icon('heroicon-o-server-stack')
                     ->collapsible(true),
@@ -65,6 +61,11 @@ class AdminPanelProvider extends PanelProvider
 
                 NavigationGroup::make('Configurazione & Tabellari')
                   //  ->icon('heroicon-o-cog-6-tooth')
+                    ->collapsible(true)
+                    ->collapsed(true),
+
+                NavigationGroup::make('Gestione Liste & Consensi')
+                  //  ->icon('heroicon-o-queue-list')
                     ->collapsible(true)
                     ->collapsed(true),
 

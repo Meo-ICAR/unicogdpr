@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class SoftwareApplication extends Model
 {
@@ -14,10 +15,10 @@ class SoftwareApplication extends Model
     ];
 
     protected $casts = [
-        'is_cloud'              => 'boolean',
-        'is_data_eu'            => 'boolean',
+        'is_cloud' => 'boolean',
+        'is_data_eu' => 'boolean',
         'is_iso27001_certified' => 'boolean',
-        'wallet_balance'        => 'decimal:2',
+        'wallet_balance' => 'decimal:2',
     ];
 
     public function company(): BelongsTo
@@ -28,5 +29,13 @@ class SoftwareApplication extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(SoftwareCategory::class, 'software_category_id');
+    }
+
+    /**
+     * Trattamenti (Art. 30) in cui questo software viene effettivamente impiegato.
+     */
+    public function processingActivities(): BelongsToMany
+    {
+        return $this->belongsToMany(ProcessingActivity::class);
     }
 }

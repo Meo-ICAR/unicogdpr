@@ -2,10 +2,13 @@
 
 namespace App\Filament\Resources\Companies\Tables;
 
+use App\Models\Company;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Facades\Filament;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class CompaniesTable
@@ -45,7 +48,16 @@ class CompaniesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                \Filament\Tables\Filters\SelectFilter::make('holding_id')
+                // CompanyResource non è tenant-scoped (Company è essa
+                // stessa il model tenant, non può filtrare se stesso via
+                // scope automatico): preimpostiamo qui il filtro sulla
+                // company attualmente selezionata nel pannello.
+                SelectFilter::make('id')
+                    ->label('Azienda')
+                    ->options(fn (): array => Company::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->searchable()
+                    ->default(fn (): ?string => Filament::getTenant()?->id),
+                SelectFilter::make('holding_id')
                     ->label('Holding / Gruppo')
                     ->relationship('holding', 'name')
                     ->searchable()

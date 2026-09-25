@@ -10,6 +10,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\DB;
 
 class ClientisTable
 {
@@ -47,6 +48,17 @@ class ClientisTable
                     ->color(fn ($record) => $record?->end_date?->isPast() ? 'danger' : null),
             ])
             ->filters([
+                // clientis.company_id fa riferimento a proforma.companies
+                // (stessa connessione 'proforma'), non alle Company di questa
+                // app: le opzioni vanno quindi lette con una query dedicata.
+                SelectFilter::make('company_id')
+                    ->label('Azienda')
+                    ->options(fn (): array => DB::connection('proforma')
+                        ->table('companies')
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->all())
+                    ->searchable(),
                 TernaryFilter::make('is_active')
                     ->label('Attivo'),
                 SelectFilter::make('principal_type')
