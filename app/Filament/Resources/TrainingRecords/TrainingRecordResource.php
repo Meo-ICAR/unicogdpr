@@ -23,7 +23,7 @@ class TrainingRecordResource extends Resource
 
     protected static ?string $model = TrainingRecord::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Personale & Formazione';
+    protected static \UnitEnum|string|null $navigationGroup = 'Panoramica';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
@@ -33,7 +33,17 @@ class TrainingRecordResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Corsi Formazione';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 6;
+
+    /**
+     * Niente voce di menu propria: le sedi si raggiungono dalla scheda
+     * Company (tramite BranchesRelationManager). La risorsa/pagina resta
+     * comunque raggiungibile — serve per la scheda completa coi documenti.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {

@@ -25,7 +25,7 @@ class ClientiResource extends Resource
      */
     protected static bool $isScopedToTenant = false;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Commesse & Clienti';
+    protected static \UnitEnum|string|null $navigationGroup = 'Panoramica';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-identification';
 
@@ -35,7 +35,7 @@ class ClientiResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Clienti (Mandati OAM)';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 8;
 
     public static function shouldRegisterNavigation(): bool
     {

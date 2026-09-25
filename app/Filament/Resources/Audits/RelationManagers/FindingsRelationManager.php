@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Audits\RelationManagers;
 
 use App\Enums\FindingSeverity;
 use App\Enums\FindingStatus;
+use App\Models\Remediation;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -16,6 +17,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -83,6 +85,34 @@ class FindingsRelationManager extends RelationManager
                         ->default(true)
                         ->live()
                         ->columnSpanFull(),
+                    Select::make('remediation_id')
+                        ->label('Azione di remediation standard')
+                        ->options(fn (): array => Remediation::query()
+                            ->orderBy('remediation_type')
+                            ->orderBy('name')
+                            ->get()
+                            ->mapWithKeys(fn (Remediation $r) => [
+                                $r->id => "[{$r->remediation_type}] {$r->name}".($r->timeframe_desc ? " — {$r->timeframe_desc}" : ''),
+                            ])
+                            ->all())
+                        ->searchable()
+                        ->live()
+                        ->helperText('Facoltativo: precompila descrizione e scadenza dal catalogo remediation condiviso.')
+                        ->visible(fn ($get) => (bool) $get('requires_corrective_action'))
+                        ->afterStateUpdated(function (?string $state, Set $set) {
+                            $remediation = $state ? Remediation::find($state) : null;
+
+                            if (! $remediation) {
+                                return;
+                            }
+
+                            $set('corrective_action_description', $remediation->description ?? $remediation->name);
+
+                            if ($remediation->timeframe_hours) {
+                                $set('corrective_action_deadline', now()->addHours($remediation->timeframe_hours)->toDateString());
+                            }
+                        })
+                        ->columnSpanFull(),
                     Textarea::make('corrective_action_description')
                         ->label('Descrizione azione correttiva')
                         ->visible(fn ($get) => (bool) $get('requires_corrective_action'))
@@ -122,6 +152,12 @@ class FindingsRelationManager extends RelationManager
                 IconColumn::make('requires_corrective_action')
                     ->label('Azione correttiva')
                     ->boolean(),
+                TextColumn::make('remediation.name')
+                    ->label('Remediation standard')
+                    ->badge()
+                    ->color('gray')
+                    ->placeholder('—')
+                    ->toggleable(),
                 TextColumn::make('corrective_action_deadline')
                     ->label('Scadenza')
                     ->date('d/m/Y')

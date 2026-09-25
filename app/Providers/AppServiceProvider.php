@@ -16,6 +16,7 @@ use App\Models\ExternalProcessor;
 use App\Models\Fornitore;
 use App\Models\ProcessingActivity;
 use App\Models\SoftwareApplication;
+use App\Models\TrainingCourse;
 use App\Models\TrainingRecord;
 use App\Models\Website;
 use App\Services\Mail\ImapConnectionFactory;
@@ -55,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
             'fornitore' => Fornitore::class,
             'processing_activity' => ProcessingActivity::class,
             'software_application' => SoftwareApplication::class,
+            'training_course' => TrainingCourse::class,
             'training_record' => TrainingRecord::class,
             'website' => Website::class,
         ]);

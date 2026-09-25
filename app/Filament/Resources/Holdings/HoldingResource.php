@@ -26,7 +26,7 @@ class HoldingResource extends Resource
 
     protected static bool $isScopedToTenant = false;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static \UnitEnum|string|null $navigationGroup = 'Panoramica';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
 

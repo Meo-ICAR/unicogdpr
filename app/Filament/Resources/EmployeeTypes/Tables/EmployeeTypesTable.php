@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\EmployeeTypes\Tables;
 
+use App\Models\EmployeeType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class EmployeeTypesTable
@@ -34,7 +36,14 @@ class EmployeeTypesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('companytype')
+                    ->label('Tipo Azienda')
+                    ->options(fn (): array => EmployeeType::query()
+                        ->whereNotNull('companytype')
+                        ->distinct()
+                        ->orderBy('companytype')
+                        ->pluck('companytype', 'companytype')
+                        ->all()),
             ])
             ->recordActions([
                 EditAction::make(),

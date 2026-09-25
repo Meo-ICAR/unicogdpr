@@ -61,6 +61,11 @@ class TrainingRecordsTable
                     ->color(fn ($record) => $record?->expiry_date && $record->expiry_date->isPast() ? 'danger' : null),
             ])
             ->filters([
+                SelectFilter::make('training_course_id')
+                    ->label('Corso (catalogo)')
+                    ->relationship('trainingCourse', 'name')
+                    ->searchable()
+                    ->preload(),
                 SelectFilter::make('outcome')
                     ->label('Esito')
                     ->options([

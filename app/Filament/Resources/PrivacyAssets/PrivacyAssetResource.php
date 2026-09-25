@@ -23,7 +23,7 @@ class PrivacyAssetResource extends Resource
 
     protected static ?string $model = PrivacyAsset::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Filiera & Fornitori';
+    protected static \UnitEnum|string|null $navigationGroup = 'IT & Software';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedServer;
 
@@ -33,7 +33,7 @@ class PrivacyAssetResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Asset IT & Privacy';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

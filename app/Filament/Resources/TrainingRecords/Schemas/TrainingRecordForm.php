@@ -4,6 +4,7 @@ namespace App\Filament\Resources\TrainingRecords\Schemas;
 
 use App\Models\Employee;
 use App\Models\ExternalProcessor;
+use App\Models\TrainingCourse;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\MorphToSelect;
 use Filament\Forms\Components\Select;
@@ -12,6 +13,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class TrainingRecordForm
@@ -45,6 +47,28 @@ class TrainingRecordForm
                     ->icon('heroicon-o-academic-cap')
                     ->columns(2)
                     ->schema([
+                        Select::make('training_course_id')
+                            ->label('Corso dal catalogo')
+                            ->relationship('trainingCourse', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->helperText('Facoltativo: precompila i campi sottostanti dal catalogo corsi, restano comunque modificabili.')
+                            ->afterStateUpdated(function (?string $state, Set $set) {
+                                $course = $state ? TrainingCourse::find($state) : null;
+
+                                if (! $course) {
+                                    return;
+                                }
+
+                                $set('course_name', $course->name);
+                                $set('course_description', $course->description);
+                                $set('provider', $course->provider);
+                                $set('trainer', $course->trainer);
+                                $set('delivery_mode', $course->delivery_mode);
+                                $set('hours', $course->default_hours);
+                            })
+                            ->columnSpanFull(),
                         TextInput::make('course_name')
                             ->label('Titolo del Corso')
                             ->required()

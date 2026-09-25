@@ -32,6 +32,10 @@ class CompaniesTable
                     ->label('Dipendenti')
                     ->counts('employees')
                     ->sortable(),
+                TextColumn::make('client_controllers_count')
+                    ->label('Mandanti')
+                    ->counts('clientControllers')
+                    ->sortable(),
                 TextColumn::make('clients_count')
                     ->label('Clienti')
                     ->counts('clients')

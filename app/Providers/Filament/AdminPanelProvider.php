@@ -40,24 +40,13 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Panoramica')
                     ->collapsible(false),
 
-                NavigationGroup::make('Commesse & Clienti')
-                  //  ->icon('heroicon-o-building-office-2')
-                    ->collapsible(false),
-
-                NavigationGroup::make('Filiera & Fornitori')
-                 //   ->icon('heroicon-o-server-stack')
-                    ->collapsible(true),
-
-                NavigationGroup::make('Personale & Formazione')
-                  //  ->icon('heroicon-o-user-group')
-                    ->collapsible(true),
-
                 NavigationGroup::make('Governance & Accountability')
                   //  ->icon('heroicon-o-shield-check')
                     ->collapsible(true),
 
-                NavigationGroup::make('Anagrafiche')
-                    ->collapsible(true),
+                NavigationGroup::make('IT & Software')
+                    ->collapsible(true)
+                    ->collapsed(true),
 
                 NavigationGroup::make('Configurazione & Tabellari')
                   //  ->icon('heroicon-o-cog-6-tooth')

@@ -20,7 +20,7 @@ class SoftwareApplicationResource extends Resource
 
     protected static ?string $model = SoftwareApplication::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Anagrafiche';
+    protected static \UnitEnum|string|null $navigationGroup = 'IT & Software';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cpu-chip';
 
@@ -30,7 +30,7 @@ class SoftwareApplicationResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Applicativi & Sistemi';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

@@ -4,9 +4,11 @@ namespace App\Filament\Resources\AuditChecklistEvaluations\Schemas;
 
 use App\Enums\AuditChecklistGapStatus;
 use App\Filament\Resources\AuditChecklistEvaluations\AuditChecklistEvaluationResource;
+use App\Models\AuditChecklistEvaluation;
 use App\Models\AuditChecklistItem;
 use App\Models\ExternalProcessor;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -21,6 +23,19 @@ class AuditChecklistEvaluationForm
         return $schema
             ->disabled(AuditChecklistEvaluationResource::isCompanyAdminPanel())
             ->components([
+                Section::make('Audit di Riferimento')
+                    ->icon('heroicon-o-magnifying-glass-circle')
+                    ->columns(2)
+                    ->schema([
+                        Placeholder::make('mandante')
+                            ->label('Mandante')
+                            ->content(fn (?AuditChecklistEvaluation $record) => $record?->audit?->auditable?->name ?? '—'),
+                        Placeholder::make('data_audit')
+                            ->label('Data Audit')
+                            ->content(fn (?AuditChecklistEvaluation $record) => $record?->audit?->executed_at?->format('d/m/Y') ?? '—'),
+                    ])
+                    ->visible(fn (?AuditChecklistEvaluation $record) => $record !== null),
+
                 Section::make('Voce di Checklist')
                     ->icon('heroicon-o-clipboard-document-check')
                     ->columns(2)

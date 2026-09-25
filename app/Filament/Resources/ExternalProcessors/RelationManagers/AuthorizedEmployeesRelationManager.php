@@ -101,12 +101,25 @@ class AuthorizedEmployeesRelationManager extends RelationManager
             ->recordTitleAttribute('full_name')
             ->modifyQueryUsing(fn (Builder $query) => $this->withoutTenantScope($query))
             ->columns([
-                TextColumn::make('full_name')->label('Dipendente'),
-                TextColumn::make('job_title')->label('Mansione'),
+                TextColumn::make('full_name')
+                    ->label('Dipendente')
+                    ->sortable(query: fn (Builder $query, string $direction) => $query
+                        ->orderBy('first_name', $direction)
+                        ->orderBy('last_name', $direction))
+                    ->searchable(query: fn (Builder $query, string $search) => $query
+                        ->where(fn (Builder $q) => $q
+                            ->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$search}%"]))),
+                TextColumn::make('job_title')
+                    ->label('Mansione')
+                    ->sortable()
+                    ->searchable(),
 
                 TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
+                    ->sortable()
                     ->colors([
                         'warning' => 'pending',
                         'success' => 'approved',
@@ -115,11 +128,13 @@ class AuthorizedEmployeesRelationManager extends RelationManager
 
                 IconColumn::make('nda_signed')
                     ->label('Accordo Riservatezza')
-                    ->boolean(),
+                    ->boolean()
+                    ->sortable(),
 
                 TextColumn::make('approved_at')
                     ->label('Data Auth')
-                    ->date(),
+                    ->date()
+                    ->sortable(),
             ])
             ->headerActions([
                 AttachAction::make()

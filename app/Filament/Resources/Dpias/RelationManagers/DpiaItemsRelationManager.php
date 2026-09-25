@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Dpias\RelationManagers;
 
 use App\Filament\Traits\HasRelationPlanAccess;
-use Filament\Forms\Components\BelongsToSelect;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -37,9 +36,10 @@ class DpiaItemsRelationManager extends RelationManager
                     'medium' => 'Medium',
                     'high' => 'High',
                 ])->required(),
-                BelongsToSelect::make('privacy_security_id')
-                    ->relationship('privacySecurity', 'name')
+                Select::make('privacy_security_id')
+                    ->relationship('securityMeasure', 'name')
                     ->label('Misura di sicurezza')
+                    ->searchable()
                     ->nullable(),
                 TextInput::make('inherent_risk_score')->label('Inherent risk')->numeric(),
                 TextInput::make('residual_risk_score')->label('Residual risk')->numeric(),
@@ -56,7 +56,7 @@ class DpiaItemsRelationManager extends RelationManager
                 TextColumn::make('severity')->label('Severità'),
                 TextColumn::make('inherent_risk_score')->label('Inherent')->sortable(),
                 TextColumn::make('residual_risk_score')->label('Residual')->sortable(),
-                TextColumn::make('privacySecurity.name')->label('Misura'),
+                TextColumn::make('securityMeasure.name')->label('Misura'),
             ]);
     }
 }

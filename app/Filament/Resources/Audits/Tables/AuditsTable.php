@@ -23,13 +23,19 @@ class AuditsTable
                     ->label('Azienda')
                     ->badge()
                     ->color('info'),
+                TextColumn::make('auditable.name')
+                    ->label('Mandante / Soggetto')
+                    ->badge()
+                    ->color('success')
+                    ->placeholder('—'),
                 TextColumn::make('auditor_name')
                     ->label('Auditor')
                     ->searchable()
                     ->weight('bold'),
                 TextColumn::make('auditable_type')
                     ->label('Tipo Soggetto')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(),
                 TextColumn::make('protocol_number')
                     ->label('Protocollo')
                     ->searchable()

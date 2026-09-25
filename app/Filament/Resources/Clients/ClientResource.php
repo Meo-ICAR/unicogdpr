@@ -26,7 +26,7 @@ class ClientResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static UnitEnum|string|null $navigationGroup = 'Anagrafiche';
+    protected static UnitEnum|string|null $navigationGroup = 'Panoramica';
 
     protected static ?string $navigationLabel = 'Clienti / Interessati';
 
@@ -34,7 +34,7 @@ class ClientResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Clienti';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 7;
 
     public static function form(Schema $schema): Schema
     {

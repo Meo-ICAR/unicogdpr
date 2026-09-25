@@ -16,7 +16,7 @@ class TrainingRecord extends Model implements HasMedia
     use InteractsWithMedia, SoftDeletes, UsesDefaultConnection;
 
     protected $fillable = [
-        'company_id', 'ownerable_type', 'ownerable_id', 'course_name',
+        'company_id', 'training_course_id', 'ownerable_type', 'ownerable_id', 'course_name',
         'course_description', 'provider', 'trainer', 'delivery_mode',
         'training_date', 'expiry_date', 'hours', 'outcome', 'score',
         'certificate_issued', 'certificate_number', 'notes',
@@ -45,6 +45,11 @@ class TrainingRecord extends Model implements HasMedia
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function trainingCourse(): BelongsTo
+    {
+        return $this->belongsTo(TrainingCourse::class);
     }
 
     public function ownerable(): MorphTo

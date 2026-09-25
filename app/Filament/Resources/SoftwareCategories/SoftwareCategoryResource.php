@@ -22,7 +22,7 @@ class SoftwareCategoryResource extends Resource
 
     protected static bool $isScopedToTenant = false;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static \UnitEnum|string|null $navigationGroup = 'IT & Software';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-folder';
 
@@ -32,7 +32,7 @@ class SoftwareCategoryResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Categorie Software';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

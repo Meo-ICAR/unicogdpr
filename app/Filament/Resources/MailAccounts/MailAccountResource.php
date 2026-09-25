@@ -20,7 +20,7 @@ class MailAccountResource extends Resource
 
     protected static ?string $model = MailAccount::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static \UnitEnum|string|null $navigationGroup = 'IT & Software';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-at-symbol';
 

@@ -30,7 +30,7 @@ class DataSubjectRequestResource extends Resource
 
     protected static ?string $model = DataSubjectRequest::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Commesse & Clienti';
+    protected static \UnitEnum|string|null $navigationGroup = 'Governance & Accountability';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-inbox-arrow-down';
 
@@ -40,7 +40,7 @@ class DataSubjectRequestResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Richieste Interessati (DSAR)';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 8;
 
     public static function getNavigationBadge(): ?string
     {

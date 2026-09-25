@@ -31,7 +31,7 @@ class IncomingEmailResource extends Resource
 
     protected static ?string $model = IncomingEmail::class;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Gestione Liste & Consensi';
+    protected static \UnitEnum|string|null $navigationGroup = 'IT & Software';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 

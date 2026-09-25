@@ -23,7 +23,7 @@ class AuditChecklistItemResource extends Resource
      */
     protected static bool $isScopedToTenant = false;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static \UnitEnum|string|null $navigationGroup = 'Governance & Accountability';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
@@ -33,7 +33,19 @@ class AuditChecklistItemResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Checklist Audit Fornitori';
 
-    protected static ?int $navigationSort = 12;
+    protected static ?int $navigationSort = 9;
+
+    /**
+     * Catalogo globale (non ha una relazione FK reale con Audit, quindi
+     * niente RelationManager vero e proprio): si accede alle voci solo dal
+     * Select "Voce di checklist" già presente nella
+     * AuditChecklistEvaluationsRelationManager, non da una voce di menu
+     * separata.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {

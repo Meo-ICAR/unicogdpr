@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\OptOuts\Schemas;
 
+use App\Models\Company;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -16,6 +18,16 @@ class OptOutForm
     {
         return $schema
             ->components([
+
+                // OptOutResource non è tenant-scoped automaticamente
+                // (company_id aggiunto solo di recente): va selezionato
+                // esplicitamente, preimpostato sul tenant corrente.
+                Select::make('company_id')
+                    ->label('Azienda')
+                    ->options(fn (): array => Company::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->default(fn (): ?string => Filament::getTenant()?->id)
+                    ->searchable()
+                    ->required(),
 
                 Section::make('Identificativi Interessato')
                     ->description('Inserire almeno un recapito o codice identificativo da bloccare.')

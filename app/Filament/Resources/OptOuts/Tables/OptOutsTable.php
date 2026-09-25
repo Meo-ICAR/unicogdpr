@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\OptOuts\Tables;
 
+use App\Models\Company;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Facades\Filament;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -19,6 +21,10 @@ class OptOutsTable
         return $table
             ->defaultSort('opt_out_at', 'desc')
             ->columns([
+                TextColumn::make('company.name')
+                    ->label('Azienda')
+                    ->badge()
+                    ->color('info'),
                 TextColumn::make('phone')
                     ->label('Telefono')
                     ->searchable()
@@ -66,6 +72,15 @@ class OptOutsTable
                     ->sortable(),
             ])
             ->filters([
+                // OptOutResource non è tenant-scoped (company_id è stato
+                // aggiunto solo di recente e non tutte le righe storiche
+                // erano attribuibili): filtro diretto sulla colonna
+                // scalare, preimpostato sul tenant corrente.
+                SelectFilter::make('company_id')
+                    ->label('Azienda')
+                    ->options(fn (): array => Company::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->searchable()
+                    ->default(fn (): ?string => Filament::getTenant()?->id),
                 SelectFilter::make('channel')
                     ->label('Canale')
                     ->options([

@@ -79,6 +79,15 @@ class Company extends Model
         return $this->hasMany(Client::class);
     }
 
+    /**
+     * Mandanti/Committenti per cui questa azienda opera come Responsabile
+     * del trattamento (es. ECOM per PALK).
+     */
+    public function clientControllers(): HasMany
+    {
+        return $this->hasMany(ClientController::class);
+    }
+
     public function holding(): BelongsTo
     {
         return $this->belongsTo(Holding::class);

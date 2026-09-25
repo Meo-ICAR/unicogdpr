@@ -14,6 +14,7 @@ class OptOut extends Model implements HasMedia
     use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
+        'company_id',
         'phone',
         'email',
         'fiscal_code',
@@ -27,6 +28,11 @@ class OptOut extends Model implements HasMedia
     protected $casts = [
         'opt_out_at' => 'datetime',
     ];
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     public function clientController(): BelongsTo
     {

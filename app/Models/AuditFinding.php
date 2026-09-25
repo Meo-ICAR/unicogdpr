@@ -71,6 +71,15 @@ class AuditFinding extends Model
     }
 
     /**
+     * Azione di remediation standard (catalogo condiviso) collegata a
+     * questo rilievo, se applicabile.
+     */
+    public function remediation(): BelongsTo
+    {
+        return $this->belongsTo(Remediation::class);
+    }
+
+    /**
      * Relazione con l'azienda (Tenant / Proprietaria del dato).
      */
     public function company(): BelongsTo

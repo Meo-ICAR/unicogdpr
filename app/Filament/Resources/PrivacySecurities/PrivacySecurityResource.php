@@ -25,7 +25,7 @@ class PrivacySecurityResource extends Resource
 
     protected static bool $isScopedToTenant = false;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static \UnitEnum|string|null $navigationGroup = 'IT & Software';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-lock-closed';
 

@@ -56,6 +56,17 @@ class AuditChecklistEvaluationResource extends Resource
         return Filament::getCurrentPanel()?->getId() === 'company-admin';
     }
 
+    /**
+     * Nel pannello DPO (/admin) niente voce di menu propria: si gestisce
+     * tutto dalla AuditChecklistEvaluationsRelationManager sull'Audit. Nel
+     * portale PALK (/portale) resta l'unico punto d'accesso per il tenant,
+     * quindi qui la navigazione resta visibile.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::isCompanyAdminPanel();
+    }
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
