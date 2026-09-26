@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Companies\Schemas;
 
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -60,9 +62,66 @@ class CompanyForm
                             ->tel()
                             ->placeholder('Es. +39 02 1234567')
                             ->maxLength(50),
+
+                        Toggle::make('is_active')
+                            ->label('Cliente Attivo')
+                            ->helperText('Disattiva per marcare come lead/prospect non ancora cliente')
+                            ->default(true),
+
+                        Textarea::make('notes')
+                            ->label('Note')
+                            ->rows(3)
+                            ->columnSpanFull(),
                     ]),
 
-                // ── 2. Figure Aziendali e Referenti ──────────────────────────
+                // ── 2. Costi e Fatturazione ───────────────────────────────────
+                Section::make('Costi e Fatturazione')
+                    ->icon('heroicon-o-banknotes')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('startup_cost')
+                            ->label('Costo Startup')
+                            ->numeric()
+                            ->prefix('€')
+                            ->step(0.01),
+
+                        TextInput::make('monthly_cost')
+                            ->label('Costo Mensile')
+                            ->numeric()
+                            ->prefix('€')
+                            ->step(0.01),
+
+                        TextInput::make('advance_percentage')
+                            ->label('% Anticipo')
+                            ->numeric()
+                            ->suffix('%')
+                            ->step(0.01)
+                            ->minValue(0)
+                            ->maxValue(100),
+
+                        TextInput::make('balance_percentage')
+                            ->label('% Saldo')
+                            ->numeric()
+                            ->suffix('%')
+                            ->step(0.01)
+                            ->minValue(0)
+                            ->maxValue(100),
+
+                        Select::make('billing_frequency')
+                            ->label('Periodicità Fatturazione')
+                            ->options([
+                                'mensile' => 'Mensile',
+                                'trimestrale' => 'Trimestrale',
+                                'semestrale' => 'Semestrale',
+                                'annuale' => 'Annuale',
+                            ]),
+
+                        DatePicker::make('payment_start_date')
+                            ->label('Data Inizio Pagamento')
+                            ->native(false),
+                    ]),
+
+                // ── 3. Figure Aziendali e Referenti ──────────────────────────
                 Section::make('Figure Aziendali e Referenti')
                     ->icon('heroicon-o-user-group')
                     ->columns(2)
@@ -101,7 +160,7 @@ class CompanyForm
                             ->maxLength(255),
                     ]),
 
-                // ── 3. Canale PEC Ufficiale & IMAP ───────────────────────────
+                // ── 4. Canale PEC Ufficiale & IMAP ───────────────────────────
                 // @deprecated I parametri IMAP qui sotto non vengono più usati dal fetch:
                 // configura le caselle in "Configurazione & Tabellari › Caselle di posta (IMAP)".
                 // Restano solo per compatibilità con i dati storici.
@@ -154,7 +213,7 @@ class CompanyForm
                             ->maxLength(255),
                     ]),
 
-                // ── 4. Email Ordinaria & IMAP ────────────────────────────────
+                // ── 5. Email Ordinaria & IMAP ────────────────────────────────
                 // @deprecated Vedi nota alla sezione PEC: la configurazione IMAP attiva
                 // vive ora nella risorsa "Caselle di posta (IMAP)".
                 Section::make('Email DPO Ordinaria & Configurazione IMAP')

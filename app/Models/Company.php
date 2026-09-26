@@ -28,10 +28,18 @@ class Company extends Model
 
     protected $fillable = [
         'name',
+        'is_active',
         'vat_number',
         'tax_code',
         'address',
         'phone',
+        'startup_cost',
+        'advance_percentage',
+        'balance_percentage',
+        'monthly_cost',
+        'billing_frequency',
+        'payment_start_date',
+        'notes',
         'property_name',
         'property_email',
         'referee',
@@ -56,6 +64,12 @@ class Company extends Model
     ];
 
     protected $casts = [
+        'is_active' => 'boolean',
+        'startup_cost' => 'decimal:2',
+        'advance_percentage' => 'decimal:2',
+        'balance_percentage' => 'decimal:2',
+        'monthly_cost' => 'decimal:2',
+        'payment_start_date' => 'date',
         'imap_port' => 'integer',
         'imap_is_active' => 'boolean',
         'imap_password' => 'encrypted',
