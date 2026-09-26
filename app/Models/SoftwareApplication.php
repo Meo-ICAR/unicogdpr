@@ -2,12 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesDefaultConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * UsesDefaultConnection: referenziato anche da Document (mysql_unicooam)
+ * tramite la relazione polimorfica 'documentable' — senza forzare
+ * esplicitamente la connessione, Eloquent farebbe ereditare a questo
+ * model la connessione del "genitore" Document in quella relazione.
+ */
 class SoftwareApplication extends Model
 {
+    use UsesDefaultConnection;
+
     protected $fillable = [
         'company_id', 'software_category_id', 'name', 'provider_name',
         'website_url', 'api_url', 'sandbox_url', 'api_key_url', 'api_parameters',
@@ -37,5 +47,10 @@ class SoftwareApplication extends Model
     public function processingActivities(): BelongsToMany
     {
         return $this->belongsToMany(ProcessingActivity::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

@@ -67,4 +67,9 @@ class ClientController extends Model
     {
         return $this->morphMany(Document::class, 'documentable');
     }
+
+    public function websites(): MorphMany
+    {
+        return $this->morphMany(Website::class, 'websiteable');
+    }
 }

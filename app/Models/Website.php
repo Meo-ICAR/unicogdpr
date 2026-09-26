@@ -6,6 +6,7 @@ use App\Models\PROFORMA\Clienti;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -74,10 +75,27 @@ class Website extends Model
     }
 
     /**
+     * Mandante/Committente (ClientController) a cui questo sito è dedicato,
+     * es. una landing page di raccolta lead per conto di un cliente
+     * specifico. Stessa colonna clienti_id usata anche da client() verso
+     * Clienti (mandati OAM): i due usi non convivono sullo stesso record,
+     * dipende dal contesto/azienda.
+     */
+    public function clientController(): BelongsTo
+    {
+        return $this->belongsTo(ClientController::class, 'clienti_id');
+    }
+
+    /**
      * Relazione Polimorfica che punta al modello collegato tramite UUID
      */
     public function websiteable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

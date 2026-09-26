@@ -11,6 +11,7 @@ use App\Filament\Resources\RelationManagers\AuditsRelationManager;
 use App\Filament\Resources\RelationManagers\BranchesRelationManager;
 use App\Filament\Resources\RelationManagers\ComplaintsRelationManager;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
+use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
 use App\Filament\Traits\HasPlanAccess;
 use App\Models\Company;
 use BackedEnum;
@@ -57,6 +58,7 @@ class CompanyResource extends Resource
             BranchesRelationManager::class,
             ComplaintsRelationManager::class,
             AuditsRelationManager::class,
+            WebsitesRelationManager::class,
         ];
     }
 

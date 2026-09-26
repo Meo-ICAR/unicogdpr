@@ -9,6 +9,7 @@ use App\Filament\Resources\ClientControllers\Schemas\ClientControllerForm;
 use App\Filament\Resources\ClientControllers\Tables\ClientControllersTable;
 use App\Filament\Resources\RelationManagers\AuditsRelationManager;
 use App\Filament\Resources\RelationManagers\DocumentsRelationManager;
+use App\Filament\Resources\RelationManagers\WebsitesRelationManager;
 use App\Filament\Traits\HasPlanAccess;
 use App\Models\ClientController;
 use BackedEnum;
@@ -54,6 +55,7 @@ class ClientControllerResource extends Resource
         return [
             DocumentsRelationManager::class,
             AuditsRelationManager::class,
+            WebsitesRelationManager::class,
         ];
     }
 

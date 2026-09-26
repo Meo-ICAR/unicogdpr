@@ -167,4 +167,9 @@ class Company extends Model
     {
         return $this->morphMany(Audit::class, 'auditable');
     }
+
+    public function websites(): MorphMany
+    {
+        return $this->morphMany(Website::class, 'websiteable');
+    }
 }

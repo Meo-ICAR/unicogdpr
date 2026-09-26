@@ -2,14 +2,12 @@
 
 namespace App\Filament\Resources\RelationManagers;
 
-// use App\Filament\Traits\HasRelationPlanAccess;
-use Filament\Actions\AssociateAction;
+use App\Models\ClientController;
+use App\Models\Company;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\DissociateAction;
-use Filament\Actions\DissociateBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
@@ -23,14 +21,11 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Table; // <-- Importa il trait
+use Filament\Tables\Table;
 
 class WebsitesRelationManager extends RelationManager
 {
-    // use HasRelationPlanAccess;  // <-- Basta questo! Controlla automaticamente checkPiano('websites')
-
     protected static string $relationship = 'websites';
 
     protected static ?string $title = 'Siti web';
@@ -39,24 +34,24 @@ class WebsitesRelationManager extends RelationManager
 
     protected static ?string $pluralModelLabel = 'Siti web';
 
+    protected static bool $isLazy = false;
+
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
+                TextInput::make('name')
+                    ->label('Nome sito')
+                    ->default(fn ($get) => $get('type'))
+                    ->required(),
                 TextInput::make('domain')
                     ->label('Dominio')
                     ->url(fn ($record) => $record?->domain ? (str_starts_with($record->domain, 'http') ? $record->domain : "https://{$record->domain}") : null)
                     ->required(),
-                ToggleColumn::make('is_active')
-                    ->default(true)
-                    //   ->boolean()
-                    //   ->trueIcon('heroicon-o-check-circle')
-                    //   ->falseIcon('heroicon-o-x-circle')
-                    ->label('Attivo'),
                 Select::make('type')
                     ->label('Tipologia')
                     ->live()
-                    ->placeholder('es. social per FB / Istagram, landing mandataria')
+                    ->placeholder('es. social per FB / Instagram, landing mandataria')
                     ->options([
                         'istituzionale' => 'Istituzionale',
                         'social' => 'Social',
@@ -65,6 +60,20 @@ class WebsitesRelationManager extends RelationManager
                         'e-commerce' => 'E-commerce',
                         'altro' => 'Altro',
                     ]),
+                Toggle::make('is_active')
+                    ->label('Attivo')
+                    ->default(true),
+                Select::make('clienti_id')
+                    ->label('Mandante dedicato')
+                    ->helperText('Solo se il sito (es. una landing) è dedicato a un mandante specifico.')
+                    ->options(fn (): array => ClientController::query()
+                        ->where('company_id', $this->getOwnerRecord() instanceof Company
+                            ? $this->getOwnerRecord()->id
+                            : $this->getOwnerRecord()->company_id)
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->all())
+                    ->searchable(),
                 TextInput::make('url_transparency')
                     ->label('URL trasparenza')
                     ->visible(fn ($get) => $get('type') === 'istituzionale')
@@ -74,13 +83,6 @@ class WebsitesRelationManager extends RelationManager
                     ->visible(fn ($get) => $get('type') === 'istituzionale')
                     ->native(false)
                     ->displayFormat('d/m/y'),
-                TextInput::make('name')
-                    ->default(fn ($get) => $get('type'))
-                    ->label('Nome sito')
-                    ->required(),
-                Toggle::make('is_active')
-                    ->label('Attivo')
-                    ->required(),
             ]);
     }
 
@@ -91,7 +93,6 @@ class WebsitesRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('domain')
                     ->label('Dominio')
-                    ->openUrlInNewTab()
                     ->url(fn ($record) => str_starts_with($record->domain, 'http') ? $record->domain : "https://{$record->domain}")
                     ->openUrlInNewTab()
                     ->searchable(),
@@ -116,61 +117,32 @@ class WebsitesRelationManager extends RelationManager
                 TextColumn::make('name')
                     ->label('Nome')
                     ->searchable(),
-
-                /*
-                 * TextColumn::make('client.name')
-                 *  ->label('Mandante')
-                 *  ->searchable(),
-                 * TextColumn::make('privacy_date')
-                 *     ->label('Privacy')
-                 *     ->date('d/m/y')
-                 *     ->sortable(),
-                 * TextColumn::make('privacy_prior_date')
-                 *     ->label('Privacy precedente')
-                 *     ->date('d/m/y')
-                 *     ->sortable()
-                 *     ->toggleable(isToggledHiddenByDefault: true),
-                 * TextColumn::make('transparency_prior_date')
-                 *     ->label('Trasparenza precedente')
-                 *     ->date('d/m/y')
-                 *     ->sortable()
-                 *     ->toggleable(isToggledHiddenByDefault: true),
-                 * TextColumn::make('url_privacy')
-                 *     ->label('URL privacy')
-                 *     ->searchable()
-                 *     ->toggleable(isToggledHiddenByDefault: true),
-                 * TextColumn::make('url_cookies')
-                 *     ->label('URL cookie')
-                 *     ->searchable()
-                 *     ->toggleable(isToggledHiddenByDefault: true),
-                 * IconColumn::make('is_footercompilant')
-                 *     ->label('Footer conforme')
-                 *     ->boolean()
-                 *     ->toggleable(isToggledHiddenByDefault: true),
-                 *     IconColumn::make('is_iso27001_certified')
-                 *  ->label('ISO 27001')
-                 *  ->boolean()
-                 *  ->toggleable(isToggledHiddenByDefault: true),
-                 */
+                TextColumn::make('clientController.name')
+                    ->label('Mandante')
+                    ->placeholder('—')
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Eliminati'),
             ])
             ->headerActions([
-                CreateAction::make(),
-                //  AssociateAction::make(),
+                CreateAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $owner = $this->getOwnerRecord();
+                        $data['company_id'] = $owner instanceof Company ? $owner->id : $owner->company_id;
+
+                        return $data;
+                    }),
             ])
             ->recordActions([
                 EditAction::make(),
-                //   DissociateAction::make(),
                 DeleteAction::make(),
                 ForceDeleteAction::make(),
                 RestoreAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    //     DissociateBulkAction::make(),
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
