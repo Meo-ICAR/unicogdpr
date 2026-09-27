@@ -5,12 +5,14 @@ namespace App\Filament\Resources\Companies\Pages;
 use App\Filament\Resources\Companies\CompanyResource;
 use App\Models\Company;
 use App\Models\Document;
+use App\Services\Drive\DocumentDriveSync;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class EditCompany extends EditRecord
 {
@@ -52,6 +54,33 @@ class EditCompany extends EditRecord
                     Notification::make()
                         ->title('Logo caricato')
                         ->success()
+                        ->send();
+                }),
+            Action::make('sync_drive')
+                ->label('Sincronizza su Drive')
+                ->icon('heroicon-o-arrow-path')
+                ->color('gray')
+                ->requiresConfirmation()
+                ->action(function (): void {
+                    /** @var Company $company */
+                    $company = $this->getRecord();
+
+                    try {
+                        $result = app(DocumentDriveSync::class)->syncCompanyDocuments($company);
+                    } catch (Throwable $e) {
+                        Notification::make()
+                            ->title('Sincronizzazione non riuscita')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+
+                        return;
+                    }
+
+                    Notification::make()
+                        ->title('Sincronizzazione Drive completata')
+                        ->body("Caricati: {$result['synced']} · Falliti: {$result['failed']} · Già sincronizzati/ignorati: {$result['skipped']}")
+                        ->status($result['failed'] > 0 ? 'warning' : 'success')
                         ->send();
                 }),
             DeleteAction::make(),
