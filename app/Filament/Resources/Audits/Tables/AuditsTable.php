@@ -3,11 +3,15 @@
 namespace App\Filament\Resources\Audits\Tables;
 
 use App\Enums\AuditStatus;
+use App\Models\Audit;
 use App\Models\Company;
+use App\Services\Drive\GoogleDriveZipExporter;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -73,6 +77,32 @@ class AuditsTable
                     ->options(AuditStatus::options()),
             ])
             ->recordActions([
+                Action::make('download_drive_zip')
+                    ->label('Scarica Documenti (ZIP)')
+                    ->icon('heroicon-o-archive-box-arrow-down')
+                    ->color('gray')
+                    ->visible(fn (Audit $record) => filled($record->drive_folder_id))
+                    ->action(function (Audit $record) {
+                        try {
+                            $zipPath = (new GoogleDriveZipExporter)->exportFolderToZip(
+                                $record->drive_folder_id,
+                                'audit-'.$record->id.'.zip',
+                            );
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('Errore durante il download da Google Drive')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
+                        $fileName = 'Audit-'.($record->protocol_number ?: $record->id).'-'.now()->format('Y-m-d').'.zip';
+
+                        return response()->download($zipPath, $fileName)
+                            ->deleteFileAfterSend(true);
+                    }),
                 EditAction::make(),
             ])
             ->toolbarActions([

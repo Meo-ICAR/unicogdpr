@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AuditStatus;
+use App\Services\Drive\AuditDriveFolderProvisioner;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 
 class Audit extends Model
 {
@@ -34,6 +36,7 @@ class Audit extends Model
         'executed_at',
         'status',
         'protocol_number',
+        'drive_folder_id',
         'origin_type',
         'execution_method',
         'scope',
@@ -70,6 +73,23 @@ class Audit extends Model
             // Se non è già stato specificato un company_id, assegna la prima Company presente
             if (blank($audit->company_id)) {
                 $audit->company_id = Company::first()?->id;
+            }
+        });
+
+        // Crea/riusa la sottocartella Drive dedicata (FORNITORI|MANDATARIE
+        // /<nome>/AUDIT) e imposta drive_folder_id di conseguenza — solo per
+        // gli auditable di tipo fornitore/responsabile esterno o cliente/
+        // committente (vedi AuditDriveFolderProvisioner::resolveBucket()).
+        // Un errore Drive (credenziali mancanti, rete, ecc.) non deve far
+        // fallire la creazione dell'audit: viene solo loggato.
+        static::created(function (Audit $audit) {
+            try {
+                app(AuditDriveFolderProvisioner::class)->provision($audit);
+            } catch (\Throwable $e) {
+                Log::warning('Creazione cartella Drive per audit fallita', [
+                    'audit_id' => $audit->id,
+                    'error' => $e->getMessage(),
+                ]);
             }
         });
     }

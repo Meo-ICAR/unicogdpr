@@ -54,6 +54,20 @@ class AuditForm
                         TextInput::make('protocol_number')
                             ->label('Numero Protocollo')
                             ->maxLength(255),
+                        TextInput::make('drive_folder_id')
+                            ->label('Cartella Google Drive')
+                            ->helperText('Incolla il link della cartella Drive con la documentazione di questo audit, oppure il solo ID cartella.')
+                            ->placeholder('https://drive.google.com/drive/folders/...')
+                            ->maxLength(255)
+                            ->dehydrateStateUsing(function (?string $state): ?string {
+                                if (blank($state)) {
+                                    return null;
+                                }
+
+                                return preg_match('#/folders/([a-zA-Z0-9_-]+)#', $state, $matches)
+                                    ? $matches[1]
+                                    : trim($state);
+                            }),
                         TextInput::make('auditor_name')
                             ->label('Auditor')
                             ->maxLength(255),

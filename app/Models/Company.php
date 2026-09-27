@@ -37,6 +37,7 @@ class Company extends Model implements HasAvatar
     protected $fillable = [
         'name',
         'is_active',
+        'drive_folder_id',
         'vat_number',
         'tax_code',
         'address',
