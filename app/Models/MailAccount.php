@@ -15,6 +15,7 @@ class MailAccount extends Model
         'company_id', 'name', 'type', 'email_address',
         'auth_type', 'provider', 'imap_host', 'imap_port',
         'imap_encryption', 'imap_username', 'imap_password',
+        'smtp_host', 'smtp_port', 'smtp_encryption', 'smtp_username', 'smtp_password',
         'access_token', 'refresh_token', 'token_expires_at',
         'is_active', 'last_synced_at',
     ];
@@ -22,6 +23,8 @@ class MailAccount extends Model
     protected $casts = [
         'imap_port' => 'integer',
         'imap_password' => 'encrypted',
+        'smtp_port' => 'integer',
+        'smtp_password' => 'encrypted',
         'access_token' => 'encrypted',
         'refresh_token' => 'encrypted',
         'token_expires_at' => 'datetime',
@@ -44,5 +47,16 @@ class MailAccount extends Model
         }
 
         return $this->token_expires_at->subMinutes(5)->isPast();
+    }
+
+    /**
+     * True se la casella ha credenziali SMTP proprie per inviare come
+     * email_address, invece di ricadere sul mailer di default dell'app.
+     */
+    public function hasSmtpConfigured(): bool
+    {
+        return $this->auth_type === 'password'
+            && filled($this->smtp_host)
+            && filled($this->smtp_password);
     }
 }

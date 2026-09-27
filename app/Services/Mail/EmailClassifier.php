@@ -71,6 +71,10 @@ class EmailClassifier
             return EmailClassification::Bounce;
         }
 
+        if ($this->looksLikeMeetingInvite($email)) {
+            return EmailClassification::MeetingInvite;
+        }
+
         // L'ordine di $this->rules è significativo: le classi più specifiche vengono prima.
         foreach ($this->rules as $classValue => $patterns) {
             foreach ($patterns as $pattern) {
@@ -92,6 +96,11 @@ class EmailClassifier
         return str_contains(strtolower((string) $email->from_email), 'mailer-daemon')
             || str_contains(strtolower((string) $email->from_email), 'postmaster')
             || (bool) preg_match('/\b(delivery status notification|mancato recapito|undeliverable)\b/i', $haystack);
+    }
+
+    private function looksLikeMeetingInvite(IncomingEmail $email): bool
+    {
+        return (bool) preg_match('/^(invitation|invito):/i', trim((string) $email->subject));
     }
 
     private function looksLikeSpam(string $haystack): bool

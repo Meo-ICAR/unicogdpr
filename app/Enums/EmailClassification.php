@@ -20,6 +20,7 @@ enum EmailClassification: string implements HasColor, HasLabel
     case DsarPortability = 'dsar_portability';
     case DsarRestriction = 'dsar_restriction';
     case Complaint = 'complaint';
+    case MeetingInvite = 'meeting_invite';
     case Bounce = 'bounce';
     case Spam = 'spam';
     case Other = 'other';
@@ -56,6 +57,7 @@ enum EmailClassification: string implements HasColor, HasLabel
             self::DsarPortability => 'DSAR — Portabilità',
             self::DsarRestriction => 'DSAR — Limitazione',
             self::Complaint => 'Reclamo',
+            self::MeetingInvite => 'Invito a meeting',
             self::Bounce => 'Mancato recapito',
             self::Spam => 'Spam',
             self::Other => 'Da classificare',
@@ -66,6 +68,7 @@ enum EmailClassification: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Complaint => 'danger',
+            self::MeetingInvite => 'gray',
             self::Bounce => 'warning',
             self::Spam => 'gray',
             self::Other => 'gray',

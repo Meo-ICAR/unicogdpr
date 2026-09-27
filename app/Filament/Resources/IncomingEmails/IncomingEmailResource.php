@@ -4,17 +4,21 @@ namespace App\Filament\Resources\IncomingEmails;
 
 use App\Enums\ComplaintStatus;
 use App\Enums\DsarStatus;
+use App\Enums\EmailClassification;
 use App\Enums\ReceptionChannel;
 use App\Filament\Resources\IncomingEmails\Pages\ListIncomingEmails;
 use App\Filament\Resources\IncomingEmails\Pages\ViewIncomingEmail;
 use App\Filament\Resources\IncomingEmails\Schemas\IncomingEmailInfolist;
 use App\Filament\Resources\IncomingEmails\Tables\IncomingEmailsTable;
 use App\Filament\Traits\HasPlanAccess;
+use App\Mail\CalendarReplyMail;
 use App\Mail\InboxReplyMail;
 use App\Models\ComplaintRegistry;
 use App\Models\DataSubjectRequest;
 use App\Models\EmailTemplate;
 use App\Models\IncomingEmail;
+use App\Services\Mail\CalendarReplyBuilder;
+use App\Services\Mail\OutgoingMailerFactory;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
@@ -24,6 +28,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Mail;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class IncomingEmailResource extends Resource
 {
@@ -202,13 +207,19 @@ class IncomingEmailResource extends Resource
                         'subject' => $record->subject ?? '',
                     ]);
 
-                    Mail::to($record->from_email)->send(new InboxReplyMail(
+                    $mail = new InboxReplyMail(
                         renderedSubject: str_starts_with(mb_strtolower($rendered['subject']), 're:')
                             ? $rendered['subject']
                             : 'Re: '.($record->subject ?: $rendered['subject']),
                         renderedBodyHtml: $rendered['body_html'],
                         inReplyToMessageId: $record->message_id,
-                    ));
+                    );
+
+                    if ($record->mailAccount?->hasSmtpConfigured()) {
+                        (new OutgoingMailerFactory)->send($record->mailAccount, $record->from_email, $mail);
+                    } else {
+                        Mail::to($record->from_email)->send($mail);
+                    }
 
                     $record->update(['is_read' => true]);
 
@@ -220,6 +231,72 @@ class IncomingEmailResource extends Resource
                     Notification::make()->title('Risposta inviata')->success()->send();
                 }),
 
+            Action::make('confirmMeeting')
+                ->label('Rispondi all\'invito')
+                ->icon('heroicon-o-calendar-days')
+                ->color('success')
+                ->visible(fn (IncomingEmail $record) => $record->classification === EmailClassification::MeetingInvite
+                    && static::findIcsAttachment($record) !== null)
+                ->schema([
+                    Select::make('partstat')
+                        ->label('Risposta')
+                        ->required()
+                        ->default('ACCEPTED')
+                        ->options([
+                            'ACCEPTED' => 'Accetta',
+                            'DECLINED' => 'Rifiuta',
+                            'TENTATIVE' => 'Forse',
+                        ]),
+                ])
+                ->action(function (IncomingEmail $record, array $data): void {
+                    $ics = static::findIcsAttachment($record);
+
+                    if (! $ics) {
+                        Notification::make()->title('Nessun allegato .ics trovato')->danger()->send();
+
+                        return;
+                    }
+
+                    $attendeeEmail = $record->mailAccount?->email_address ?? $record->to[0]['email'] ?? null;
+
+                    if (! $attendeeEmail) {
+                        Notification::make()->title('Impossibile determinare l\'indirizzo del partecipante')->danger()->send();
+
+                        return;
+                    }
+
+                    $icsReply = (new CalendarReplyBuilder)->buildReply(
+                        originalIcs: $ics->getPath() ? file_get_contents($ics->getPath()) : '',
+                        attendeeEmail: $attendeeEmail,
+                        attendeeName: $record->company?->name,
+                        partstat: $data['partstat'],
+                    );
+
+                    $labels = ['ACCEPTED' => 'accettato', 'DECLINED' => 'rifiutato', 'TENTATIVE' => 'segnato come forse'];
+
+                    $mail = new CalendarReplyMail(
+                        renderedSubject: $labels[$data['partstat']].': '.($record->subject ?: ''),
+                        bodyText: ucfirst($labels[$data['partstat']])." l'invito \"{$record->subject}\".",
+                        icsReply: $icsReply,
+                        inReplyToMessageId: $record->message_id,
+                    );
+
+                    if ($record->mailAccount?->hasSmtpConfigured()) {
+                        (new OutgoingMailerFactory)->send($record->mailAccount, $record->from_email, $mail);
+                    } else {
+                        Mail::to($record->from_email)->send($mail);
+                    }
+
+                    $record->update(['is_read' => true]);
+
+                    activity('inbox')
+                        ->performedOn($record)
+                        ->withProperties(['partstat' => $data['partstat'], 'to' => $record->from_email])
+                        ->log('Risposta a invito meeting inviata dalla posta in arrivo');
+
+                    Notification::make()->title('Risposta all\'invito inviata')->success()->send();
+                }),
+
             Action::make('archive')
                 ->label('Archivia')
                 ->icon('heroicon-o-archive-box')
@@ -227,5 +304,12 @@ class IncomingEmailResource extends Resource
                 ->requiresConfirmation()
                 ->action(fn (IncomingEmail $record) => $record->delete()),
         ];
+    }
+
+    private static function findIcsAttachment(IncomingEmail $record): ?Media
+    {
+        return $record->getMedia('email_attachments')
+            ->first(fn (Media $media) => $media->mime_type === 'text/calendar'
+                || str_ends_with(strtolower($media->file_name), '.ics'));
     }
 }

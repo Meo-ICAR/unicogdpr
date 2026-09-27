@@ -50,6 +50,18 @@ class EmailClassifierTest extends TestCase
         );
     }
 
+    public function test_recognises_meeting_invite(): void
+    {
+        $this->assertSame(
+            EmailClassification::MeetingInvite,
+            $this->classify([
+                'subject' => 'Invitation: Allineamento DPO @ Fri Jul 31, 2026 10:30am - 11am (GMT+2)',
+                'body_text' => 'You have been invited to the following event.',
+                'from_email' => 'leandro@digitalrevgroup.com',
+            ])
+        );
+    }
+
     public function test_recognises_bounce_from_sender(): void
     {
         $this->assertSame(
