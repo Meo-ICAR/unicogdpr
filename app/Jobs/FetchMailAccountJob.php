@@ -19,6 +19,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Webklex\PHPIMAP\Attribute;
 
 /**
  * Scansiona una singola casella IMAP: archivia le email in incoming_emails,
@@ -96,7 +97,7 @@ class FetchMailAccountJob implements ShouldQueue
                 'references' => $references ?: null,
                 'thread_id' => IncomingEmail::deriveThreadId($references, $inReplyTo, $messageId),
                 'from_email' => $fromAddress,
-                'from_name' => $message->getFrom()[0]->personal ?? $fromAddress,
+                'from_name' => $message->getFrom()[0]->personal ?: $fromAddress,
                 'to' => $this->addresses($message->getTo()),
                 'cc' => $this->addresses($message->getCc()),
                 'subject' => $message->getSubject() ?: '(Senza Oggetto)',
@@ -281,11 +282,18 @@ class FetchMailAccountJob implements ShouldQueue
     }
 
     /**
-     * @param  array<int, object>  $addresses
+     * @param  Attribute|array<int, object>|null  $addresses  L'header To/Cc di
+     *                                                        Webklex\PHPIMAP è sempre un Attribute che racchiude uno o più indirizzi.
      * @return array<int, array{email:?string,name:?string}>
      */
-    private function addresses(array $addresses): array
+    private function addresses($addresses): array
     {
+        if ($addresses instanceof Attribute) {
+            $addresses = $addresses->all();
+        } elseif (! is_array($addresses)) {
+            $addresses = $addresses ? iterator_to_array($addresses) : [];
+        }
+
         return array_values(array_map(fn ($a) => [
             'email' => $a->mail ?? null,
             'name' => $a->personal ?? null,

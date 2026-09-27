@@ -45,6 +45,9 @@ class AuditChecklistItemForm
                 Toggle::make('is_mandatory')
                     ->label('Obbligatoria')
                     ->default(true),
+                Toggle::make('is_optional')
+                    ->label('Opzionale')
+                    ->default(false),
                 Toggle::make('is_active')
                     ->label('Attiva')
                     ->default(true),

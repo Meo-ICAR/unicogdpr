@@ -71,6 +71,10 @@ class EmailClassifier
             return EmailClassification::Bounce;
         }
 
+        if ($this->looksLikeProviderNotification($email)) {
+            return EmailClassification::ProviderNotification;
+        }
+
         if ($this->looksLikeMeetingInvite($email)) {
             return EmailClassification::MeetingInvite;
         }
@@ -96,6 +100,28 @@ class EmailClassifier
         return str_contains(strtolower((string) $email->from_email), 'mailer-daemon')
             || str_contains(strtolower((string) $email->from_email), 'postmaster')
             || (bool) preg_match('/\b(delivery status notification|mancato recapito|undeliverable)\b/i', $haystack);
+    }
+
+    /**
+     * Notifiche automatiche del provider di posta stesso (avvisi di sicurezza,
+     * accessi sospetti, comunicazioni di servizio Aruba/Google) — non sono
+     * corrispondenza sostanziale e vanno escluse dagli elenchi email.
+     */
+    private function looksLikeProviderNotification(IncomingEmail $email): bool
+    {
+        $from = strtolower((string) $email->from_email);
+
+        if (preg_match('/@(?:.*\.)?aruba\.it$/i', $from) || str_contains($from, 'staff.aruba.it')) {
+            return true;
+        }
+
+        if (preg_match('/@(?:accounts\.google\.com|google\.com)$/i', $from)
+            || str_contains($from, 'no-reply@accounts.google.com')
+            || str_contains($from, 'mail-noreply@google.com')) {
+            return true;
+        }
+
+        return false;
     }
 
     private function looksLikeMeetingInvite(IncomingEmail $email): bool

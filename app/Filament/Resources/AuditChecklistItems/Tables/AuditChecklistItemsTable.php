@@ -82,6 +82,9 @@ class AuditChecklistItemsTable
                 IconColumn::make('is_mandatory')
                     ->label('Obbligatoria')
                     ->boolean(),
+                IconColumn::make('is_optional')
+                    ->label('Opzionale')
+                    ->boolean(),
                 TextColumn::make('review_frequency_months')
                     ->label('Riverifica (mesi)')
                     ->sortable(),
@@ -128,6 +131,9 @@ class AuditChecklistItemsTable
                     ->searchable(),
                 TernaryFilter::make('is_mandatory')
                     ->label('Obbligatoria'),
+                TernaryFilter::make('is_optional')
+                    ->label('Opzionale')
+                    ->default(false),
                 TernaryFilter::make('is_active')
                     ->label('Attiva'),
             ])

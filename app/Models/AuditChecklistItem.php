@@ -26,6 +26,7 @@ class AuditChecklistItem extends Model
         'responsible_role',
         'review_frequency_months',
         'is_mandatory',
+        'is_optional',
         'sort_order',
         'is_active',
     ];
@@ -36,6 +37,7 @@ class AuditChecklistItem extends Model
             'category' => AuditChecklistCategory::class,
             'review_frequency_months' => 'integer',
             'is_mandatory' => 'boolean',
+            'is_optional' => 'boolean',
             'sort_order' => 'integer',
             'is_active' => 'boolean',
         ];

@@ -6,6 +6,7 @@ use App\Enums\DsarStatus;
 use App\Filament\Resources\DataSubjectRequests\DataSubjectRequestResource;
 use App\Filament\Widgets\Concerns\IsCollapsible;
 use App\Models\DataSubjectRequest;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -86,7 +87,8 @@ class DsarOverviewWidget extends BaseWidget
             ->filters([
                 SelectFilter::make('company_id')
                     ->label('Azienda')
-                    ->relationship('company', 'name'),
+                    ->relationship('company', 'name')
+                    ->default(fn (): ?string => Filament::getTenant()?->id),
                 SelectFilter::make('status')
                     ->label('Stato')
                     ->options(DsarStatus::options()),

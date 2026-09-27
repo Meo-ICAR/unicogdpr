@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CompanyLogoController;
 use App\Http\Controllers\Admin\DocumentSignedDownloadController;
 use App\Http\Controllers\BpmBridgeController;
 use App\Http\Controllers\CompanyPortal\DocumentDownloadController;
@@ -62,3 +63,10 @@ Route::get('/portale-documenti/{document}/download', DocumentDownloadController:
 Route::get('/admin-documenti/{document}/scarica', DocumentSignedDownloadController::class)
     ->middleware('signed')
     ->name('admin.document.signed-download');
+
+// Logo aziendale mostrato nello switcher tenant di Filament (vedi
+// Company::getFilamentAvatarUrl()): servito inline dietro autenticazione di
+// sessione, come gli altri download di Document.
+Route::get('/companies/{company}/logo', CompanyLogoController::class)
+    ->middleware('auth')
+    ->name('company.logo');

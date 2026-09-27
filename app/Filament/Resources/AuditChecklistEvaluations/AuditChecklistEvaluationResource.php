@@ -42,6 +42,8 @@ class AuditChecklistEvaluationResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Valutazioni Checklist';
 
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static ?int $navigationSort = 5;
 
     /**

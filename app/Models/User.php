@@ -66,14 +66,15 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         return true; // Il DPO accede a Filament
     }
 
-    // Restituisce tutte le aziende censite (il DPO le gestisce tutte)
+    // Restituisce tutte le aziende attive censite (il DPO le gestisce tutte,
+    // ma le aziende disattivate non compaiono nello switcher tenant).
     public function getTenants(Panel $panel): array|Collection
     {
         if ($panel->getId() === 'company-admin') {
-            return $this->companies;
+            return $this->companies()->where('is_active', true)->get();
         }
 
-        return Company::all();
+        return Company::where('is_active', true)->get();
     }
 
     public function canAccessTenant(Model $tenant): bool

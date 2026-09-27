@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\DataSubjectRequests\RelationManagers;
 
+use App\Filament\Exports\DynamicGroupExport;
 use App\Filament\Resources\ComplaintRegistries\ComplaintRegistryResource;
 use App\Models\ComplaintRegistry;
 use App\Models\DataSubjectRequest;
@@ -10,6 +11,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use pxlrbt\FilamentExcel\Actions\ExportAction;
 
 /**
  * Eventi del registro reclami (complaint_registry, connessione condivisa
@@ -69,6 +71,12 @@ class ComplaintEventsRelationManager extends RelationManager
                             ? ComplaintRegistryResource::getUrl('edit', ['record' => $firstEvent])
                             : null;
                     }),
+                ExportAction::make()
+                    ->exports([
+                        DynamicGroupExport::make(),
+                    ])
+                    ->label('Esporta Excel')
+                    ->color('success'),
             ])
             ->recordActions([]);
     }

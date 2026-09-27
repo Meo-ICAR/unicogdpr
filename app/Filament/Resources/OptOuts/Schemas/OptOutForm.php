@@ -24,7 +24,7 @@ class OptOutForm
                 // esplicitamente, preimpostato sul tenant corrente.
                 Select::make('company_id')
                     ->label('Azienda')
-                    ->options(fn (): array => Company::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->options(fn (): array => Company::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all())
                     ->default(fn (): ?string => Filament::getTenant()?->id)
                     ->searchable()
                     ->required(),

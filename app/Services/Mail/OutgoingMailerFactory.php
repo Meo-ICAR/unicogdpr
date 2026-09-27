@@ -36,7 +36,11 @@ class OutgoingMailerFactory
             'password' => $account->smtp_password,
         ]]);
 
-        $mailable->from($account->email_address, $account->name ?: $account->company?->name);
+        $fromName = $account->company?->name
+            ? "{$account->company->name} - DPO"
+            : ($account->name ?: 'DPO');
+
+        $mailable->from($account->email_address, $fromName);
 
         Mail::mailer($mailerName)->to($to)->send($mailable);
     }

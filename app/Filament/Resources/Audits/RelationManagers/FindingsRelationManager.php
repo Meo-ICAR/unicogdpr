@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Audits\RelationManagers;
 
 use App\Enums\FindingSeverity;
 use App\Enums\FindingStatus;
+use App\Filament\Exports\DynamicGroupExport;
 use App\Models\Remediation;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -23,6 +24,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use pxlrbt\FilamentExcel\Actions\ExportAction;
 
 /**
  * Piano di remediation strutturato: un rilievo/non conformità per riga,
@@ -183,6 +185,12 @@ class FindingsRelationManager extends RelationManager
 
                         return $data;
                     }),
+                ExportAction::make()
+                    ->exports([
+                        DynamicGroupExport::make(),
+                    ])
+                    ->label('Esporta Excel')
+                    ->color('success'),
             ])
             ->recordActions([
                 EditAction::make(),

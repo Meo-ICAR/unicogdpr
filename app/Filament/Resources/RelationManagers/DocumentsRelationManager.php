@@ -4,7 +4,22 @@ namespace App\Filament\Resources\RelationManagers;
 
 // use App\Filament\Traits\HasRelationPlanAccess;
 use App\Filament\Exports\DynamicGroupExport;
+use App\Filament\Resources\AuditChecklistEvaluations\AuditChecklistEvaluationResource;
+use App\Filament\Resources\Audits\AuditResource;
+use App\Filament\Resources\Branches\BranchResource;
+use App\Filament\Resources\ClientControllers\ClientControllerResource;
+use App\Filament\Resources\Clientis\ClientiResource;
+use App\Filament\Resources\Companies\CompanyResource;
+use App\Filament\Resources\ComplaintRegistries\ComplaintRegistryResource;
+use App\Filament\Resources\Employees\EmployeeResource;
+use App\Filament\Resources\ExternalProcessors\ExternalProcessorResource;
+use App\Filament\Resources\ProcessingActivities\ProcessingActivityResource;
+use App\Filament\Resources\SoftwareApplications\SoftwareApplicationResource;
+use App\Filament\Resources\TrainingCourses\TrainingCourseResource;
+use App\Filament\Resources\TrainingRecords\TrainingRecordResource;
+use App\Filament\Resources\Websites\WebsiteResource;
 use App\Models\Audit;
+use App\Models\Company;
 use App\Models\Document;
 use App\Models\DocumentType;
 use Filament\Actions\Action;
@@ -30,10 +45,14 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Google\Client as GoogleClient;
+use Google\Service\Drive as GoogleDrive;
 // CORRETTO
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use pxlrbt\FilamentExcel\Actions\ExportAction; // <-- Importa il trait
 
 class DocumentsRelationManager extends RelationManager
@@ -126,9 +145,49 @@ class DocumentsRelationManager extends RelationManager
         ]);
     }
 
+    /**
+     * Mappa documentable_type (morph map, vedi AppServiceProvider) => Resource
+     * Filament + etichetta leggibile, per la colonna "Riferimento" mostrata
+     * quando questa RelationManager è aperta da Company: lì il documento è
+     * scoped per company_id (non per documentable_type='company'), quindi
+     * ogni riga può riferirsi a un'entità diversa (dipendente, trattamento,
+     * audit, ecc.) e serve indicare a colpo d'occhio a cosa si riferisce.
+     *
+     * @return array<string, array{0: class-string|null, 1: \Closure}>
+     */
+    protected static function documentableResourceMap(): array
+    {
+        return [
+            'audit' => [AuditResource::class, fn (Model $m) => $m->protocol_number],
+            'audit_checklist_evaluation' => [AuditChecklistEvaluationResource::class, fn (Model $m) => $m->name],
+            'branch' => [BranchResource::class, fn (Model $m) => $m->name],
+            'client_controller' => [ClientControllerResource::class, fn (Model $m) => $m->name],
+            'cliente' => [ClientiResource::class, fn (Model $m) => $m->name],
+            'company' => [CompanyResource::class, fn (Model $m) => $m->name],
+            'complaint' => [ComplaintRegistryResource::class, fn (Model $m) => $m->protocol_number],
+            'employee' => [EmployeeResource::class, fn (Model $m) => $m->full_name],
+            'external_processor' => [ExternalProcessorResource::class, fn (Model $m) => $m->name],
+            'fornitore' => [null, fn (Model $m) => $m->name],
+            'processing_activity' => [ProcessingActivityResource::class, fn (Model $m) => $m->name],
+            'software_application' => [SoftwareApplicationResource::class, fn (Model $m) => $m->name],
+            'training_course' => [TrainingCourseResource::class, fn (Model $m) => $m->name],
+            'training_record' => [TrainingRecordResource::class, fn (Model $m) => $m->course_name],
+            'website' => [WebsiteResource::class, fn (Model $m) => $m->name],
+        ];
+    }
+
     public function table(Table $table): Table
     {
         return $table
+            // Da Company il documento è legato per company_id (colonna scalare
+            // sempre presente su Document), non per documentable_type='company':
+            // qui si vuole vedere TUTTI i documenti dell'azienda, a prescindere
+            // dall'entità specifica a cui sono realmente collegati. Dagli altri
+            // owner (Audit, AuditChecklistEvaluation, ecc.) resta invece il
+            // comportamento di default basato sulla relazione "documents()".
+            ->query(fn () => $this->getOwnerRecord() instanceof Company
+                ? Document::query()->where('company_id', $this->getOwnerRecord()->id)
+                : null)
             ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]))
@@ -145,7 +204,37 @@ class DocumentsRelationManager extends RelationManager
                     ->limit(60)
                     ->tooltip(fn (?string $state) => $state)
                     ->wrap()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->visible(fn () => ! $this->getOwnerRecord() instanceof Company),
+                TextColumn::make('riferimento')
+                    ->label('Riferimento')
+                    ->visible(fn () => $this->getOwnerRecord() instanceof Company)
+                    ->state(function (Document $record) {
+                        $target = $record->documentable;
+
+                        if (! $target) {
+                            return $record->documentable_type ? Str::headline($record->documentable_type) : '—';
+                        }
+
+                        [, $labelUsing] = static::documentableResourceMap()[$record->documentable_type] ?? [null, fn (Model $m) => $m->getKey()];
+
+                        return $labelUsing($target) ?: Str::headline($record->documentable_type);
+                    })
+                    ->url(function (Document $record) {
+                        $target = $record->documentable;
+
+                        if (! $target) {
+                            return null;
+                        }
+
+                        [$resourceClass] = static::documentableResourceMap()[$record->documentable_type] ?? [null, null];
+
+                        if (! $resourceClass) {
+                            return null;
+                        }
+
+                        return $resourceClass::getUrl('edit', ['record' => $target], tenant: $this->getOwnerRecord());
+                    }),
                 TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
@@ -208,6 +297,13 @@ class DocumentsRelationManager extends RelationManager
                         true: fn ($query) => $query->whereNotNull('expires_at')->where('expires_at', '<', now()),
                         false: fn ($query) => $query->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>=', now())),
                     ),
+                // Versioni superate (status = expired, es. V3 quando esiste
+                // già una V4 dello stesso documento): nascoste di default,
+                // ma disattivabile per consultarle comunque.
+                Filter::make('nascondi_scaduti')
+                    ->label('Nascondi versioni superate (status scaduto)')
+                    ->default()
+                    ->query(fn ($query) => $query->where('status', '!=', 'expired')),
                 TrashedFilter::make(),
             ])
             ->headerActions([
@@ -289,19 +385,8 @@ class DocumentsRelationManager extends RelationManager
                     ->label('Scarica')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('gray')
-                    ->visible(fn (Document $record) => $record->getFirstMedia('documents') !== null)
-                    ->action(function (Document $record) {
-                        $media = $record->getFirstMedia('documents');
-
-                        return response()->download($media->getPath(), $media->file_name);
-                    }),
-                Action::make('open_external_url')
-                    ->label('Apri link')
-                    ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->color('gray')
-                    ->visible(fn (Document $record) => $record->getFirstMedia('documents') === null && ! empty($record->document_url))
-                    ->url(fn (Document $record) => str_starts_with($record->document_url, 'http') ? $record->document_url : "https://{$record->document_url}")
-                    ->openUrlInNewTab(),
+                    ->visible(fn (Document $record) => $record->getFirstMedia('documents') !== null || ! empty($record->document_url))
+                    ->action(fn (Document $record) => static::downloadDocument($record)),
                 EditAction::make(),
                 /*
                 Action::make('renew')
@@ -377,5 +462,89 @@ class DocumentsRelationManager extends RelationManager
                 ]),
             ]);
 
+    }
+
+    protected static function downloadDocument(Document $record)
+    {
+        $media = $record->getFirstMedia('documents');
+
+        if ($media && file_exists($media->getPath())) {
+            return response()->download($media->getPath(), $media->file_name);
+        }
+
+        $driveFileId = static::extractGoogleDriveFileId($record->document_url);
+
+        if ($driveFileId) {
+            return static::downloadFromGoogleDrive($driveFileId, $record);
+        }
+
+        if (! empty($record->document_url)) {
+            $url = str_starts_with($record->document_url, 'http')
+                ? $record->document_url
+                : "https://{$record->document_url}";
+
+            return redirect()->away($url);
+        }
+
+        Notification::make()
+            ->title('File non trovato')
+            ->body('Il file allegato non è disponibile.')
+            ->danger()
+            ->send();
+    }
+
+    protected static function downloadFromGoogleDrive(string $fileId, Document $record)
+    {
+        $credentialsPath = storage_path('app/google-credentials.json');
+
+        if (! file_exists($credentialsPath)) {
+            Notification::make()
+                ->title('Impossibile scaricare da Google Drive')
+                ->body('Credenziali Google Drive non configurate.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $client = new GoogleClient;
+        $client->setAuthConfig($credentialsPath);
+        $client->addScope(GoogleDrive::DRIVE_READONLY);
+        $service = new GoogleDrive($client);
+
+        try {
+            $fileMeta = $service->files->get($fileId, ['fields' => 'name']);
+            $content = $service->files->get($fileId, ['alt' => 'media'])->getBody()->getContents();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Errore durante il download da Google Drive')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        return response()->streamDownload(
+            fn () => print ($content),
+            $fileMeta->getName() ?: $record->name,
+        );
+    }
+
+    protected static function extractGoogleDriveFileId(?string $url): ?string
+    {
+        if (! $url || ! str_contains($url, 'drive.google.com')) {
+            return null;
+        }
+
+        if (preg_match('/\/d\/([a-zA-Z0-9_-]+)/', $url, $matches)) {
+            return $matches[1];
+        }
+
+        if (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $url, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
     }
 }

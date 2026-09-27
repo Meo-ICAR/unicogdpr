@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\Anonymizable;
+use App\Enums\SmartWorkingMode;
 use App\Models\Concerns\UsesDefaultConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,7 @@ class Employee extends Model implements Anonymizable
 
     protected $fillable = [
         'company_id', 'user_id', 'employee_type_id', 'branch_id', 'coordinated_by_id',
+        'smart_working_mode',
         'first_name', 'last_name', 'tax_code', 'email', 'pec', 'phone', 'department',
         'job_title', 'is_active', 'oam_code', 'oam_at', 'oam_name', 'oam_dismissed_at',
         'ivass_code', 'numero_iscrizione_rui', 'supervisor_type',
@@ -33,6 +35,7 @@ class Employee extends Model implements Anonymizable
         'is_active' => 'boolean',
         'is_structure' => 'boolean',
         'is_ghost' => 'boolean',
+        'smart_working_mode' => SmartWorkingMode::class,
         'oam_at' => 'date',
         'oam_dismissed_at' => 'date',
         'hired_at' => 'date',

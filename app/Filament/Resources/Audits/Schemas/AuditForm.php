@@ -34,7 +34,8 @@ class AuditForm
                         MorphToSelect::make('auditable')
                             ->label('Soggetto Sottoposto ad Audit')
                             ->types([
-                                MorphToSelect\Type::make(Company::class)->titleAttribute('name')->label('Azienda'),
+                                MorphToSelect\Type::make(Company::class)->titleAttribute('name')->label('Azienda')
+                                    ->modifyOptionsQueryUsing(fn ($query) => $query->where('is_active', true)),
                                 MorphToSelect\Type::make(Employee::class)->titleAttribute('first_name')->label('Dipendente'),
                                 MorphToSelect\Type::make(Fornitore::class)->titleAttribute('name')->label('Fornitore'),
                                 MorphToSelect\Type::make(ExternalProcessor::class)->titleAttribute('name')->label('Responsabile Esterno'),

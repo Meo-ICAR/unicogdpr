@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AuditChecklistEvaluations\RelationManagers;
 
+use App\Filament\Exports\DynamicGroupExport;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
@@ -10,6 +11,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use pxlrbt\FilamentExcel\Actions\ExportAction;
 
 /**
  * Trattamenti aziendali (ProcessingActivity, registro Art. 30) coinvolti da
@@ -52,6 +54,12 @@ class ProcessingActivitiesRelationManager extends RelationManager
                         TextInput::make('note')
                             ->label('Nota'),
                     ]),
+                ExportAction::make()
+                    ->exports([
+                        DynamicGroupExport::make(),
+                    ])
+                    ->label('Esporta Excel')
+                    ->color('success'),
             ])
             ->recordActions([
                 EditAction::make(),

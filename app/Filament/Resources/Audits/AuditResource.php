@@ -6,6 +6,7 @@ use App\Filament\Resources\Audits\Pages\CreateAudit;
 use App\Filament\Resources\Audits\Pages\EditAudit;
 use App\Filament\Resources\Audits\Pages\ListAudits;
 use App\Filament\Resources\Audits\RelationManagers\AuditChecklistEvaluationsRelationManager;
+use App\Filament\Resources\Audits\RelationManagers\AuditChecklistItemsRelationManager;
 use App\Filament\Resources\Audits\RelationManagers\FindingsRelationManager;
 use App\Filament\Resources\Audits\Schemas\AuditForm;
 use App\Filament\Resources\Audits\Tables\AuditsTable;
@@ -56,6 +57,7 @@ class AuditResource extends Resource
     public static function getRelations(): array
     {
         return [
+            AuditChecklistItemsRelationManager::class,
             AuditChecklistEvaluationsRelationManager::class,
             FindingsRelationManager::class,
             DocumentsRelationManager::class,

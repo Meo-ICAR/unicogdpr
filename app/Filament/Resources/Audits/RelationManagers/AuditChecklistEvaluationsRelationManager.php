@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Audits\RelationManagers;
 
 use App\Enums\AuditChecklistGapStatus;
+use App\Filament\Exports\DynamicGroupExport;
 use App\Filament\Resources\AuditChecklistEvaluations\AuditChecklistEvaluationResource;
 use App\Filament\Resources\AuditChecklistEvaluations\Schemas\AuditChecklistEvaluationForm;
 use App\Models\Audit;
@@ -18,6 +19,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use pxlrbt\FilamentExcel\Actions\ExportAction;
 
 class AuditChecklistEvaluationsRelationManager extends RelationManager
 {
@@ -35,9 +37,7 @@ class AuditChecklistEvaluationsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('gap_status')
             ->columns([
-                TextColumn::make('checklistItem.category')
-                    ->label('Categoria')
-                    ->badge(),
+
                 TextColumn::make('checklistItem.title')
                     ->label('Voce di checklist')
                     ->wrap(),
@@ -91,6 +91,12 @@ class AuditChecklistEvaluationsRelationManager extends RelationManager
                             ->success()
                             ->send();
                     }),
+                ExportAction::make()
+                    ->exports([
+                        DynamicGroupExport::make(),
+                    ])
+                    ->label('Esporta Excel')
+                    ->color('success'),
             ])
             ->recordActions([
                 Action::make('open')

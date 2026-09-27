@@ -7,6 +7,7 @@ use App\Models\DataBreach;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Database\Eloquent\Builder;
 
 class BreachSlaWidget extends BaseWidget
 {
@@ -20,16 +21,30 @@ class BreachSlaWidget extends BaseWidget
 
     protected static ?string $heading = '🚨 SLA 72h Notifica Data Breach al Garante (Art. 33)';
 
+    public function isWidgetCollapsedByDefault(): bool
+    {
+        return true;
+    }
+
+    public function getWidgetBadge(): ?string
+    {
+        $count = $this->pendingNotificationsQuery()->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    protected function pendingNotificationsQuery(): Builder
+    {
+        return DataBreach::query()
+            ->where('is_notifiable_to_authority', true)
+            ->whereNull('authority_notified_at')
+            ->whereNotNull('discovered_at');
+    }
+
     public function table(Table $table): Table
     {
         return $table
-            ->query(
-                DataBreach::query()
-                    ->where('is_notifiable_to_authority', true)
-                    ->whereNull('authority_notified_at')
-                    ->whereNotNull('discovered_at')
-                    ->orderBy('discovered_at')
-            )
+            ->query($this->pendingNotificationsQuery()->orderBy('discovered_at'))
             ->emptyStateHeading('Nessuna notifica al Garante pendente')
             ->emptyStateDescription('Tutti gli incidenti notificabili sono stati gestiti entro i termini.')
             ->columns([

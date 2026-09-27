@@ -21,6 +21,18 @@ class HighRiskDpiaWidget extends BaseWidget
 
     protected static ?string $heading = '⚠️ Monitoraggio DPIA ad Alto Rischio (Art. 35 GDPR)';
 
+    public function isWidgetCollapsedByDefault(): bool
+    {
+        return true;
+    }
+
+    public function getWidgetBadge(): ?string
+    {
+        $count = Dpia::query()->where('status', '!=', 'completed')->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
     public function table(Table $table): Table
     {
         return $table

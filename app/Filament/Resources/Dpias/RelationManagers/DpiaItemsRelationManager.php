@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Dpias\RelationManagers;
 
+use App\Filament\Exports\DynamicGroupExport;
 use App\Filament\Traits\HasRelationPlanAccess;
+use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -10,6 +12,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use pxlrbt\FilamentExcel\Actions\ExportAction;
 
 class DpiaItemsRelationManager extends RelationManager
 {
@@ -57,6 +60,15 @@ class DpiaItemsRelationManager extends RelationManager
                 TextColumn::make('inherent_risk_score')->label('Inherent')->sortable(),
                 TextColumn::make('residual_risk_score')->label('Residual')->sortable(),
                 TextColumn::make('securityMeasure.name')->label('Misura'),
+            ])
+            ->headerActions([
+                CreateAction::make(),
+                ExportAction::make()
+                    ->exports([
+                        DynamicGroupExport::make(),
+                    ])
+                    ->label('Esporta Excel')
+                    ->color('success'),
             ]);
     }
 }

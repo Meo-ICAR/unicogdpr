@@ -32,6 +32,7 @@ class AuditChecklistEvaluation extends Model
         'gap_status',
         'gap_notes',
         'is_vendor_scope',
+        'is_optional',
         'verified_at',
         'next_review_at',
         'verified_by',
@@ -42,9 +43,23 @@ class AuditChecklistEvaluation extends Model
         return [
             'gap_status' => AuditChecklistGapStatus::class,
             'is_vendor_scope' => 'boolean',
+            'is_optional' => 'boolean',
             'verified_at' => 'date',
             'next_review_at' => 'date',
         ];
+    }
+
+    /**
+     * Titolo leggibile del record, usato come $recordTitleAttribute nella
+     * Resource (la tabella non ha un campo "nome" proprio: si compone da
+     * voce di checklist + audit di riferimento).
+     */
+    public function getNameAttribute(): string
+    {
+        $item = $this->checklistItem?->title ?? 'Voce checklist #'.$this->audit_checklist_item_id;
+        $audit = $this->audit?->auditable?->name ?? ('Audit #'.$this->audit_id);
+
+        return "{$item} — {$audit}";
     }
 
     public function audit(): BelongsTo

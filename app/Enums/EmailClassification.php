@@ -23,6 +23,7 @@ enum EmailClassification: string implements HasColor, HasLabel
     case MeetingInvite = 'meeting_invite';
     case Bounce = 'bounce';
     case Spam = 'spam';
+    case ProviderNotification = 'provider_notification';
     case Other = 'other';
 
     /**
@@ -60,6 +61,7 @@ enum EmailClassification: string implements HasColor, HasLabel
             self::MeetingInvite => 'Invito a meeting',
             self::Bounce => 'Mancato recapito',
             self::Spam => 'Spam',
+            self::ProviderNotification => 'Notifica del provider',
             self::Other => 'Da classificare',
         };
     }
@@ -71,6 +73,7 @@ enum EmailClassification: string implements HasColor, HasLabel
             self::MeetingInvite => 'gray',
             self::Bounce => 'warning',
             self::Spam => 'gray',
+            self::ProviderNotification => 'gray',
             self::Other => 'gray',
             default => 'info',
         };

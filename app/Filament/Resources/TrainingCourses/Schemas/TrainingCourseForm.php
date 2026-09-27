@@ -21,7 +21,7 @@ class TrainingCourseForm
                     ->schema([
                         Select::make('company_id')
                             ->label('Azienda')
-                            ->relationship('company', 'name')
+                            ->relationship('company', 'name', modifyQueryUsing: fn ($query) => $query->where('is_active', true))
                             ->searchable()
                             ->required(),
                         TextInput::make('name')

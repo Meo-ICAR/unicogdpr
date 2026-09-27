@@ -29,4 +29,19 @@ trait IsCollapsible
     {
         return static::$heading;
     }
+
+    public function isWidgetCollapsedByDefault(): bool
+    {
+        return false;
+    }
+
+    public function getWidgetBadge(): ?string
+    {
+        return null;
+    }
+
+    public function getWidgetBadgeColor(): string
+    {
+        return 'danger';
+    }
 }

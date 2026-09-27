@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\Employees\Schemas;
 
+use App\Enums\SmartWorkingMode;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class EmployeeForm
 {
@@ -53,6 +56,20 @@ class EmployeeForm
                             ->relationship('employeeType', 'name')
                             ->searchable()
                             ->preload(),
+                        Select::make('branch_id')
+                            ->label('Sede')
+                            ->relationship(
+                                'branch',
+                                'name',
+                                modifyQueryUsing: fn (Builder $query) => $query->where('company_id', Filament::getTenant()?->id),
+                            )
+                            ->searchable()
+                            ->preload(),
+                        Select::make('smart_working_mode')
+                            ->label('Smart Working')
+                            ->options(SmartWorkingMode::options())
+                            ->default(SmartWorkingMode::NonConcesso->value)
+                            ->required(),
                         TextInput::make('department')
                             ->label('Reparto / Area')
                             ->maxLength(255)

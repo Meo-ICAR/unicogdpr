@@ -131,6 +131,22 @@ class Audit extends Model
     }
 
     /**
+     * Relazione "finta": AuditChecklistItem è un catalogo globale sulla
+     * connessione di default, senza alcuna FK reale verso Audit (mysql_unicooam)
+     * — l'associazione vera passa sempre per AuditChecklistEvaluation
+     * (audit_checklist_item_id, riferimento debole). Questo metodo esiste
+     * solo perché Filament\RelationManager richiede una relazione Eloquent
+     * reale per risolvere il modello collegato (autorizzazioni, ecc.):
+     * la query effettiva della tabella viene sempre sovrascritta a mano in
+     * AuditChecklistItemsRelationManager::table(), quindi non viene mai
+     * eseguita così com'è.
+     */
+    public function checklistItemsCatalog(): HasMany
+    {
+        return $this->hasMany(AuditChecklistItem::class, 'id', 'id');
+    }
+
+    /**
      * Rilievi (non conformità) emersi da questo audit, ciascuno con
      * eventuale azione correttiva, scadenza e stato di risoluzione —
      * il piano di remediation strutturato riga per riga.

@@ -21,10 +21,13 @@ use App\Services\Mail\CalendarReplyBuilder;
 use App\Services\Mail\OutgoingMailerFactory;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Mail;
@@ -191,27 +194,54 @@ class IncomingEmailResource extends Resource
                 ->color('primary')
                 ->visible(fn (IncomingEmail $record) => filled($record->from_email))
                 ->schema([
+                    Toggle::make('use_template')
+                        ->label('Usa un template email')
+                        ->default(true)
+                        ->live(),
                     Select::make('email_template_id')
                         ->label('Template email')
                         ->required()
+                        ->visible(fn (Get $get) => $get('use_template'))
                         ->options(fn () => EmailTemplate::where('is_active', true)->pluck('name', 'id'))
                         ->helperText('Solo template attivi'),
+                    TextInput::make('subject')
+                        ->label('Oggetto')
+                        ->required()
+                        ->visible(fn (Get $get) => ! $get('use_template'))
+                        ->default(fn (IncomingEmail $record) => str_starts_with(mb_strtolower((string) $record->subject), 're:')
+                            ? $record->subject
+                            : 'Re: '.$record->subject),
+                    RichEditor::make('body_html')
+                        ->label('Messaggio')
+                        ->required()
+                        ->visible(fn (Get $get) => ! $get('use_template'))
+                        ->columnSpanFull(),
                 ])
                 ->action(function (IncomingEmail $record, array $data): void {
-                    $template = EmailTemplate::findOrFail($data['email_template_id']);
+                    if ($data['use_template']) {
+                        $template = EmailTemplate::findOrFail($data['email_template_id']);
 
-                    $rendered = $template->render([
-                        'requester_name' => $record->from_name ?: $record->from_email,
-                        'company_name' => $record->company?->name ?? config('app.name'),
-                        'received_at' => $record->received_at?->format('d/m/Y') ?? '-',
-                        'subject' => $record->subject ?? '',
-                    ]);
+                        $rendered = $template->render([
+                            'requester_name' => $record->from_name ?: $record->from_email,
+                            'company_name' => $record->company?->name ?? config('app.name'),
+                            'received_at' => $record->received_at?->format('d/m/Y') ?? '-',
+                            'subject' => $record->subject ?? '',
+                        ]);
+
+                        $renderedSubject = str_starts_with(mb_strtolower($rendered['subject']), 're:')
+                            ? $rendered['subject']
+                            : 'Re: '.($record->subject ?: $rendered['subject']);
+                        $renderedBodyHtml = $rendered['body_html'];
+                        $logProperties = ['template' => $template->name, 'to' => $record->from_email];
+                    } else {
+                        $renderedSubject = $data['subject'];
+                        $renderedBodyHtml = $data['body_html'];
+                        $logProperties = ['template' => null, 'to' => $record->from_email];
+                    }
 
                     $mail = new InboxReplyMail(
-                        renderedSubject: str_starts_with(mb_strtolower($rendered['subject']), 're:')
-                            ? $rendered['subject']
-                            : 'Re: '.($record->subject ?: $rendered['subject']),
-                        renderedBodyHtml: $rendered['body_html'],
+                        renderedSubject: $renderedSubject,
+                        renderedBodyHtml: $renderedBodyHtml,
                         inReplyToMessageId: $record->message_id,
                     );
 
@@ -225,7 +255,7 @@ class IncomingEmailResource extends Resource
 
                     activity('inbox')
                         ->performedOn($record)
-                        ->withProperties(['template' => $template->name, 'to' => $record->from_email])
+                        ->withProperties($logProperties)
                         ->log('Risposta inviata dalla posta in arrivo');
 
                     Notification::make()->title('Risposta inviata')->success()->send();

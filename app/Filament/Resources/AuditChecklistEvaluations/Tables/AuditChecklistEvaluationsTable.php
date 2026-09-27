@@ -43,6 +43,9 @@ class AuditChecklistEvaluationsTable
                     ->trueColor('warning')
                     ->falseColor('gray')
                     ->tooltip(fn (bool $state) => $state ? 'Vendor / sub-fornitore' : 'Interno (PALK/ECOM)'),
+                IconColumn::make('is_optional')
+                    ->label('Opzionale')
+                    ->boolean(),
                 TextColumn::make('externalProcessor.name')
                     ->label('Vendor'),
                 TextColumn::make('gap_status')
@@ -94,6 +97,9 @@ class AuditChecklistEvaluationsTable
                     ->placeholder('Tutti')
                     ->trueLabel('Vendor / sub-fornitore')
                     ->falseLabel('Interno (PALK/ECOM)'),
+                TernaryFilter::make('is_optional')
+                    ->label('Opzionale')
+                    ->default(false),
                 // Niente ->relationship('checklistItem', ...): stessa
                 // limitazione cross-connection del defaultSort qui sopra,
                 // whereHas/join non funzionano tra le due connessioni.

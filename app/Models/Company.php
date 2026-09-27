@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\UsesDefaultConnection;
+use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,9 +13,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class Company extends Model
+class Company extends Model implements HasAvatar
 {
     use HasFactory, HasUuids, UsesDefaultConnection;
+
+    /**
+     * docnumber convenzionale usato per riconoscere, tra i documents di una
+     * company, quello che rappresenta il logo aziendale mostrato nello
+     * switcher tenant di Filament (vedi getFilamentAvatarUrl()).
+     */
+    public const LOGO_DOCNUMBER = 'LOGO';
 
     protected static function booted(): void
     {
@@ -165,6 +173,34 @@ class Company extends Model
     public function documents(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');
+    }
+
+    /**
+     * Il Document (con relativo media allegato) che rappresenta il logo
+     * aziendale, se presente — riconosciuto per convenzione tramite
+     * docnumber = self::LOGO_DOCNUMBER, non un campo/collection dedicati.
+     */
+    public function logoDocument(): ?Document
+    {
+        return $this->documents()->where('docnumber', self::LOGO_DOCNUMBER)->latest()->first();
+    }
+
+    /**
+     * Mostra il logo aziendale (se caricato) nello switcher tenant di
+     * Filament. Il file resta sul disco privato del Document (nessuna
+     * eccezione "pubblica" per il logo): viene servito tramite una route
+     * autenticata dedicata, come già avviene per gli altri download di
+     * Document.
+     */
+    public function getFilamentAvatarUrl(): ?string
+    {
+        $document = $this->logoDocument();
+
+        if (! $document || ! $document->getFirstMedia('documents')) {
+            return null;
+        }
+
+        return route('company.logo', $this);
     }
 
     public function branches(): MorphMany

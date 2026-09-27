@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Employees\Tables;
 
+use App\Enums\SmartWorkingMode;
 use App\Filament\Concerns\HasNominaIncaricatoBulkActions;
 use App\Models\Employee;
 use App\Services\DocumentGeneratorService;
@@ -12,6 +13,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
@@ -43,15 +45,27 @@ class EmployeesTable
                     ->badge()
                     ->color('gray')
                     ->searchable(),
+                // Niente ->searchable(): Branch vive sulla connessione
+                // condivisa mysql_unicooam, Employee su quella di default —
+                // whereHas cross-connection non è eseguibile in una singola query.
+                TextColumn::make('branch.name')
+                    ->label('Sede')
+                    ->placeholder('—'),
                 TextColumn::make('job_title')
                     ->label('Mansione')
                     ->searchable(),
+                TextColumn::make('smart_working_mode')
+                    ->label('Smart Working')
+                    ->badge(),
                 TextColumn::make('hired_at')
                     ->label('Assunto il')
                     ->date('d/m/Y')
                     ->sortable(),
             ])
             ->filters([
+                SelectFilter::make('smart_working_mode')
+                    ->label('Smart Working')
+                    ->options(SmartWorkingMode::options()),
                 TrashedFilter::make(),
             ])
             ->recordActions([

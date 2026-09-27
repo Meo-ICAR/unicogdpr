@@ -55,6 +55,9 @@ class AuditChecklistEvaluationForm
                         Toggle::make('is_vendor_scope')
                             ->label('Gap attribuibile al vendor')
                             ->default(false),
+                        Toggle::make('is_optional')
+                            ->label('Opzionale')
+                            ->default(false),
                     ]),
 
                 Section::make('Documentazione ed Evidenze')

@@ -33,6 +33,8 @@ class AuditChecklistItemResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Checklist Audit Fornitori';
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static ?int $navigationSort = 9;
 
     /**
