@@ -297,6 +297,18 @@ class DocumentsRelationManager extends RelationManager
                         true: fn ($query) => $query->whereNotNull('expires_at')->where('expires_at', '<', now()),
                         false: fn ($query) => $query->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>=', now())),
                     ),
+                // document_url valorizzato = documento verificato/collegato
+                // a un file reale su Google Drive (vedi
+                // AuditChecklistEvaluation::documentsOnDrive()); vuoto =
+                // presente solo in locale/DB, senza riscontro su Drive.
+                TernaryFilter::make('on_drive')
+                    ->label('Riscontro su Drive')
+                    ->trueLabel('Solo con riscontro su Drive')
+                    ->falseLabel('Solo senza riscontro su Drive')
+                    ->queries(
+                        true: fn ($query) => $query->whereNotNull('document_url'),
+                        false: fn ($query) => $query->whereNull('document_url'),
+                    ),
                 // Versioni superate (status = expired, es. V3 quando esiste
                 // già una V4 dello stesso documento): nascoste di default,
                 // ma disattivabile per consultarle comunque.
