@@ -399,6 +399,68 @@ class DocumentsRelationManager extends RelationManager
                     ->color('gray')
                     ->visible(fn (Document $record) => $record->getFirstMedia('documents') !== null || ! empty($record->document_url))
                     ->action(fn (Document $record) => static::downloadDocument($record)),
+                // Riconciliazione di duplicati: spesso lo stesso documento
+                // esiste sia come riga "vuota" (creata a mano, senza
+                // document_url) sia come riga collegata a un file reale su
+                // Drive (es. dalla riscansione automatica). Questa azione
+                // fonde i campi valorizzati sulla riga con URL dentro quella
+                // senza URL (che resta quella "viva"), e scarta la riga con
+                // URL con un soft delete anziché tenerle entrambe.
+                Action::make('merge_with_drive_document')
+                    ->label('Abbina a documento con URL')
+                    ->icon('heroicon-o-link')
+                    ->color('info')
+                    ->visible(fn (Document $record) => blank($record->document_url))
+                    ->form([
+                        Select::make('target_document_id')
+                            ->label('Documento con URL da abbinare')
+                            ->options(fn (Document $record): array => Document::query()
+                                ->where('company_id', $record->company_id)
+                                ->whereNotNull('document_url')
+                                ->where('id', '!=', $record->id)
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->all())
+                            ->searchable()
+                            ->required(),
+                    ])
+                    ->action(function (Document $record, array $data): void {
+                        $target = Document::withoutGlobalScopes()->find($data['target_document_id']);
+
+                        if (! $target) {
+                            return;
+                        }
+
+                        // Riempie solo i campi ancora vuoti sulla riga che
+                        // resta, senza sovrascrivere quanto già compilato;
+                        // document_url/app_id/app_drive_id/source_app/
+                        // sync_status arrivano invece sempre dalla riga con
+                        // URL, perché è proprio lo scopo dell'abbinamento.
+                        foreach ($target->getFillable() as $field) {
+                            if (in_array($field, ['company_id', 'documentable_type', 'documentable_id'], true)) {
+                                continue;
+                            }
+
+                            if (blank($record->{$field}) && filled($target->{$field})) {
+                                $record->{$field} = $target->{$field};
+                            }
+                        }
+
+                        $record->document_url = $target->document_url;
+                        $record->app_id = $target->app_id;
+                        $record->app_drive_id = $target->app_drive_id;
+                        $record->source_app = $target->source_app;
+                        $record->sync_status = $target->sync_status;
+                        $record->save();
+
+                        $target->delete();
+
+                        Notification::make()
+                            ->title('Documenti abbinati')
+                            ->body("\"{$target->name}\" è stato fuso in questo documento ed eliminato (soft delete).")
+                            ->success()
+                            ->send();
+                    }),
                 EditAction::make(),
                 /*
                 Action::make('renew')
