@@ -2,11 +2,11 @@
 
 namespace App\Services\Drive;
 
+use App\Console\Commands\UploadToDrive;
 use App\Models\Company;
 use App\Models\Document;
 use Google\Client;
 use Google\Service\Drive;
-use Google\Service\Drive\DriveFile;
 use RuntimeException;
 use Throwable;
 
@@ -27,7 +27,7 @@ class DocumentDriveSync
 {
     private Drive $service;
 
-    public function __construct()
+    public function __construct(private readonly UploadToDrive $uploadToDrive)
     {
         $credentialsPath = storage_path('app/google-credentials.json');
 
@@ -79,16 +79,11 @@ class DocumentDriveSync
             }
 
             try {
-                $driveFile = $this->service->files->create(new DriveFile([
-                    'name' => $media->file_name,
-                    'parents' => [$company->drive_folder_id],
-                ]), [
-                    'data' => file_get_contents($media->getPath()),
-                    'mimeType' => $media->mime_type,
-                    'uploadType' => 'multipart',
-                    'fields' => 'id, webViewLink',
-                    'supportsAllDrives' => true,
-                ]);
+                $driveFile = $this->uploadToDrive->uploadFile(
+                    $media->getPath(),
+                    $company->drive_folder_id,
+                    $media->file_name,
+                );
 
                 $document->update([
                     'document_url' => $driveFile->getWebViewLink(),
