@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
-use Illuminate\Http\RedirectResponse;
+use App\Services\Drive\DocumentDriveSync;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -14,13 +15,16 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  * per il logo, protetto dalla stessa autenticazione di sessione del pannello.
  *
  * Lo storage locale non è condiviso tra ambienti (es. dev e produzione): se
- * il file fisico non è presente su questo server ma il Document risulta
- * sincronizzato su Google Drive (document_url), si effettua un redirect lì
- * invece di restituire 404.
+ * il file fisico non è presente su questo server ma il Document è
+ * sincronizzato su Google Drive (app_id), il contenuto viene scaricato al
+ * volo dal service account e servito come proxy. Non si fa un redirect al
+ * link Drive (document_url): è la pagina viewer HTML di Drive, non
+ * un'immagine diretta, e comunque richiederebbe che il file sia condiviso
+ * pubblicamente.
  */
 class CompanyLogoController extends Controller
 {
-    public function __invoke(Company $company): BinaryFileResponse|RedirectResponse
+    public function __invoke(Company $company, DocumentDriveSync $driveSync): BinaryFileResponse|Response
     {
         $document = $company->logoDocument();
         $media = $document?->getFirstMedia('documents');
@@ -33,8 +37,12 @@ class CompanyLogoController extends Controller
             ]);
         }
 
-        abort_if(blank($document->document_url), 404);
+        abort_if(blank($document->app_id), 404);
 
-        return redirect()->away($document->document_url);
+        $contents = $driveSync->downloadFileContents($document->app_id);
+
+        return response($contents, 200, [
+            'Content-Type' => $media->mime_type,
+        ]);
     }
 }

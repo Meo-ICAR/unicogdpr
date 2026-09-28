@@ -108,4 +108,17 @@ class DocumentDriveSync
 
         return $result;
     }
+
+    /**
+     * Scarica il contenuto binario di un file Drive (sola lettura: non
+     * richiede quota di storage, a differenza dell'upload). Usato per
+     * servire inline un file il cui Document punta a Drive ma la cui copia
+     * locale non è presente su questo ambiente (vedi CompanyLogoController).
+     */
+    public function downloadFileContents(string $fileId): string
+    {
+        $response = $this->service->files->get($fileId, ['alt' => 'media']);
+
+        return $response->getBody()->getContents();
+    }
 }
