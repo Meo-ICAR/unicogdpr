@@ -17,6 +17,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use pxlrbt\FilamentExcel\Actions\ExportAction;
@@ -36,6 +37,7 @@ class AuditChecklistEvaluationsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('gap_status')
+            ->modifyQueryUsing(fn ($query) => $query->withCount('documents'))
             ->columns([
 
                 TextColumn::make('checklistItem.title')
@@ -46,6 +48,15 @@ class AuditChecklistEvaluationsRelationManager extends RelationManager
                 TextColumn::make('gap_status')
                     ->label('Esito')
                     ->badge(),
+                ToggleColumn::make('is_optional')
+                    ->label('Opzionale')
+                    ->onColor('warning')
+                    ->offColor('danger'),
+                TextColumn::make('documents_count')
+                    ->label('Documenti')
+                    ->badge()
+                    ->color(fn (?int $state) => $state ? 'success' : 'gray')
+                    ->url(fn (AuditChecklistEvaluation $record) => AuditChecklistEvaluationResource::getUrl('edit', ['record' => $record]).'?relation=0'),
                 TextColumn::make('next_review_at')
                     ->label('Prossima riverifica')
                     ->date('d/m/Y')

@@ -90,6 +90,18 @@ class AuditChecklistEvaluation extends Model
     }
 
     /**
+     * Sottoinsieme di documents() che risultano effettivamente caricati su
+     * Google Drive (document_url valorizzato), a differenza del conteggio
+     * grezzo di documents() che include anche quelli presenti solo in
+     * locale/DB e non ancora sincronizzati. Utilizzabile con
+     * withCount('documentsOnDrive') nelle tabelle Filament.
+     */
+    public function documentsOnDrive(): MorphMany
+    {
+        return $this->documents()->whereNotNull('document_url');
+    }
+
+    /**
      * Trattamenti aziendali (ProcessingActivity, registro Art. 30) coinvolti
      * da questa voce di checklist, con il paragrafo/sezione del documento
      * citato pertinente per ciascuno. Riferimento debole lato
