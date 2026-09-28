@@ -13,6 +13,7 @@ class Holding extends Model
 
     protected $fillable = [
         'name',
+        'drive_folder_id',
         'vat_number',
         'tax_code',
         'address',

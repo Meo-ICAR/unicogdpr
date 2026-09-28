@@ -66,7 +66,7 @@ class CompanyForm
                         Toggle::make('is_active')
                             ->label('Cliente Attivo')
                             ->helperText('Disattiva per marcare come lead/prospect non ancora cliente')
-                            ->default(true),
+                            ->default(false),
 
                         Textarea::make('notes')
                             ->label('Note')

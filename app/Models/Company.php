@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\UsesDefaultConnection;
+use App\Services\Drive\CompanyDriveFolderProvisioner;
 use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -32,6 +33,20 @@ class Company extends Model implements HasAvatar
         // Dpia), dove un `orderBy('name')` non qualificato diventa ambiguo
         // se la tabella joinata ha anch'essa una colonna `name` (es. dpias).
         static::addGlobalScope('alphabetical', fn (Builder $query) => $query->orderBy('companies.name'));
+
+        // Le company nascono come lead/prospect (is_active = false di
+        // default): alla creazione si provisiona su Drive solo <company>/
+        // STARTUP. Quando is_active passa a true, si completano le
+        // rimanenti direttrici standard (vedi CompanyDriveFolderProvisioner).
+        static::created(function (Company $company) {
+            app(CompanyDriveFolderProvisioner::class)->provisionInitial($company);
+        });
+
+        static::updated(function (Company $company) {
+            if ($company->wasChanged('is_active') && $company->is_active) {
+                app(CompanyDriveFolderProvisioner::class)->provisionStandardFolders($company);
+            }
+        });
     }
 
     protected $fillable = [
