@@ -29,7 +29,7 @@ class PruneInbox extends Command
         $softDeletable = IncomingEmail::query()
             ->whereNull('deleted_at')
             ->whereNull('data_subject_request_id')
-            ->where('classification', '!=', EmailClassification::Complaint->value)
+            ->whereNotIn('classification', [EmailClassification::Complaint->value, EmailClassification::GdprRequest->value])
             ->where('received_at', '<', now()->subDays($retentionDays));
 
         $softCount = $softDeletable->count();

@@ -66,7 +66,13 @@ class IncomingEmailsTable
                     ->relationship('mailAccount', 'name'),
                 SelectFilter::make('classification')
                     ->label('Classe')
-                    ->options(EmailClassification::options()),
+                    ->multiple()
+                    ->options(EmailClassification::options())
+                    ->default(fn (): array => collect(EmailClassification::cases())
+                        ->reject(fn (EmailClassification $c): bool => in_array($c, [EmailClassification::Spam, EmailClassification::ProviderNotification], true))
+                        ->map(fn (EmailClassification $c): string => $c->value)
+                        ->values()
+                        ->all()),
                 Filter::make('unread')
                     ->label('Solo non lette')
                     ->toggle()

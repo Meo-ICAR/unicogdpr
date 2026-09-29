@@ -19,6 +19,7 @@ enum EmailClassification: string implements HasColor, HasLabel
     case DsarObjection = 'dsar_objection';
     case DsarPortability = 'dsar_portability';
     case DsarRestriction = 'dsar_restriction';
+    case GdprRequest = 'gdpr_request';
     case Complaint = 'complaint';
     case MeetingInvite = 'meeting_invite';
     case Bounce = 'bounce';
@@ -48,6 +49,15 @@ enum EmailClassification: string implements HasColor, HasLabel
         return $this->toDsarRequestType() !== null;
     }
 
+    /**
+     * True per le classi inerenti al GDPR (DSAR, istanze generiche, reclami):
+     * le relative email vanno archiviate su Drive in RECLAMI/<reclamante>.
+     */
+    public function isGdprRelated(): bool
+    {
+        return $this->isDsar() || in_array($this, [self::GdprRequest, self::Complaint], true);
+    }
+
     public function getLabel(): string
     {
         return match ($this) {
@@ -57,6 +67,7 @@ enum EmailClassification: string implements HasColor, HasLabel
             self::DsarObjection => 'DSAR — Opposizione',
             self::DsarPortability => 'DSAR — Portabilità',
             self::DsarRestriction => 'DSAR — Limitazione',
+            self::GdprRequest => 'GDPR — Istanza generica',
             self::Complaint => 'Reclamo',
             self::MeetingInvite => 'Invito a meeting',
             self::Bounce => 'Mancato recapito',

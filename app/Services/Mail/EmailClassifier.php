@@ -57,6 +57,16 @@ class EmailClassifier
             '/\bdiffida\b/iu',
             '/\bcomplaint\b/i',
         ],
+        // Riferimenti generici al GDPR senza una richiesta specifica (spesso
+        // il dettaglio è nell'allegato): ultima regola, dopo le più specifiche.
+        EmailClassification::GdprRequest->value => [
+            '/\bregolamento\s*(?:\(?ue\)?|europeo)?\s*(?:n\.?\s*)?(?:2016\/679|679\/2016)\b/iu',
+            '/\bgdpr\b/i',
+            '/\bd\.?\s*lgs\.?\s*(?:n\.?\s*)?196\/2003\b/iu',
+            '/\bcodice (?:in materia di )?protezione dei dati\b/iu',
+            '/\bistanza\b.{0,80}\b(?:privacy|dati personali)\b/iu',
+            '/\binteressato\b.{0,80}\b(?:dati personali|trattamento)\b/iu',
+        ],
     ];
 
     public function classify(IncomingEmail $email): EmailClassification

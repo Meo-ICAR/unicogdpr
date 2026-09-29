@@ -55,6 +55,11 @@ class FakeImapQuery
         return $this;
     }
 
+    public function since(mixed $date): self
+    {
+        return $this;
+    }
+
     public function get(): Collection
     {
         return collect($this->messages);

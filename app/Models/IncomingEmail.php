@@ -21,7 +21,7 @@ class IncomingEmail extends Model implements HasMedia
         'company_id', 'mail_account_id', 'message_id', 'in_reply_to', 'references',
         'thread_id', 'from_email', 'from_name', 'to', 'cc', 'subject',
         'body_text', 'body_html', 'received_at', 'is_read', 'classification',
-        'data_subject_request_id', 'complaint_registry_id',
+        'data_subject_request_id', 'complaint_registry_id', 'drive_folder_id',
     ];
 
     protected $casts = [

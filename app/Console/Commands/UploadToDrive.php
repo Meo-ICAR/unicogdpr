@@ -92,6 +92,7 @@ class UploadToDrive extends Command
                 'mimeType' => $mimeType,
                 'uploadType' => 'multipart',
                 'fields' => 'id, name, webViewLink',
+                'supportsAllDrives' => true,
             ]
         );
     }

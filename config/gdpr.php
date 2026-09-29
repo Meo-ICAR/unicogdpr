@@ -51,6 +51,8 @@ return [
     'fetch' => [
         'default_limit' => (int) env('GDPR_FETCH_LIMIT', 50),
         'queue' => env('GDPR_FETCH_QUEUE', 'mail'),
+        'initial_days' => (int) env('GDPR_FETCH_INITIAL_DAYS', 30),
+        'overlap_days' => (int) env('GDPR_FETCH_OVERLAP_DAYS', 2),
     ],
 
 ];

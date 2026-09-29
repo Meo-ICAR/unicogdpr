@@ -34,12 +34,18 @@ class FetchIncomingEmails extends Command
         foreach ($accounts as $account) {
             $job = new FetchMailAccountJob($account, $limit);
 
-            if ($this->option('sync')) {
-                dispatch_sync($job);
-                $this->line("Scansione eseguita: [{$account->name}] ({$account->email_address})");
-            } else {
+            if (! $this->option('sync')) {
                 dispatch($job);
                 $this->line("Accodata scansione: [{$account->name}] ({$account->email_address})");
+
+                continue;
+            }
+
+            try {
+                dispatch_sync($job);
+                $this->line("Scansione eseguita: [{$account->name}] ({$account->email_address})");
+            } catch (\Throwable $e) {
+                $this->error("Scansione fallita: [{$account->name}] ({$account->email_address}): ".mb_substr($e->getMessage(), 0, 200));
             }
         }
 

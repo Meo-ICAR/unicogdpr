@@ -38,6 +38,18 @@ class EmailClassifierTest extends TestCase
         );
     }
 
+    public function test_recognises_generic_gdpr_request_with_details_in_attachment(): void
+    {
+        $classification = $this->classify([
+            'subject' => 'Invio istanza ai sensi del Regolamento UE 2016/679 (GDPR)',
+            'body_text' => "Invio l'allegata richiesta presentata ai sensi del Regolamento UE 2016/679 (GDPR) e del D.Lgs. 196/2003.",
+            'from_email' => 'tizio@example.com',
+        ]);
+
+        $this->assertSame(EmailClassification::GdprRequest, $classification);
+        $this->assertTrue($classification->isGdprRelated());
+    }
+
     public function test_recognises_complaint(): void
     {
         $this->assertSame(

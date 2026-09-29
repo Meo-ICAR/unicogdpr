@@ -10,6 +10,7 @@ use App\Models\ComplaintRegistry;
 use App\Models\DataSubjectRequest;
 use App\Models\IncomingEmail;
 use App\Models\MailAccount;
+use App\Services\Drive\ComplaintEmailDriveArchiver;
 use App\Services\Mail\EmailClassifier;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -56,13 +57,24 @@ class FetchMailAccountJob implements ShouldQueue
         $client = $connections->make($account);
         $client->connect();
 
-        $messages = $client->getFolder('INBOX')->messages()->unseen()->get()->take($this->limit);
+        // Non ci si affida al flag "non letta": una mail già aperta altrove
+        // (webmail, altro client) verrebbe ignorata per sempre. Si scansiona
+        // una finestra di date e il dedup per message_id evita i doppioni.
+        $since = $account->last_synced_at
+            ? $account->last_synced_at->copy()->subDays(config('gdpr.fetch.overlap_days', 2))
+            : now()->subDays(config('gdpr.fetch.initial_days', 30));
+
+        $messages = $client->getFolder('INBOX')->messages()->since($since)->get();
 
         $imported = 0;
         $dsarCreated = 0;
         $complaintCreated = 0;
 
         foreach ($messages as $message) {
+            if ($imported >= $this->limit) {
+                break;
+            }
+
             $fromAddress = $message->getFrom()[0]->mail ?? null;
 
             if (! $fromAddress) {
@@ -78,8 +90,6 @@ class FetchMailAccountJob implements ShouldQueue
                 ->first();
 
             if ($existing) {
-                $message->setFlag('Seen');
-
                 continue;
             }
 
@@ -97,10 +107,10 @@ class FetchMailAccountJob implements ShouldQueue
                 'references' => $references ?: null,
                 'thread_id' => IncomingEmail::deriveThreadId($references, $inReplyTo, $messageId),
                 'from_email' => $fromAddress,
-                'from_name' => $message->getFrom()[0]->personal ?: $fromAddress,
+                'from_name' => mb_substr((string) ($message->getFrom()[0]->personal ?: $fromAddress), 0, 255),
                 'to' => $this->addresses($message->getTo()),
                 'cc' => $this->addresses($message->getCc()),
-                'subject' => $message->getSubject() ?: '(Senza Oggetto)',
+                'subject' => mb_substr((string) ($message->getSubject() ?: '(Senza Oggetto)'), 0, 255),
                 'body_text' => $message->getTextBody() ?: null,
                 'body_html' => $message->getHTMLBody() ?: null,
                 'received_at' => $this->messageDate($message),
@@ -170,6 +180,8 @@ class FetchMailAccountJob implements ShouldQueue
                 $complaintCreated++;
             }
 
+            $this->archiveOnDrive($email);
+
             $message->setFlag('Seen');
         }
 
@@ -182,6 +194,28 @@ class FetchMailAccountJob implements ShouldQueue
             'dsar_created' => $dsarCreated,
             'complaint_created' => $complaintCreated,
         ]);
+    }
+
+    /**
+     * Se Drive non è utilizzabile l'archiviatore salva in locale; un errore
+     * residuo non deve comunque bloccare l'import della casella. Si può
+     * ripetere con `php artisan emails:archive-drive {id}`.
+     */
+    private function archiveOnDrive(IncomingEmail $email): void
+    {
+        if (! $email->classification?->isGdprRelated()) {
+            return;
+        }
+
+        try {
+            app(ComplaintEmailDriveArchiver::class)->archive($email);
+        } catch (\Throwable $e) {
+            Log::warning('Archiviazione email su Drive fallita', [
+                'incoming_email_id' => $email->id,
+                'company_id' => $email->company_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function shouldCreateDsar(EmailClassification $classification): bool
@@ -270,15 +304,35 @@ class FetchMailAccountJob implements ShouldQueue
         }
 
         foreach ($message->getAttachments() as $attachment) {
-            $tmp = sys_get_temp_dir().'/'.uniqid('mail_att_').'_'.$attachment->getName();
+            $fileName = $this->safeAttachmentName((string) $attachment->getName());
+            $tmp = tempnam(sys_get_temp_dir(), 'mail_att_');
             file_put_contents($tmp, $attachment->getContent());
 
             $email->addMedia($tmp)
-                ->usingFileName($attachment->getName())
+                ->usingFileName($fileName)
                 ->toMediaCollection('email_attachments');
 
             @unlink($tmp);
         }
+    }
+
+    /**
+     * Decodifica il nome allegato MIME (=?UTF-8?Q?...?=), rimuove i separatori
+     * di percorso e lo accorcia mantenendo l'estensione.
+     */
+    private function safeAttachmentName(string $name): string
+    {
+        $decoded = trim(str_replace(['/', '\\', "\0"], '-', iconv_mime_decode($name, 0, 'UTF-8') ?: $name));
+
+        if ($decoded === '') {
+            return 'allegato';
+        }
+
+        $extension = pathinfo($decoded, PATHINFO_EXTENSION);
+        $extension = mb_strlen($extension) <= 10 ? $extension : '';
+        $base = mb_substr(pathinfo($decoded, PATHINFO_FILENAME), 0, 120);
+
+        return $extension !== '' ? $base.'.'.$extension : $base;
     }
 
     /**

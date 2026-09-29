@@ -84,6 +84,34 @@ class FetchMailAccountJobTest extends TestCase
         $this->assertNotNull($account->fresh()->last_synced_at);
     }
 
+    public function test_truncates_subject_longer_than_column_limit(): void
+    {
+        $account = MailAccount::factory()->create();
+
+        $this->bindImap([new FakeImapMessage(subject: str_repeat('a', 400), messageId: 'long-subject@example.com')]);
+
+        FetchMailAccountJob::dispatchSync($account);
+
+        $this->assertSame(255, mb_strlen(IncomingEmail::firstOrFail()->subject));
+    }
+
+    public function test_imports_messages_already_marked_as_read(): void
+    {
+        $account = MailAccount::factory()->create();
+        $message = new FakeImapMessage(
+            messageId: 'already-read@example.com',
+            attachments: [['name' => 'istanza.pdf', 'content' => 'pdf']],
+        );
+        $message->seen = true;
+
+        $this->bindImap([$message]);
+
+        FetchMailAccountJob::dispatchSync($account);
+
+        $email = IncomingEmail::where('message_id', 'already-read@example.com')->firstOrFail();
+        $this->assertCount(1, $email->getMedia('email_attachments'));
+    }
+
     public function test_second_run_is_idempotent(): void
     {
         $account = MailAccount::factory()->create();

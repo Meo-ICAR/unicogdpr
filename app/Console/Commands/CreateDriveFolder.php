@@ -58,6 +58,7 @@ class CreateDriveFolder extends Command
             // Creazione della cartella
             $folder = $driveService->files->create($fileMetadata, [
                 'fields' => 'id, name',
+                'supportsAllDrives' => true,
             ]);
 
             $this->info("Cartella '{$folder->getName()}' creata con successo!");
