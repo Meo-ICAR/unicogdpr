@@ -508,6 +508,12 @@ class DocumentsRelationManager extends RelationManager
                         ->requiresConfirmation()
                         ->modalHeading('Imposta data di emissione per i record selezionati')
                         ->modalSubmitActionLabel('Salva'),
+                    BulkAction::make('downloadSelected')
+                        ->label('Scarica selezionati')
+                        ->icon('heroicon-o-archive-box-arrow-down')
+                        ->color('gray')
+                        ->action(fn (Collection $records) => static::downloadSelectedAsZip($records))
+                        ->deselectRecordsAfterCompletion(),
                     BulkAction::make('setExpiredAt')
                         ->label('Imposta Data Scadenza')
                         ->icon('heroicon-o-calendar')
@@ -567,11 +573,159 @@ class DocumentsRelationManager extends RelationManager
             ->send();
     }
 
-    protected static function downloadFromGoogleDrive(string $fileId, Document $record)
+    /**
+     * Scarica in un unico file .zip i documenti selezionati nella tabella
+     * (file locali via Media Library, o file recuperati da Google Drive
+     * tramite document_url). Le voci senza un file recuperabile (es. link
+     * esterni non Drive) vengono escluse e segnalate in una notifica.
+     */
+    protected static function downloadSelectedAsZip(Collection $records)
+    {
+        $downloadDir = storage_path('app/tmp-downloads');
+
+        if (! is_dir($downloadDir)) {
+            mkdir($downloadDir, 0755, true);
+        }
+
+        $zipPath = $downloadDir.'/documenti-'.now()->format('Ymd-His').'-'.Str::random(6).'.zip';
+
+        $zip = new \ZipArchive;
+        $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+        $service = null;
+        $usedNames = [];
+        $skipped = [];
+
+        foreach ($records as $record) {
+            $media = $record->getFirstMedia('documents');
+
+            if ($media && file_exists($media->getPath())) {
+                $zip->addFile($media->getPath(), static::uniqueZipName($media->file_name, $usedNames));
+
+                continue;
+            }
+
+            $driveFileId = static::extractGoogleDriveFileId($record->document_url);
+            $fetched = null;
+
+            if ($driveFileId) {
+                $service ??= static::makeGoogleDriveService();
+                $fetched = $service ? static::fetchDriveFileBytes($service, $driveFileId) : null;
+            }
+
+            if ($fetched) {
+                $zip->addFromString(static::uniqueZipName($fetched['name'], $usedNames), $fetched['content']);
+
+                continue;
+            }
+
+            $skipped[] = $record->name ?: "Documento #{$record->id}";
+        }
+
+        $hasFiles = $zip->numFiles > 0;
+        $zip->close();
+
+        if (! $hasFiles) {
+            @unlink($zipPath);
+
+            Notification::make()
+                ->title('Nessun file scaricabile')
+                ->body('Nessuno dei documenti selezionati ha un file allegato o un link Drive valido.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        if (! empty($skipped)) {
+            Notification::make()
+                ->title('Alcuni documenti non sono stati inclusi nello zip')
+                ->body(implode(', ', $skipped))
+                ->warning()
+                ->send();
+        }
+
+        return response()->download($zipPath, 'documenti.zip')->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Evita collisioni di nomi file dentro lo zip (es. più documenti con lo
+     * stesso nome ma provenienti da voci di checklist diverse).
+     *
+     * @param  array<string, int>  $usedNames
+     */
+    protected static function uniqueZipName(string $name, array &$usedNames): string
+    {
+        $name = trim($name) ?: 'documento';
+
+        if (! isset($usedNames[$name])) {
+            $usedNames[$name] = 1;
+
+            return $name;
+        }
+
+        $usedNames[$name]++;
+        $extension = pathinfo($name, PATHINFO_EXTENSION);
+        $base = $extension ? substr($name, 0, -(strlen($extension) + 1)) : $name;
+
+        return $extension
+            ? "{$base} ({$usedNames[$name]}).{$extension}"
+            : "{$name} ({$usedNames[$name]})";
+    }
+
+    protected static function makeGoogleDriveService(): ?GoogleDrive
     {
         $credentialsPath = storage_path('app/google-credentials.json');
 
         if (! file_exists($credentialsPath)) {
+            return null;
+        }
+
+        $client = new GoogleClient;
+        $client->setAuthConfig($credentialsPath);
+        $client->addScope(GoogleDrive::DRIVE_READONLY);
+
+        return new GoogleDrive($client);
+    }
+
+    /**
+     * Recupera nome + contenuto binario di un file Drive. I file nativi
+     * Google (Documenti, Fogli, Presentazioni) non hanno contenuto binario
+     * proprio e vanno esportati in un formato scaricabile (PDF/XLSX).
+     *
+     * @return array{name: string, content: string}|null
+     */
+    protected static function fetchDriveFileBytes(GoogleDrive $service, string $fileId): ?array
+    {
+        $exportFormats = [
+            'application/vnd.google-apps.document' => ['application/pdf', 'pdf'],
+            'application/vnd.google-apps.spreadsheet' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'xlsx'],
+            'application/vnd.google-apps.presentation' => ['application/pdf', 'pdf'],
+        ];
+
+        try {
+            $meta = $service->files->get($fileId, ['fields' => 'name,mimeType']);
+
+            if (isset($exportFormats[$meta->getMimeType()])) {
+                [$exportMimeType, $extension] = $exportFormats[$meta->getMimeType()];
+                $content = $service->files->export($fileId, $exportMimeType, ['alt' => 'media'])->getBody()->getContents();
+                $name = Str::endsWith($meta->getName(), ".{$extension}") ? $meta->getName() : "{$meta->getName()}.{$extension}";
+            } else {
+                $content = $service->files->get($fileId, ['alt' => 'media'])->getBody()->getContents();
+                $name = $meta->getName();
+            }
+        } catch (\Exception) {
+            return null;
+        }
+
+        return ['name' => $name, 'content' => $content];
+    }
+
+    protected static function downloadFromGoogleDrive(string $fileId, Document $record)
+    {
+        $service = static::makeGoogleDriveService();
+
+        if (! $service) {
             Notification::make()
                 ->title('Impossibile scaricare da Google Drive')
                 ->body('Credenziali Google Drive non configurate.')
@@ -580,11 +734,6 @@ class DocumentsRelationManager extends RelationManager
 
             return;
         }
-
-        $client = new GoogleClient;
-        $client->setAuthConfig($credentialsPath);
-        $client->addScope(GoogleDrive::DRIVE_READONLY);
-        $service = new GoogleDrive($client);
 
         try {
             $fileMeta = $service->files->get($fileId, ['fields' => 'name']);
