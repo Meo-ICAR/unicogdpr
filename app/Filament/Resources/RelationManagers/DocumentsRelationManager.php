@@ -704,7 +704,26 @@ class DocumentsRelationManager extends RelationManager
         ];
 
         try {
-            $meta = $service->files->get($fileId, ['fields' => 'name,mimeType']);
+            $meta = $service->files->get($fileId, ['fields' => 'name,mimeType,shortcutDetails']);
+
+            // Molti document_url in questo sistema puntano a una scorciatoia
+            // Drive (creata da drive:create-shortcut) e non al file reale:
+            // una scorciatoia non ha contenuto proprio, va risolta al suo
+            // targetId prima di scaricare/esportare.
+            if ($meta->getMimeType() === 'application/vnd.google-apps.shortcut') {
+                $targetId = $meta->getShortcutDetails()?->getTargetId();
+
+                if (! $targetId) {
+                    return null;
+                }
+
+                $fileId = $targetId;
+                $meta = $service->files->get($fileId, ['fields' => 'name,mimeType']);
+            }
+
+            if ($meta->getMimeType() === 'application/vnd.google-apps.folder') {
+                return null;
+            }
 
             if (isset($exportFormats[$meta->getMimeType()])) {
                 [$exportMimeType, $extension] = $exportFormats[$meta->getMimeType()];
@@ -735,13 +754,12 @@ class DocumentsRelationManager extends RelationManager
             return;
         }
 
-        try {
-            $fileMeta = $service->files->get($fileId, ['fields' => 'name']);
-            $content = $service->files->get($fileId, ['alt' => 'media'])->getBody()->getContents();
-        } catch (\Exception $e) {
+        $file = static::fetchDriveFileBytes($service, $fileId);
+
+        if (! $file) {
             Notification::make()
                 ->title('Errore durante il download da Google Drive')
-                ->body($e->getMessage())
+                ->body('Il file non è stato trovato o non è accessibile.')
                 ->danger()
                 ->send();
 
@@ -749,14 +767,14 @@ class DocumentsRelationManager extends RelationManager
         }
 
         return response()->streamDownload(
-            fn () => print ($content),
-            $fileMeta->getName() ?: $record->name,
+            fn () => print ($file['content']),
+            $file['name'] ?: $record->name,
         );
     }
 
     protected static function extractGoogleDriveFileId(?string $url): ?string
     {
-        if (! $url || ! str_contains($url, 'drive.google.com')) {
+        if (! $url || ! (str_contains($url, 'drive.google.com') || str_contains($url, 'docs.google.com'))) {
             return null;
         }
 
