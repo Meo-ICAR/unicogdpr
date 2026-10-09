@@ -17,8 +17,6 @@ class Audit extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $connection = 'mysql_unicooam'; // Specifica la connessione al database "unicooam" per questo modello
-
     /**
      * Gli attributi assegnabili in massa (Mass Assignable).
      * In Laravel 13 si preferisce la notazione dei tipi in formato list.

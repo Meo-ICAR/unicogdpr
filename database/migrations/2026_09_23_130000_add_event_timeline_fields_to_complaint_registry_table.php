@@ -11,7 +11,6 @@ return new class extends Migration
      * (App\Models\ComplaintRegistry::$connection), non sulla connessione di
      * default di questa app.
      */
-    protected $connection = 'mysql_unicooam';
 
     /**
      * Trasforma complaint_registry da "una riga per reclamo" a "una riga per

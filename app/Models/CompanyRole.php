@@ -11,7 +11,6 @@ class CompanyRole extends Model
     use HasFactory;
 
     // Definisce esplicitamente la tabella
-    protected $connection = 'mysql_unicooam'; // Specifica la connessione al database "unicooam" per questo modello
 
     protected $table = 'company_roles';
 

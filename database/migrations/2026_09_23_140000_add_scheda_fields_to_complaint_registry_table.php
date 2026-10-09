@@ -11,7 +11,6 @@ return new class extends Migration
      * (App\Models\ComplaintRegistry::$connection), non sulla connessione di
      * default di questa app.
      */
-    protected $connection = 'mysql_unicooam';
 
     /**
      * Aggiunge i campi necessari a generare la "Scheda Pratica Transazionale"

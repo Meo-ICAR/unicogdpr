@@ -12,8 +12,6 @@ class SuspiciousActivityReport extends Model
 {
     use SoftDeletes;
 
-    protected $connection = 'mysql_unicooam'; // Specifica la connessione al database "unicooam" per questo modello
-
     /**
      * Il nome della tabella associata al modello.
      *

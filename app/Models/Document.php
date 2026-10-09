@@ -17,8 +17,6 @@ class Document extends Model implements HasMedia
 {
     use HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
 
-    protected $connection = 'mysql_unicooam';
-
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('documents')

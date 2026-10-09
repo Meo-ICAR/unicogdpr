@@ -21,8 +21,6 @@ class AuditChecklistEvaluation extends Model
 {
     use SoftDeletes;
 
-    protected $connection = 'mysql_unicooam';
-
     protected $fillable = [
         'audit_id',
         'audit_checklist_item_id',

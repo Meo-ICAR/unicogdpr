@@ -10,8 +10,6 @@ class Remediation extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $connection = 'mysql_unicooam'; // Specifica la connessione al database "unicooam" per questo modello
-
     protected $fillable = [
         'remediation_type',
         'name',

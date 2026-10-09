@@ -13,11 +13,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('ALTER TABLE companies ALTER COLUMN is_active SET DEFAULT 0');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE companies ALTER COLUMN is_active SET DEFAULT 0');
+        }
     }
 
     public function down(): void
     {
-        DB::statement('ALTER TABLE companies ALTER COLUMN is_active SET DEFAULT 1');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE companies ALTER COLUMN is_active SET DEFAULT 1');
+        }
     }
 };

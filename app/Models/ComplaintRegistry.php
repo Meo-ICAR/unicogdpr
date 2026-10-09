@@ -19,7 +19,6 @@ class ComplaintRegistry extends Model
     use SoftDeletes;
 
     // Specifica il nome corretto della tabella se diverso dal plurale standard di Laravel
-    protected $connection = 'mysql_unicooam'; // Specifica la connessione al database "unicooam" per questo modello
 
     protected $table = 'complaint_registry';
 

@@ -14,9 +14,7 @@ class Branch extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $connection = 'mysql_unicooam'; // Specifica la connessione al database "unicooam" per questo modello
-
-    protected $table = 'unicooam.branches';
+    protected $table = 'branches';
 
     protected $orderBy = 'name';
 

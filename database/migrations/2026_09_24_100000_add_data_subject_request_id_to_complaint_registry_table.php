@@ -10,7 +10,6 @@ return new class extends Migration
      * complaint_registry vive sulla connessione condivisa mysql_unicooam
      * (App\Models\ComplaintRegistry::$connection).
      */
-    protected $connection = 'mysql_unicooam';
 
     /**
      * DataSubjectRequest diventa il "master" del fascicolo: gli eventi del

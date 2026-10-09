@@ -18,8 +18,6 @@ return new class extends Migration
      * loro (stesso limite già presente per complaint_registry.company_id
      * verso le Company di questa app).
      */
-    protected $connection = 'mysql_unicooam';
-
     public function up(): void
     {
         if (Schema::hasTable('audit_checklist_evaluations')) {
