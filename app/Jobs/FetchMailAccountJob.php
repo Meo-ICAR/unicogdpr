@@ -306,13 +306,24 @@ class FetchMailAccountJob implements ShouldQueue
         foreach ($message->getAttachments() as $attachment) {
             $fileName = $this->safeAttachmentName((string) $attachment->getName());
             $tmp = tempnam(sys_get_temp_dir(), 'mail_att_');
-            file_put_contents($tmp, $attachment->getContent());
 
-            $email->addMedia($tmp)
-                ->usingFileName($fileName)
-                ->toMediaCollection('email_attachments');
+            try {
+                file_put_contents($tmp, $attachment->getContent());
 
-            @unlink($tmp);
+                $email->addMedia($tmp)
+                    ->usingFileName($fileName)
+                    ->toMediaCollection('email_attachments');
+            } catch (\Throwable $e) {
+                // Un allegato non archiviabile (es. oltre il limite di dimensione)
+                // non deve bloccare la scansione della casella: l'email resta salvata.
+                Log::warning('Allegato email non archiviato', [
+                    'incoming_email_id' => $email->id,
+                    'file' => $fileName,
+                    'error' => $e->getMessage(),
+                ]);
+            } finally {
+                @unlink($tmp);
+            }
         }
     }
 

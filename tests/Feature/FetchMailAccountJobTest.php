@@ -46,6 +46,34 @@ class FetchMailAccountJobTest extends TestCase
         $this->app->bind(ImapConnector::class, fn () => new FakeImapConnectionFactory($messages));
     }
 
+    public function test_skips_attachment_exceeding_size_limit_and_keeps_email(): void
+    {
+        config(['media-library.max_file_size' => 10]);
+
+        $account = MailAccount::factory()->create();
+
+        $this->bindImap([
+            new FakeImapMessage(
+                fromMail: 'fornitore@example.com',
+                subject: 'Preventivo servizi di pulizia',
+                textBody: 'In allegato il preventivo.',
+                messageId: 'big-attachment@example.com',
+                attachments: [['name' => 'grande.txt', 'content' => str_repeat('a', 100)]],
+            ),
+            new FakeImapMessage(
+                fromMail: 'altro@example.com',
+                subject: 'Seconda email',
+                textBody: 'Testo.',
+                messageId: 'after-big@example.com',
+            ),
+        ]);
+
+        FetchMailAccountJob::dispatchSync($account);
+
+        $this->assertSame(2, IncomingEmail::count());
+        $this->assertCount(0, IncomingEmail::where('message_id', 'big-attachment@example.com')->first()->getMedia('email_attachments'));
+    }
+
     public function test_archives_emails_and_creates_dsar_only_for_dsar_classes(): void
     {
         $account = MailAccount::factory()->create();
