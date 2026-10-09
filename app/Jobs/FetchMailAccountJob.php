@@ -110,7 +110,7 @@ class FetchMailAccountJob implements ShouldQueue
                 'from_name' => mb_substr((string) ($message->getFrom()[0]->personal ?: $fromAddress), 0, 255),
                 'to' => $this->addresses($message->getTo()),
                 'cc' => $this->addresses($message->getCc()),
-                'subject' => mb_substr((string) ($message->getSubject() ?: '(Senza Oggetto)'), 0, 255),
+                'subject' => mb_substr($this->decodeSubject((string) $message->getSubject()) ?: '(Senza Oggetto)', 0, 255),
                 'body_text' => $message->getTextBody() ?: null,
                 'body_html' => $message->getHTMLBody() ?: null,
                 'received_at' => $this->messageDate($message),
@@ -295,6 +295,14 @@ class FetchMailAccountJob implements ShouldQueue
         }
 
         return null;
+    }
+
+    /**
+     * Decodifica l'oggetto MIME (=?UTF-8?Q?...?=) rimasto in forma codificata.
+     */
+    private function decodeSubject(string $subject): string
+    {
+        return trim(@iconv_mime_decode($subject, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8') ?: $subject);
     }
 
     private function storeAttachments(object $message, IncomingEmail $email): void

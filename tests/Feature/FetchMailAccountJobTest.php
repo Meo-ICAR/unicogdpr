@@ -74,6 +74,28 @@ class FetchMailAccountJobTest extends TestCase
         $this->assertCount(0, IncomingEmail::where('message_id', 'big-attachment@example.com')->first()->getMedia('email_attachments'));
     }
 
+    public function test_subject_with_complain_opens_a_complaint_linked_to_the_email(): void
+    {
+        $account = MailAccount::factory()->create();
+
+        $this->bindImap([
+            new FakeImapMessage(
+                fromMail: 'marketing@example.com',
+                subject: 'R: Complain Depuratori - Utenza +39 3381480207 (Claudio Paveri)',
+                textBody: 'Trasmetto la ricevuta arrivata sul nostro CRM.',
+                messageId: 'complain-1@example.com',
+            ),
+        ]);
+
+        FetchMailAccountJob::dispatchSync($account);
+
+        $email = IncomingEmail::where('message_id', 'complain-1@example.com')->first();
+
+        $this->assertSame(EmailClassification::Complaint, $email->classification);
+        $this->assertNotNull($email->complaint_registry_id);
+        $this->assertSame(1, ComplaintRegistry::count());
+    }
+
     public function test_archives_emails_and_creates_dsar_only_for_dsar_classes(): void
     {
         $account = MailAccount::factory()->create();

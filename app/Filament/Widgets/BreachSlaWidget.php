@@ -52,10 +52,12 @@ class BreachSlaWidget extends BaseWidget
                     ->label('Incidente')
                     ->description(fn (DataBreach $r) => $r->company?->name)
                     ->weight('semibold')
-                    ->wrap(),
+                    ->wrap()
+                    ->sortable(),
                 TextColumn::make('severity')
                     ->label('Gravità')
                     ->badge()
+                    ->sortable()
                     ->color(fn (string $state) => match ($state) {
                         'high' => 'danger',
                         'medium' => 'warning',
@@ -66,9 +68,11 @@ class BreachSlaWidget extends BaseWidget
                     ->dateTime('d/m/Y H:i'),
                 TextColumn::make('authority_deadline')
                     ->label('Scadenza Garante (72h)')
-                    ->state(fn (DataBreach $r) => $r->authorityNotificationDeadline()?->format('d/m/Y H:i')),
+                    ->state(fn (DataBreach $r) => $r->authorityNotificationDeadline()?->format('d/m/Y H:i'))
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy('discovered_at', $direction)),
                 TextColumn::make('hours_left')
                     ->label('Tempo residuo')
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy('discovered_at', $direction))
                     ->state(fn (DataBreach $r) => $r->authorityNotificationDeadline()
                         ? now()->diffInHours($r->authorityNotificationDeadline(), false)
                         : null)

@@ -51,13 +51,16 @@ class DsarOverviewWidget extends BaseWidget
                     ->label('Richiedente')
                     ->description(fn (DataSubjectRequest $r) => $r->requester_email)
                     ->weight('semibold')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('company.name')
                     ->label('Azienda')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('request_type')
                     ->label('Tipo')
                     ->badge()
+                    ->sortable()
                     ->formatStateUsing(fn (string $state) => match ($state) {
                         'access' => 'Accesso',
                         'rectification' => 'Rettifica',
@@ -70,7 +73,8 @@ class DsarOverviewWidget extends BaseWidget
                     }),
                 TextColumn::make('status')
                     ->label('Stato')
-                    ->badge(),
+                    ->badge()
+                    ->sortable(),
                 TextColumn::make('received_at')
                     ->label('Ricevuta il')
                     ->date('d/m/Y')

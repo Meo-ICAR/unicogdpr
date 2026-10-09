@@ -483,4 +483,31 @@ class ComplaintAuditBranchResourcesTest extends TestCase
             ->get(route('filament.admin.resources.clientis.edit', ['tenant' => $company->id, 'record' => $cliente->id]))
             ->assertOk();
     }
+
+    public function test_audits_overview_widget_hides_closed_audits_by_default_and_sorts_most_recent_first(): void
+    {
+        $company = Company::factory()->create();
+
+        $make = fn (string $protocol, AuditStatus $status, string $date): Audit => Audit::withoutEvents(fn () => Audit::create([
+            'company_id' => $company->id,
+            'auditable_type' => 'company',
+            'auditable_id' => $company->id,
+            'protocol_number' => $protocol,
+            'status' => $status->value,
+            'scheduled_at' => $date,
+        ]));
+
+        $older = $make('AUDIT-OLD', AuditStatus::InProgress, '2026-01-10');
+        $recent = $make('AUDIT-RECENT', AuditStatus::FollowUp, '2026-09-10');
+        $completed = $make('AUDIT-DONE', AuditStatus::Completed, '2026-10-01');
+        $cancelled = $make('AUDIT-CANCELLED', AuditStatus::Cancelled, '2026-10-02');
+
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(AuditsOverviewWidget::class)
+            ->assertCanSeeTableRecords([$recent, $older], inOrder: true)
+            ->assertCanNotSeeTableRecords([$completed, $cancelled])
+            ->removeTableFilter('status')
+            ->assertCanSeeTableRecords([$cancelled, $completed, $recent, $older], inOrder: true);
+    }
 }

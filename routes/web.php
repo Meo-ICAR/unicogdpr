@@ -6,6 +6,7 @@ use App\Http\Controllers\BpmBridgeController;
 use App\Http\Controllers\CompanyPortal\DocumentDownloadController;
 use App\Http\Controllers\CompanyPortal\DpiaReportController;
 use App\Http\Controllers\GoogleDriveController;
+use App\Http\Controllers\IncomingEmailAttachmentController;
 use App\Http\Controllers\VendorAuditQuestionnaireController;
 use Illuminate\Support\Facades\Route;
 
@@ -63,6 +64,12 @@ Route::get('/portale-documenti/{document}/download', DocumentDownloadController:
 Route::get('/admin-documenti/{document}/scarica', DocumentSignedDownloadController::class)
     ->middleware('signed')
     ->name('admin.document.signed-download');
+
+// Allegati delle email in arrivo (disco privato): visualizzazione inline o
+// download, solo per utenti autenticati (vedi IncomingEmailInfolist).
+Route::get('/posta-allegati/{media}', IncomingEmailAttachmentController::class)
+    ->middleware('auth')
+    ->name('incoming-email.attachment');
 
 // Logo aziendale mostrato nello switcher tenant di Filament (vedi
 // Company::getFilamentAvatarUrl()): servito inline dietro autenticazione di

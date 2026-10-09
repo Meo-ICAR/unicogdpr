@@ -21,41 +21,41 @@ class EmailClassifier
             '/\bcancellazion\w*\b/iu',
             '/\bdiritto all[\'’ ]oblio\b/iu',
             '/\bright to be forgotten\b/i',
-            '/\bart\.?\s*17\b/i',
+            '/\bart\.?\s*17\b(?![.,]\d)/i',
         ],
         EmailClassification::DsarPortability->value => [
             '/\bportabilit\w*\b/iu',
             '/\bdata portability\b/i',
-            '/\bart\.?\s*20\b/i',
+            '/\bart\.?\s*20\b(?![.,]\d)/i',
         ],
         EmailClassification::DsarRectification->value => [
             '/\brettific\w*\b/iu',
             '/\bcorrezione dei (miei )?dati\b/iu',
             '/\brectification\b/i',
-            '/\bart\.?\s*16\b/i',
+            '/\bart\.?\s*16\b(?![.,]\d)/i',
         ],
         EmailClassification::DsarRestriction->value => [
             '/\blimitazione del trattamento\b/iu',
             '/\brestriction of processing\b/i',
-            '/\bart\.?\s*18\b/i',
+            '/\bart\.?\s*18\b(?![.,]\d)/i',
         ],
         EmailClassification::DsarObjection->value => [
             '/\boppos\w* al trattamento\b/iu',
             '/\bmi oppongo\b/iu',
             '/\bobjection to processing\b/i',
-            '/\bart\.?\s*21\b/i',
+            '/\bart\.?\s*21\b(?![.,]\d)/i',
         ],
         EmailClassification::DsarAccess->value => [
             '/\baccesso ai (miei )?dati\b/iu',
             '/\bcopia dei (miei )?dati\b/iu',
             '/\bsubject access request\b/i',
-            '/\bart\.?\s*15\b/i',
+            '/\bart\.?\s*15\b(?![.,]\d)/i',
         ],
         EmailClassification::Complaint->value => [
             '/\breclamo\b/iu',
             '/\bgarante (per la )?protezione dei dati\b/iu',
             '/\bdiffida\b/iu',
-            '/\bcomplaint\b/i',
+            '/\bcomplain(?:t|ts)?\b/i',
         ],
         // Riferimenti generici al GDPR senza una richiesta specifica (spesso
         // il dettaglio è nell'allegato): ultima regola, dopo le più specifiche.
@@ -67,11 +67,23 @@ class EmailClassifier
             '/\bistanza\b.{0,80}\b(?:privacy|dati personali)\b/iu',
             '/\binteressato\b.{0,80}\b(?:dati personali|trattamento)\b/iu',
         ],
+        // Richieste di call/videocall/riunione: ultima regola, così un reclamo
+        // o un'istanza che cita "call center" o una chiamata subita resta tale.
+        EmailClassification::CallRequest->value => [
+            '/\bvide[oe]\s?call\w*\b/iu',
+            '/\bvideochiamat\w*\b/iu',
+            '/\b(?:una|la|alla|per la|di una)\s+call\b(?!\s*cent)/iu',
+            '/\bcall\s+(?:interna?|internos|conference|di allineamento|di coordinamento)\b/iu',
+            '/\b(?:google\s+meet|meet\.google\.com|teams\.microsoft\.com|zoom\.us)\b/iu',
+            '/\briunione\b/iu',
+            '/\bdisponibilit\w*\s+(?:per\s+)?(?:una\s+)?(?:call|chiamata|incontro|riunione)\b/iu',
+        ],
     ];
 
     public function classify(IncomingEmail $email): EmailClassification
     {
-        $haystack = trim(($email->subject ?? '').' '.strip_tags($email->body_text ?: $email->body_html ?? ''));
+        $subject = @iconv_mime_decode((string) $email->subject, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8') ?: (string) $email->subject;
+        $haystack = trim($subject.' '.strip_tags($email->body_text ?: $email->body_html ?? ''));
 
         if ($haystack === '') {
             return EmailClassification::Other;
@@ -81,7 +93,7 @@ class EmailClassifier
             return EmailClassification::Bounce;
         }
 
-        if ($this->looksLikeProviderNotification($email)) {
+        if ($this->looksLikeProviderNotification($email, $haystack)) {
             return EmailClassification::ProviderNotification;
         }
 
@@ -107,31 +119,38 @@ class EmailClassifier
 
     private function looksLikeBounce(IncomingEmail $email, string $haystack): bool
     {
-        return str_contains(strtolower((string) $email->from_email), 'mailer-daemon')
-            || str_contains(strtolower((string) $email->from_email), 'postmaster')
-            || (bool) preg_match('/\b(delivery status notification|mancato recapito|undeliverable)\b/i', $haystack);
+        $from = strtolower((string) $email->from_email);
+
+        // Un postmaster scrive anche avvisi di servizio (es. benvenuto del
+        // provider): è un mancato recapito solo se il testo lo dice.
+        return str_contains($from, 'mailer-daemon')
+            || (bool) preg_match(
+                '/\b(delivery status notification|delivery has failed|mail delivery failed|undeliver\w*|returned mail|failure notice|mancato recapito|non recapitat\w*|impossibile recapitare)\b/iu',
+                $haystack,
+            );
     }
 
     /**
      * Notifiche automatiche del provider di posta stesso (avvisi di sicurezza,
-     * accessi sospetti, comunicazioni di servizio Aruba/Google) — non sono
-     * corrispondenza sostanziale e vanno escluse dagli elenchi email.
+     * accessi sospetti, comunicazioni di servizio Aruba/Google/Microsoft/OVH…,
+     * messaggi del postmaster) — non sono corrispondenza sostanziale e vanno
+     * escluse dagli elenchi email.
      */
-    private function looksLikeProviderNotification(IncomingEmail $email): bool
+    private function looksLikeProviderNotification(IncomingEmail $email, string $haystack): bool
     {
         $from = strtolower((string) $email->from_email);
 
-        if (preg_match('/@(?:.*\.)?aruba\.it$/i', $from) || str_contains($from, 'staff.aruba.it')) {
+        if (preg_match('/@(?:[a-z0-9-]+\.)*(?:aruba\.it|aruba\.com|arubapec\.it|google\.com|googlemail\.com|microsoft\.com|microsoftonline\.com|office365\.com|ovh\.(?:com|net|it)|register\.it|godaddy\.com|ionos\.(?:com|it)|zoho\.com|hostinger\.com|apple\.com)$/', $from)) {
             return true;
         }
 
-        if (preg_match('/@(?:accounts\.google\.com|google\.com)$/i', $from)
-            || str_contains($from, 'no-reply@accounts.google.com')
-            || str_contains($from, 'mail-noreply@google.com')) {
-            return true;
-        }
+        $local = strstr($from, '@', true) ?: $from;
+        $isAutomatedSender = (bool) preg_match('/^(?:postmaster|no-?reply|do-?not-?reply|notifications?|notifiche|mailer|comunicazioni)\b/', $local);
 
-        return false;
+        return $isAutomatedSender && (
+            $local === 'postmaster'
+            || preg_match('/\b(?:configurazione della casella|casella di posta|webmail|spazio della casella|quota della casella|rinnovo del servizio|scadenza del servizio|avviso di sicurezza|verifica in due passaggi|mailbox)\b/iu', $haystack)
+        );
     }
 
     private function looksLikeMeetingInvite(IncomingEmail $email): bool

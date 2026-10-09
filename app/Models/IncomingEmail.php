@@ -84,6 +84,28 @@ class IncomingEmail extends Model implements HasMedia
             ->orderBy('received_at');
     }
 
+    /**
+     * Corpo HTML pronto da mostrare: senza head, stili, script e immagini
+     * (così aprire l'email non carica risorse esterne né pixel di tracciamento).
+     * Il risultato va comunque sanificato dal componente che lo visualizza.
+     */
+    public function displayHtml(): ?string
+    {
+        $html = trim((string) $this->body_html);
+
+        if ($html === '') {
+            return null;
+        }
+
+        $html = preg_replace(
+            ['#<head\b.*?</head>#is', '#<(style|script|title)\b.*?</\1>#is', '#<img\b[^>]*>#i'],
+            ['', '', ''],
+            $html,
+        ) ?? $html;
+
+        return trim($html) !== '' ? $html : null;
+    }
+
     public function scopeUnread(Builder $query): Builder
     {
         return $query->where('is_read', false);

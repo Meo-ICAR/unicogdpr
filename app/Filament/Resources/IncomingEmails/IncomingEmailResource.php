@@ -21,15 +21,18 @@ use App\Services\Mail\CalendarReplyBuilder;
 use App\Services\Mail\OutgoingMailerFactory;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -80,6 +83,97 @@ class IncomingEmailResource extends Resource
     }
 
     /**
+     * Oggetto e corpo di un template compilati con i dati dell'email a cui si
+     * risponde. L'oggetto riprende quello originale ("Re: ...") se il
+     * template non lo è già.
+     *
+     * @return array{subject: string, body_html: string}
+     */
+    public static function renderReplyTemplate(IncomingEmail $record, EmailTemplate $template): array
+    {
+        $rendered = $template->render([
+            'requester_name' => $record->from_name ?: $record->from_email,
+            'company_name' => $record->company?->name ?? config('app.name'),
+            'received_at' => $record->received_at?->format('d/m/Y') ?? '-',
+            'subject' => $record->subject ?? '',
+            'dpo_email' => $record->mailAccount?->email_address ?? '',
+        ]);
+
+        return [
+            'subject' => str_starts_with(mb_strtolower($rendered['subject']), 're:')
+                ? $rendered['subject']
+                : 'Re: '.($record->subject ?: $rendered['subject']),
+            'body_html' => $rendered['body_html'],
+        ];
+    }
+
+    /**
+     * Query sulle email di tutte le aziende: Filament applica a ogni modello
+     * di risorsa uno scope globale sul tenant corrente, che qui va rimosso.
+     *
+     * @return Builder<IncomingEmail>
+     */
+    public static function queryAcrossTenants(): Builder
+    {
+        $query = IncomingEmail::query();
+        $panel = Filament::getCurrentPanel();
+
+        return $panel ? $query->withoutGlobalScope($panel->getTenancyScopeName()) : $query;
+    }
+
+    /**
+     * Azione di massa "Segna come lette", condivisa tra la tabella della posta
+     * in arrivo e il widget della dashboard.
+     */
+    public static function markAsReadBulkAction(): BulkAction
+    {
+        return BulkAction::make('markAsRead')
+            ->label('Segna come lette')
+            ->icon('heroicon-o-envelope-open')
+            ->color('gray')
+            ->requiresConfirmation()
+            ->deselectRecordsAfterCompletion()
+            ->action(function (Collection $records): void {
+                $count = static::queryAcrossTenants()
+                    ->whereKey($records->modelKeys())
+                    ->where('is_read', false)
+                    ->update(['is_read' => true]);
+
+                Notification::make()
+                    ->title($count === 1 ? '1 email segnata come letta' : "{$count} email segnate come lette")
+                    ->success()
+                    ->send();
+            });
+    }
+
+    /**
+     * Azione di massa "Segna come non pertinenti": classifica le email come
+     * "Non pertinente" (escluse di default dalle liste) e le segna come lette.
+     */
+    public static function markAsNotRelevantBulkAction(): BulkAction
+    {
+        return BulkAction::make('markAsNotRelevant')
+            ->label('Segna come non pertinenti')
+            ->icon('heroicon-o-no-symbol')
+            ->color('gray')
+            ->requiresConfirmation()
+            ->deselectRecordsAfterCompletion()
+            ->action(function (Collection $records): void {
+                $count = static::queryAcrossTenants()
+                    ->whereKey($records->modelKeys())
+                    ->update([
+                        'classification' => EmailClassification::NotRelevant->value,
+                        'is_read' => true,
+                    ]);
+
+                Notification::make()
+                    ->title($count === 1 ? '1 email segnata come non pertinente' : "{$count} email segnate come non pertinenti")
+                    ->success()
+                    ->send();
+            });
+    }
+
+    /**
      * Azioni riusabili da tabella e pagina di dettaglio.
      *
      * @return array<int, Action>
@@ -87,6 +181,19 @@ class IncomingEmailResource extends Resource
     public static function rowActions(): array
     {
         return [
+            Action::make('markNotRelevant')
+                ->label('Non pertinente')
+                ->icon('heroicon-o-no-symbol')
+                ->color('gray')
+                ->visible(fn (IncomingEmail $record) => $record->classification !== EmailClassification::NotRelevant)
+                ->requiresConfirmation()
+                ->modalDescription('L\'email viene classificata come non pertinente e nascosta di default dalle liste.')
+                ->action(function (IncomingEmail $record): void {
+                    $record->update(['classification' => EmailClassification::NotRelevant, 'is_read' => true]);
+
+                    Notification::make()->title('Email segnata come non pertinente')->success()->send();
+                }),
+
             Action::make('toggleRead')
                 ->label(fn (IncomingEmail $record) => $record->is_read ? 'Segna non letta' : 'Segna letta')
                 ->icon('heroicon-o-check-circle')
@@ -193,51 +300,45 @@ class IncomingEmailResource extends Resource
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('primary')
                 ->visible(fn (IncomingEmail $record) => filled($record->from_email))
+                ->fillForm(fn (IncomingEmail $record): array => [
+                    'subject' => str_starts_with(mb_strtolower((string) $record->subject), 're:')
+                        ? $record->subject
+                        : 'Re: '.$record->subject,
+                    'body_html' => '',
+                ])
                 ->schema([
-                    Toggle::make('use_template')
-                        ->label('Usa un template email')
-                        ->default(true)
-                        ->live(),
                     Select::make('email_template_id')
-                        ->label('Template email')
-                        ->required()
-                        ->visible(fn (Get $get) => $get('use_template'))
-                        ->options(fn () => EmailTemplate::where('is_active', true)->pluck('name', 'id'))
-                        ->helperText('Solo template attivi'),
+                        ->label('Template email (opzionale)')
+                        ->placeholder('Nessun template: scrivi il messaggio')
+                        ->options(fn () => EmailTemplate::where('is_active', true)->orderBy('name')->pluck('name', 'id'))
+                        ->searchable()
+                        ->live()
+                        ->afterStateUpdated(function (?string $state, Set $set, IncomingEmail $record): void {
+                            $template = $state ? EmailTemplate::find($state) : null;
+
+                            if (! $template) {
+                                return;
+                            }
+
+                            $rendered = static::renderReplyTemplate($record, $template);
+
+                            $set('subject', $rendered['subject']);
+                            $set('body_html', $rendered['body_html']);
+                        })
+                        ->helperText('Il template compila oggetto e messaggio: puoi modificarli prima dell\'invio.'),
                     TextInput::make('subject')
                         ->label('Oggetto')
-                        ->required()
-                        ->visible(fn (Get $get) => ! $get('use_template'))
-                        ->default(fn (IncomingEmail $record) => str_starts_with(mb_strtolower((string) $record->subject), 're:')
-                            ? $record->subject
-                            : 'Re: '.$record->subject),
+                        ->required(),
                     RichEditor::make('body_html')
                         ->label('Messaggio')
                         ->required()
-                        ->visible(fn (Get $get) => ! $get('use_template'))
                         ->columnSpanFull(),
                 ])
                 ->action(function (IncomingEmail $record, array $data): void {
-                    if ($data['use_template']) {
-                        $template = EmailTemplate::findOrFail($data['email_template_id']);
-
-                        $rendered = $template->render([
-                            'requester_name' => $record->from_name ?: $record->from_email,
-                            'company_name' => $record->company?->name ?? config('app.name'),
-                            'received_at' => $record->received_at?->format('d/m/Y') ?? '-',
-                            'subject' => $record->subject ?? '',
-                        ]);
-
-                        $renderedSubject = str_starts_with(mb_strtolower($rendered['subject']), 're:')
-                            ? $rendered['subject']
-                            : 'Re: '.($record->subject ?: $rendered['subject']);
-                        $renderedBodyHtml = $rendered['body_html'];
-                        $logProperties = ['template' => $template->name, 'to' => $record->from_email];
-                    } else {
-                        $renderedSubject = $data['subject'];
-                        $renderedBodyHtml = $data['body_html'];
-                        $logProperties = ['template' => null, 'to' => $record->from_email];
-                    }
+                    $renderedSubject = $data['subject'];
+                    $renderedBodyHtml = $data['body_html'];
+                    $template = filled($data['email_template_id'] ?? null) ? EmailTemplate::find($data['email_template_id']) : null;
+                    $logProperties = ['template' => $template?->name, 'to' => $record->from_email];
 
                     $mail = new InboxReplyMail(
                         renderedSubject: $renderedSubject,

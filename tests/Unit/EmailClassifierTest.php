@@ -97,4 +97,112 @@ class EmailClassifierTest extends TestCase
             ])
         );
     }
+
+    public function test_recognises_call_request_even_with_encoded_subject(): void
+    {
+        $this->assertSame(
+            EmailClassification::CallRequest,
+            $this->classify([
+                'subject' => '=?UTF-8?Q?Re=3A_Luned=C3=AC_31_agosto_videocall_per_Privacy?=',
+                'body_text' => 'Lunedì ore 10:30 call interna per discutere del caso.',
+                'from_email' => 'amministrazione@example.com',
+            ])
+        );
+
+        $this->assertSame(
+            EmailClassification::CallRequest,
+            $this->classify([
+                'subject' => 'Disponibilità',
+                'body_text' => 'Sareste disponibili per una call domani? Creo il meet e lo condivido.',
+                'from_email' => 'tizio@example.com',
+            ])
+        );
+    }
+
+    public function test_complaint_mentioning_call_center_is_not_a_call_request(): void
+    {
+        $this->assertSame(
+            EmailClassification::Complaint,
+            $this->classify([
+                'subject' => 'Reclamo per chiamate indesiderate',
+                'body_text' => 'Sono stato contattato da un call center senza consenso.',
+                'from_email' => 'tizio@example.com',
+            ])
+        );
+
+        $this->assertSame(
+            EmailClassification::Other,
+            $this->classify([
+                'subject' => 'Info',
+                'body_text' => 'Il call center ha contattato il numero indicato.',
+                'from_email' => 'tizio@example.com',
+            ])
+        );
+    }
+
+    public function test_postmaster_service_message_is_a_provider_notification_not_a_bounce(): void
+    {
+        $this->assertSame(
+            EmailClassification::ProviderNotification,
+            $this->classify([
+                'subject' => 'Consigli per l\'utilizzo e la configurazione della casella di posta',
+                'body_text' => 'Configurare e utilizzare la casella di posta Aruba tramite Webmail.',
+                'from_email' => 'postmaster@phoenix2value.it',
+            ])
+        );
+    }
+
+    public function test_real_delivery_failures_are_still_bounces(): void
+    {
+        $this->assertSame(
+            EmailClassification::Bounce,
+            $this->classify([
+                'subject' => 'Undelivered Mail Returned to Sender',
+                'body_text' => 'Il messaggio non è stato recapitato.',
+                'from_email' => 'postmaster@phoenix2value.it',
+            ])
+        );
+
+        $this->assertSame(
+            EmailClassification::Bounce,
+            $this->classify([
+                'subject' => 'Mail delivery failed',
+                'body_text' => 'The following address failed.',
+                'from_email' => 'MAILER-DAEMON@mail.example.com',
+            ])
+        );
+    }
+
+    public function test_recognises_other_providers_as_notifications(): void
+    {
+        $this->assertSame(
+            EmailClassification::ProviderNotification,
+            $this->classify([
+                'subject' => 'Il tuo dominio sta per scadere',
+                'body_text' => 'Rinnova il servizio.',
+                'from_email' => 'noreply@ovh.net',
+            ])
+        );
+
+        $this->assertSame(
+            EmailClassification::ProviderNotification,
+            $this->classify([
+                'subject' => 'Microsoft account security info',
+                'body_text' => 'Sign-in activity.',
+                'from_email' => 'account-security-noreply@accountprotection.microsoft.com',
+            ])
+        );
+    }
+
+    public function test_contract_article_numbers_are_not_gdpr_articles(): void
+    {
+        $this->assertSame(
+            EmailClassification::Other,
+            $this->classify([
+                'subject' => 'Re: Contestazione di inadempimento ex art. 16.2 del Contratto',
+                'body_text' => 'Facciamo riferimento alla Vostra comunicazione relativa al contratto di appalto.',
+                'from_email' => 'amministrazione@example.com',
+            ])
+        );
+    }
 }

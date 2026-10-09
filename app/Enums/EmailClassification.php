@@ -22,6 +22,8 @@ enum EmailClassification: string implements HasColor, HasLabel
     case GdprRequest = 'gdpr_request';
     case Complaint = 'complaint';
     case MeetingInvite = 'meeting_invite';
+    case CallRequest = 'call_request';
+    case NotRelevant = 'not_relevant';
     case Bounce = 'bounce';
     case Spam = 'spam';
     case ProviderNotification = 'provider_notification';
@@ -70,6 +72,8 @@ enum EmailClassification: string implements HasColor, HasLabel
             self::GdprRequest => 'GDPR — Istanza generica',
             self::Complaint => 'Reclamo',
             self::MeetingInvite => 'Invito a meeting',
+            self::CallRequest => 'Richiesta di call',
+            self::NotRelevant => 'Non pertinente',
             self::Bounce => 'Mancato recapito',
             self::Spam => 'Spam',
             self::ProviderNotification => 'Notifica del provider',
@@ -85,6 +89,7 @@ enum EmailClassification: string implements HasColor, HasLabel
             self::Bounce => 'warning',
             self::Spam => 'gray',
             self::ProviderNotification => 'gray',
+            self::NotRelevant => 'gray',
             self::Other => 'gray',
             default => 'info',
         };

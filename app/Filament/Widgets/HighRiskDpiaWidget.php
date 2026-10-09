@@ -4,10 +4,13 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Widgets\Concerns\IsCollapsible;
 use App\Models\Dpia;
+use App\Models\DpiaItem;
+use App\Models\ProcessingActivity;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Database\Eloquent\Builder;
 
 class HighRiskDpiaWidget extends BaseWidget
 {
@@ -45,15 +48,21 @@ class HighRiskDpiaWidget extends BaseWidget
                 TextColumn::make('name')
                     ->label('Valutazione d\'Impatto')
                     ->weight('bold')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('processing_activity')
                     ->label('Trattamento Correlato')
                     ->state(fn (Dpia $record) => $record->processingActivity?->name
                         ?? 'Non specificato')
                     ->badge()
-                    ->color('info'),
+                    ->color('info')
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy(
+                        ProcessingActivity::query()->select('name')->whereColumn('processing_activities.id', 'dpias.processing_activity_id'),
+                        $direction,
+                    )),
                 BadgeColumn::make('status')
                     ->label('Stato')
+                    ->sortable()
                     ->colors([
                         'warning' => 'draft',
                         'info' => 'under_review',
@@ -68,11 +77,16 @@ class HighRiskDpiaWidget extends BaseWidget
                 TextColumn::make('items_count')
                     ->label('N° Rischi')
                     ->counts('items')
+                    ->sortable()
                     ->badge()
                     ->color('gray'),
                 TextColumn::make('max_risk')
                     ->label('Rischio Massimo (P×G)')
                     ->state(fn (Dpia $record): int => (int) $record->items->max('inherent_risk_score'))
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy(
+                        DpiaItem::query()->selectRaw('max(inherent_risk_score)')->whereColumn('dpia_items.dpia_id', 'dpias.id'),
+                        $direction,
+                    ))
                     ->badge()
                     ->colors([
                         'success' => fn ($state): bool => $state < 10,

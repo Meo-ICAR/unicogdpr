@@ -5,6 +5,7 @@ namespace App\Filament\Resources\IncomingEmails\Tables;
 use App\Enums\EmailClassification;
 use App\Filament\Resources\IncomingEmails\IncomingEmailResource;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -21,6 +22,22 @@ class IncomingEmailsTable
         return $table
             ->defaultSort('received_at', 'desc')
             ->columns([
+                TextColumn::make('received_at')
+                    ->label('Ricevuta il')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
+                TextColumn::make('classification')
+                    ->label('Classe')
+                    ->badge()
+                    ->sortable(),
+                TextColumn::make('company.name')
+                    ->label('Azienda')
+                    ->sortable(),
+                TextColumn::make('subject')
+                    ->label('Oggetto')
+                    ->limit(60)
+                    ->searchable()
+                    ->weight(fn ($record) => $record->is_read ? null : 'semibold'),
                 IconColumn::make('is_read')
                     ->label('')
                     ->boolean()
@@ -32,14 +49,6 @@ class IncomingEmailsTable
                     ->description(fn ($record) => $record->from_email)
                     ->searchable(['from_name', 'from_email'])
                     ->sortable(),
-                TextColumn::make('subject')
-                    ->label('Oggetto')
-                    ->limit(60)
-                    ->searchable()
-                    ->weight(fn ($record) => $record->is_read ? null : 'semibold'),
-                TextColumn::make('classification')
-                    ->label('Classe')
-                    ->badge(),
                 TextColumn::make('mailAccount.name')
                     ->label('Casella')
                     ->toggleable(),
@@ -55,10 +64,6 @@ class IncomingEmailsTable
                     ->trueIcon('heroicon-o-exclamation-triangle')
                     ->falseIcon('heroicon-o-minus')
                     ->falseColor('gray'),
-                TextColumn::make('received_at')
-                    ->label('Ricevuta')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
             ])
             ->filters([
                 SelectFilter::make('mail_account_id')
@@ -69,7 +74,7 @@ class IncomingEmailsTable
                     ->multiple()
                     ->options(EmailClassification::options())
                     ->default(fn (): array => collect(EmailClassification::cases())
-                        ->reject(fn (EmailClassification $c): bool => in_array($c, [EmailClassification::Spam, EmailClassification::ProviderNotification], true))
+                        ->reject(fn (EmailClassification $c): bool => in_array($c, [EmailClassification::Spam, EmailClassification::ProviderNotification, EmailClassification::NotRelevant], true))
                         ->map(fn (EmailClassification $c): string => $c->value)
                         ->values()
                         ->all()),
@@ -90,6 +95,12 @@ class IncomingEmailsTable
             ->recordActions([
                 ViewAction::make(),
                 ActionGroup::make(IncomingEmailResource::rowActions()),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    IncomingEmailResource::markAsReadBulkAction(),
+                    IncomingEmailResource::markAsNotRelevantBulkAction(),
+                ]),
             ]);
     }
 }
