@@ -13,6 +13,7 @@ use App\Models\MailAccount;
 use App\Services\Drive\ComplaintEmailDriveArchiver;
 use App\Services\Mail\EmailClassifier;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -50,7 +51,24 @@ class FetchMailAccountJob implements ShouldQueue
         return [(new WithoutOverlapping('mail-account:'.$this->account->getKey()))->dontRelease()];
     }
 
+    /**
+     * Lanciato dal pannello (sincronizzazione manuale) Filament assegnerebbe
+     * a ogni record creato il tenant corrente, sovrascrivendo il company_id
+     * della casella: la scansione gira quindi senza tenant.
+     */
     public function handle(ImapConnector $connections, EmailClassifier $classifier): void
+    {
+        $previousTenant = Filament::getTenant();
+        Filament::setTenant(null, isQuiet: true);
+
+        try {
+            $this->fetch($connections, $classifier);
+        } finally {
+            Filament::setTenant($previousTenant, isQuiet: true);
+        }
+    }
+
+    private function fetch(ImapConnector $connections, EmailClassifier $classifier): void
     {
         $account = $this->account;
 

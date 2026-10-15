@@ -4,11 +4,15 @@ namespace Tests\Feature;
 
 use App\Contracts\ImapConnector;
 use App\Enums\EmailClassification;
+use App\Filament\Resources\ComplaintRegistries\ComplaintRegistryResource;
+use App\Filament\Resources\IncomingEmails\IncomingEmailResource;
 use App\Jobs\FetchMailAccountJob;
+use App\Models\Company;
 use App\Models\ComplaintRegistry;
 use App\Models\DataSubjectRequest;
 use App\Models\IncomingEmail;
 use App\Models\MailAccount;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -297,5 +301,33 @@ class FetchMailAccountJobTest extends TestCase
         $email = IncomingEmail::where('message_id', 'complaint-disabled@example.com')->first();
         $this->assertSame(EmailClassification::Complaint, $email->classification);
         $this->assertNull($email->complaint_registry_id);
+    }
+
+    public function test_manual_sync_from_a_panel_tenant_keeps_the_mail_account_company(): void
+    {
+        $account = MailAccount::factory()->create();
+        $otherTenant = Company::factory()->create();
+
+        $panel = Filament::getPanel('admin');
+        Filament::setCurrentPanel($panel);
+        IncomingEmailResource::observeTenancyModelCreation($panel);
+        ComplaintRegistryResource::observeTenancyModelCreation($panel);
+        Filament::setTenant($otherTenant, isQuiet: true);
+
+        $this->bindImap([
+            new FakeImapMessage(
+                fromMail: 'marketing@example.com',
+                subject: 'R: Complain Depuratori - Utenza +39 3381480207 (Claudio Paveri)',
+                textBody: 'Trasmetto la ricevuta arrivata sul nostro CRM.',
+                messageId: 'tenant-1@example.com',
+            ),
+        ]);
+
+        FetchMailAccountJob::dispatchSync($account);
+
+        $email = IncomingEmail::where('message_id', 'tenant-1@example.com')->firstOrFail();
+        $this->assertSame($account->company_id, $email->company_id);
+        $this->assertSame($account->company_id, $email->complaintRegistry->company_id);
+        $this->assertTrue(Filament::getTenant()->is($otherTenant));
     }
 }
