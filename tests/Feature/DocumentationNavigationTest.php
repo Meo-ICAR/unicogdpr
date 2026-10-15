@@ -20,7 +20,7 @@ class DocumentationNavigationTest extends TestCase
         $this->actingAs($user)
             ->get("/admin/{$company->id}")
             ->assertOk()
-            ->assertSee('Documentazione')
+            ->assertSee('Manuali')
             ->assertSee('Manuale Tecnico')
             ->assertSee('Manuale Operativo (PDF)')
             ->assertSee(route('filament.admin.pages.manuale-tecnico'), false);

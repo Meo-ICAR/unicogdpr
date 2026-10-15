@@ -53,6 +53,10 @@ class AdminPanelProvider extends PanelProvider
                     ->collapsible(true)
                     ->collapsed(true),
 
+                NavigationGroup::make('Configurazioni')
+                    ->collapsible(true)
+                    ->collapsed(true),
+
                 NavigationGroup::make('Gestione Liste & Consensi')
                   //  ->icon('heroicon-o-queue-list')
                     ->collapsible(true)
@@ -61,25 +65,29 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Documentazione')
                     ->collapsible(true)
                     ->collapsed(true),
+
+                NavigationGroup::make('Manuali')
+                    ->collapsible(true)
+                    ->collapsed(true),
             ])
 
             ->navigationItems([
                 NavigationItem::make('Manuale Tecnico')
-                    ->group('Documentazione')
+                    ->group('Manuali')
                     ->icon('heroicon-o-code-bracket-square')
                     ->url(fn () => route('filament.admin.pages.manuale-tecnico'))
                     ->openUrlInNewTab()
                     ->sort(1),
 
                 NavigationItem::make('Manuale Operativo (PDF)')
-                    ->group('Documentazione')
+                    ->group('Manuali')
                     ->icon('heroicon-o-document-text')
                     ->url(fn () => route('filament.admin.pages.manuale'))
                     ->openUrlInNewTab()
                     ->sort(2),
 
                 NavigationItem::make('Manuale Utente')
-                    ->group('Documentazione')
+                    ->group('Manuali')
                     ->icon('heroicon-o-book-open')
                     ->url(fn () => route('filament.admin.pages.manuale-utente'))
                     ->openUrlInNewTab()

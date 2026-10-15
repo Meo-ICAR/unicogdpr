@@ -13,7 +13,7 @@ trait HasPlanAccess
     public static function shouldRegisterNavigation(): bool
     {
         // Se la risorsa appartiene al gruppo Settings e checkPiano('settings') è false, nascondila
-        if (static::$navigationGroup === 'Settings' && ! \checkPiano('settings')) {
+        if (in_array(static::$navigationGroup, ['Settings', 'Configurazioni'], true) && ! \checkPiano('settings')) {
             return false;
         }
 

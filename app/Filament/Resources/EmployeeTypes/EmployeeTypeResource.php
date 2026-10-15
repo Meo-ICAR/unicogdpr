@@ -22,7 +22,7 @@ class EmployeeTypeResource extends Resource
 
     protected static bool $isScopedToTenant = false;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Configurazione & Tabellari';
+    protected static \UnitEnum|string|null $navigationGroup = 'Configurazioni';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
