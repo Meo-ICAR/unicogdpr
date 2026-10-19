@@ -17,7 +17,7 @@
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.35",
         "owenvoke/blade-fontawesome": "^3.3",
-        "pxlrbt/filament-excel": "^3.6",
+        "pxlrbt/filament-excel": "^4.1",
         "socialiteproviders/google": "^4.1",
         "socialiteproviders/microsoft": "^4.9",
         "spatie/laravel-activitylog": "^5.1",
