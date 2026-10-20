@@ -21,6 +21,7 @@
         "testing-best-practices",
         "socialite-development",
         "tailwindcss-development",
+        "filament-development",
         "medialibrary-development"
     ]
 }
