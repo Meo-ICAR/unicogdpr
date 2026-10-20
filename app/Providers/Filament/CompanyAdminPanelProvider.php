@@ -48,7 +48,7 @@ class CompanyAdminPanelProvider extends PanelProvider
             ->homeUrl(fn () => url('/portale'))
             ->brandName('UnicoGDPR — Portale Azienda')
             ->brandLogo(asset('brand/logos/unico-gdpr.jpg'))
-            ->brandLogoHeight('2.75rem')
+            ->brandLogoHeight('5rem')
             ->favicon(asset('brand/icons/unico-gdpr-64.png'))
             ->colors([
                 'primary' => Color::Sky,
