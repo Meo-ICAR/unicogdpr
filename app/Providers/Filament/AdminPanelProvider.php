@@ -123,8 +123,9 @@ class AdminPanelProvider extends PanelProvider
             ], isPersistent: true)
 
             ->brandName('UnicoGDPR Compliance')
-            ->brandLogo(asset('images/unicogdpr.png'))
-            ->favicon(asset('images/unicogdpr.png'))
+            ->brandLogo(asset('brand/logos/unico-gdpr.jpg'))
+            ->brandLogoHeight('2.75rem')
+            ->favicon(asset('brand/icons/unico-gdpr-64.png'))
             ->colors([
                 'primary' => Color::Emerald,
             ])
