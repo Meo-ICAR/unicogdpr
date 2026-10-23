@@ -13,7 +13,7 @@ class EmailTemplate extends Model
 
     protected $fillable = [
         'company_id', 'code', 'name', 'subject',
-        'body_html', 'body_text', 'placeholders', 'is_active',
+        'body', 'placeholders', 'is_active',
     ];
 
     protected $casts = [
@@ -32,22 +32,17 @@ class EmailTemplate extends Model
     public function render(array $data): array
     {
         $subject = $this->subject;
-        $bodyHtml = $this->body_html;
-        $bodyText = $this->body_text;
+        $bodyHtml = $this->body;
 
         foreach ($data as $key => $value) {
             $placeholder = '{'.$key.'}';
             $subject = str_replace($placeholder, (string) $value, $subject);
             $bodyHtml = str_replace($placeholder, (string) $value, $bodyHtml);
-            if ($bodyText) {
-                $bodyText = str_replace($placeholder, (string) $value, $bodyText);
-            }
         }
 
         return [
             'subject' => $subject,
             'body_html' => $bodyHtml,
-            'body_text' => $bodyText,
         ];
     }
 }

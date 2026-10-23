@@ -21,13 +21,7 @@ class DynamicTemplateMail extends Mailable
         // Chiamata diretta al metodo render del Model
         $rendered = $this->template->render($this->placeholders);
 
-        $mail = $this->subject($rendered['subject'])
-                     ->html($rendered['body_html']);
-
-        if (!empty($rendered['body_text'])) {
-            $mail->text($rendered['body_text']);
-        }
-
-        return $mail;
+        return $this->subject($rendered['subject'])
+                    ->html($rendered['body_html']);
     }
 }

@@ -24,7 +24,7 @@ class IncomingEmailReplyTemplateTest extends TestCase
             'code' => 'identity_verification_request',
             'name' => 'Richiesta di identificazione del mittente',
             'subject' => '[{company_name}] Richiesta di identificazione',
-            'body_html' => '<p>Gentile {requester_name}, la preghiamo di identificarsi.</p>',
+            'body' => '<p>Gentile {requester_name}, la preghiamo di identificarsi.</p>',
             'placeholders' => ['{requester_name}', '{company_name}'],
             'is_active' => true,
         ]);

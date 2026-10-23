@@ -7,7 +7,6 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -52,13 +51,9 @@ class EmailTemplateForm
                 Section::make('Corpo del Messaggio')
                     ->icon('heroicon-o-document-text')
                     ->schema([
-                        RichEditor::make('body_html')
+                        RichEditor::make('body')
                             ->label('Corpo Email (HTML)')
                             ->required()
-                            ->columnSpanFull(),
-                        Textarea::make('body_text')
-                            ->label('Corpo Email (Testo Semplice - Fallback)')
-                            ->rows(4)
                             ->columnSpanFull(),
                     ]),
             ]);
