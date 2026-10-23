@@ -92,7 +92,7 @@ class CompanyAdminPortalTest extends TestCase
         $dpo = User::factory()->create();
 
         $this->actingAs($dpo)
-            ->get(route('filament.admin.pages.dpo-command-center', ['tenant' => $company->id]))
+            ->get(route('filament.admin.resources.companies.edit', ['tenant' => $company->id, 'record' => $company->id]))
             ->assertOk();
     }
 

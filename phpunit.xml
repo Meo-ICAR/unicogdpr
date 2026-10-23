@@ -25,6 +25,13 @@
         <env name="CACHE_STORE" value="array"/>
         <env name="DB_CONNECTION" value="mysql"/>
         <env name="DB_DATABASE" value="unicogdpr_test"/>
+        <!-- Core, unicooam, unicobpm, proforma: database di test condiviso (deve contenere le tabelle del core, es. dopo i test di unicofinance o unicoagent), mai quelli veri (.env) -->
+        <env name="CORE_DB_DATABASE" value="unicosuite_test"/>
+        <env name="DB_UNICOOAM" value="unicosuite_test"/>
+        <env name="DB_UNICOBPM" value="unicosuite_test"/>
+        <env name="DB_UNICODB" value="unicosuite_test"/>
+        <env name="DB_PROFORMA" value="unicosuite_test"/>
+        <env name="DB_UNICOGDPR" value="unicogdpr_test"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

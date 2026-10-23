@@ -24,7 +24,6 @@ use App\Services\DocumentGeneratorService;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -64,14 +63,9 @@ class ComplaintAuditBranchResourcesTest extends TestCase
      */
     private function makeUnicooamCompanyId(): string
     {
-        $id = (string) Str::uuid();
-
-        DB::connection('mysql_unicooam')->table('companies')->insert([
-            'id' => $id,
+        return (string) DB::connection('mysql_unicooam')->table('companies')->insertGetId([
             'name' => 'Azienda Test Unicooam',
         ]);
-
-        return $id;
     }
 
     public function test_dpo_can_open_the_complaint_registry_edit_page_with_the_documents_relation_manager(): void
