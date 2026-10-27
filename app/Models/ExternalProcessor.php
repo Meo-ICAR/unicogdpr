@@ -37,6 +37,8 @@ class ExternalProcessor extends Model implements HasMedia
         'notes',
         'general_authorization_granted',
         'sub_processors_list_url',
+        'source_system',
+        'source_id',
     ];
 
     protected $casts = [

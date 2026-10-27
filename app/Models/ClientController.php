@@ -27,6 +27,8 @@ class ClientController extends Model
         'agreement_date',        // Data dell'accordo (Art. 26)
         'is_active',
         'notes',
+        'source_system',
+        'source_id',
     ];
 
     protected $casts = [
