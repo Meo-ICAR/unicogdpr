@@ -70,6 +70,9 @@ class SuiteReadOnlyTest extends TestCase
             'insert' => [fn () => SuiteEmployee::insert([['name' => 'Nuovo']])],
             'insertGetId' => [fn () => SuiteEmployee::query()->insertGetId(['name' => 'Nuovo'])],
             'insertOrIgnore' => [fn () => SuiteEmployee::query()->insertOrIgnore([['name' => 'Nuovo']])],
+            'insertUsing' => [fn () => SuiteEmployee::query()->insertUsing(['name'], DB::connection('unicosuite')->table('companies')->select('name'))],
+            'insertOrIgnoreUsing' => [fn () => SuiteEmployee::query()->insertOrIgnoreUsing(['name'], DB::connection('unicosuite')->table('companies')->select('name'))],
+            'updateFrom' => [fn () => SuiteEmployee::query()->join('companies', 'companies.id', '=', 'employees.id')->updateFrom(['name' => 'Altro'])],
             'upsert' => [fn () => SuiteEmployee::query()->upsert([['id' => 1, 'name' => 'Nuovo']], ['id'])],
             'updateOrInsert' => [fn () => SuiteEmployee::query()->updateOrInsert(['id' => 1], ['name' => 'Nuovo'])],
         ];

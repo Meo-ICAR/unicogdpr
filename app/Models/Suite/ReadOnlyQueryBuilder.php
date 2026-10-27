@@ -40,6 +40,19 @@ class ReadOnlyQueryBuilder extends Builder
         throw $this->readOnlyException();
     }
 
+    public function insertOrIgnoreUsing(array $columns, $query): int
+    {
+        throw $this->readOnlyException();
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     */
+    public function updateFrom(array $values): int
+    {
+        throw $this->readOnlyException();
+    }
+
     /**
      * @param  array<string, mixed>  $values
      */
