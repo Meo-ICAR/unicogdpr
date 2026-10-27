@@ -33,6 +33,11 @@ class ClientImporter
 
         $attributes = $this->attributesFrom($row, $local);
 
+        // `country` e' NOT NULL con default 'IT': un valore vuoto in suite non deve mai arrivare come NULL.
+        if ($attributes['country'] === null) {
+            unset($attributes['country']);
+        }
+
         $existing = Client::query()
             ->withTrashed()
             ->where('source_system', self::SOURCE_SYSTEM)
@@ -40,7 +45,7 @@ class ClientImporter
             ->first();
 
         if ($existing !== null) {
-            $this->assertImportable($existing);
+            $this->assertImportable($existing, $local);
 
             return $this->update($existing, $attributes);
         }
@@ -135,8 +140,12 @@ class ClientImporter
         return $uppercase ? mb_strtoupper($value) : $value;
     }
 
-    private function assertImportable(Client $existing): void
+    private function assertImportable(Client $existing, Company $local): void
     {
+        if ($existing->company_id !== $local->id) {
+            throw new RuntimeException("Il cliente locale {$existing->id} collegato appartiene a un'altra società: non viene spostato.");
+        }
+
         if ($existing->trashed()) {
             throw new RuntimeException("Il cliente locale {$existing->id} collegato è stato eliminato: non viene reimportato.");
         }

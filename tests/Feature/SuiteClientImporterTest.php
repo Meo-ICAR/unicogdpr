@@ -9,9 +9,12 @@ use App\Models\Company;
 use App\Models\Suite\SuiteCompany;
 use App\Models\User;
 use App\Services\SuiteImport\ClientImporter;
+use Exception;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -339,5 +342,106 @@ class SuiteClientImporterTest extends TestCase
         Livewire::test(ListClients::class)
             ->callAction(TestAction::make('importFromSuite'), ['key' => '1'])
             ->assertNotified('Importazione non riuscita');
+    }
+
+    public function test_empty_country_uses_database_default_on_create_and_keeps_value_on_update(): void
+    {
+        $id = $this->suiteClient(['country' => ' ']);
+
+        $client = $this->importOne((string) $id);
+        $this->assertSame('IT', $client->fresh()->country);
+
+        $client->forceFill(['country' => 'FR'])->save();
+        DB::connection('unicosuite')->table('clients')->where('id', $id)->update(['country' => '', 'city' => 'Torino']);
+
+        $updated = $this->importOne((string) $id);
+
+        $this->assertSame('FR', $updated->fresh()->country);
+        $this->assertSame('Torino', $updated->fresh()->city);
+    }
+
+    public function test_adopts_local_client_by_vat_number(): void
+    {
+        $id = $this->suiteClient(['tax_code' => null, 'vat_number' => '01234567890', 'is_company' => 1]);
+        $existing = Client::query()->create(['company_id' => $this->local->id, 'subject_type' => 'company', 'name' => 'Alfa', 'vat_number' => '01234567890']);
+
+        $this->assertSame($existing->id, $this->importOne((string) $id)->id);
+    }
+
+    public function test_adopts_lowest_id_among_multiple_local_matches(): void
+    {
+        $first = Client::query()->create(['company_id' => $this->local->id, 'subject_type' => 'person', 'name' => 'A', 'tax_code' => 'RSSMRA80A01H501U']);
+        Client::query()->create(['company_id' => $this->local->id, 'subject_type' => 'person', 'name' => 'B', 'tax_code' => 'RSSMRA80A01H501U']);
+        $id = $this->suiteClient();
+
+        $this->assertSame($first->id, $this->importOne((string) $id)->id);
+    }
+
+    public function test_anonymized_linked_local_client_is_not_reimported(): void
+    {
+        $id = $this->suiteClient();
+        $client = $this->importOne((string) $id);
+        $client->forceFill(['anonymized_at' => now()])->save();
+
+        try {
+            $this->importOne((string) $id);
+            $this->fail('Attesa RuntimeException');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString((string) $client->id, $exception->getMessage());
+            $this->assertStringContainsString('anonimizzato', $exception->getMessage());
+        }
+    }
+
+    public function test_linked_client_of_another_company_is_not_moved(): void
+    {
+        $id = $this->suiteClient();
+        $other = Company::factory()->create();
+        $linked = Client::query()->create([
+            'company_id' => $other->id, 'subject_type' => 'person', 'name' => 'X',
+            'source_system' => ClientImporter::SOURCE_SYSTEM, 'source_id' => (string) $id,
+        ]);
+
+        try {
+            $this->importOne((string) $id);
+            $this->fail('Attesa RuntimeException');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('altra società', $exception->getMessage());
+        }
+
+        $this->assertSame($other->id, $linked->fresh()->company_id);
+    }
+
+    private function failInsertWithSensitiveQueryException(): void
+    {
+        Client::creating(function (): void {
+            throw new QueryException('mysql', 'insert into clients (name, tax_code) values (?, ?)', ['Mario Rossi', 'RSSMRA80A01H501U'], new Exception('Mario Rossi RSSMRA80A01H501U'));
+        });
+    }
+
+    public function test_command_hides_database_errors(): void
+    {
+        $id = $this->suiteClient();
+        $this->failInsertWithSensitiveQueryException();
+
+        $this->assertSame(1, Artisan::call('suite:import-client', ['key' => (string) $id]));
+        $this->assertStringContainsString('Errore del database', Artisan::output());
+        $this->assertStringNotContainsString('RSSMRA', Artisan::output());
+        $this->assertStringNotContainsString('Rossi', Artisan::output());
+    }
+
+    public function test_list_clients_action_hides_database_errors(): void
+    {
+        $id = $this->suiteClient();
+        $this->failInsertWithSensitiveQueryException();
+        $this->actAsTenantUser($this->local);
+
+        Livewire::test(ListClients::class)
+            ->callAction(TestAction::make('importFromSuite'), ['key' => (string) $id])
+            ->assertNotified(
+                Notification::make()
+                    ->title('Importazione non riuscita')
+                    ->body("Errore del database durante l'importazione: nessun dato salvato.")
+                    ->danger()
+            );
     }
 }

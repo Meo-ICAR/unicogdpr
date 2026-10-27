@@ -14,6 +14,8 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -58,6 +60,17 @@ class ListClients extends ListRecords
 
                     $companies = app(SuiteCompanyResolver::class)->resolve((string) $tenant->vat_number);
                     app(ClientImporter::class)->importOne((string) $data['key'], $tenant, $companies['suite']);
+                } catch (QueryException) {
+                    // Mai il messaggio SQL: i binding contengono dati personali.
+                    Log::error('Import cliente suite: errore del database.', ['company_id' => $tenant?->getKey()]);
+
+                    Notification::make()
+                        ->title('Importazione non riuscita')
+                        ->body("Errore del database durante l'importazione: nessun dato salvato.")
+                        ->danger()
+                        ->send();
+
+                    return;
                 } catch (ModelNotFoundException|InvalidArgumentException|RuntimeException $exception) {
                     Notification::make()
                         ->title('Importazione non riuscita')

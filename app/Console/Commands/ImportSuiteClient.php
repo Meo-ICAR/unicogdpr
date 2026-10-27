@@ -8,6 +8,8 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -22,6 +24,12 @@ class ImportSuiteClient extends Command
         try {
             $companies = $resolver->resolve($vatNumber);
             $client = $importer->importOne((string) $this->argument('key'), $companies['local'], $companies['suite']);
+        } catch (QueryException) {
+            // Mai il messaggio SQL: i binding contengono dati personali.
+            $this->error("Errore del database durante l'importazione: nessun dato salvato. Verificare i log (nessun dato personale riportato).");
+            Log::error('Import cliente suite: errore del database.', ['company_vat' => $vatNumber]);
+
+            return self::FAILURE;
         } catch (ModelNotFoundException|InvalidArgumentException|RuntimeException $exception) {
             $this->error($exception->getMessage());
 
