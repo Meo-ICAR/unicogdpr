@@ -31,3 +31,6 @@ Schedule::command('vendor:audit-reminders')->dailyAt('08:30');
 
 // Salute delle caselle di posta ogni 6 ore
 Schedule::command('mail:health-check')->everySixHours();
+
+// Import dalla suite (ruoli, organigramma, agenti, banche): ogni domenica notte
+Schedule::command('suite:import')->weeklyOn(0, '03:30')->withoutOverlapping();
