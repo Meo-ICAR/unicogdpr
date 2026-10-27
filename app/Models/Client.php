@@ -16,7 +16,7 @@ class Client extends Model implements Anonymizable
         'company_id', 'client_type_id', 'subject_type', 'name',
         'first_name', 'last_name', 'tax_code', 'vat_number',
         'email', 'pec', 'phone', 'sdi_code', 'address', 'city', 'zip_code', 'country',
-        'anonymized_at',
+        'anonymized_at', 'source_system', 'source_id',
     ];
 
     protected $casts = [
