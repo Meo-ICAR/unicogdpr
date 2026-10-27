@@ -65,4 +65,18 @@ class SuiteImportSchemaTest extends TestCase
         $this->assertTrue(Schema::hasColumns('employees', ['source_system', 'source_id', 'is_external']));
         $this->assertTrue(Schema::hasTable('employee_type_resource_presets'));
     }
+
+    public function test_rows_with_null_source_values_can_coexist(): void
+    {
+        $company = Company::factory()->create();
+        $row = ['company_id' => $company->getKey(), 'name' => 'Locale'];
+        DB::table('external_processors')->insert($row);
+        DB::table('external_processors')->insert($row);
+
+        $this->assertSame(2, DB::table('external_processors')->whereNull('source_system')->whereNull('source_id')->count());
+
+        DB::table('employee_types')->insert([['name' => 'ruolo-a'], ['name' => 'ruolo-b']]);
+
+        $this->assertSame(2, DB::table('employee_types')->whereIn('name', ['ruolo-a', 'ruolo-b'])->whereNull('source_system')->whereNull('source_id')->count());
+    }
 }
