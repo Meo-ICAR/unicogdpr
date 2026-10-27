@@ -17,14 +17,7 @@ class SuiteCompanyResolver
      */
     public function resolve(string $vatNumber): array
     {
-        $suite = SuiteCompany::query()
-            ->where('vat_number', $vatNumber)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if ($suite === null) {
-            throw new RuntimeException("Societa' con partita IVA {$vatNumber} assente nella suite.");
-        }
+        $suite = $this->findSuiteCompany($vatNumber);
 
         $local = Company::query()->where('vat_number', $vatNumber)->first();
 
@@ -33,5 +26,33 @@ class SuiteCompanyResolver
         }
 
         return ['suite' => $suite, 'local' => $local];
+    }
+
+    /**
+     * Cerca per `piva` e, solo se nessuna riga corrisponde, per `vat_number`.
+     *
+     * @throws RuntimeException se non c'e' alcuna riga o ce n'e' piu' di una allo stesso livello
+     */
+    private function findSuiteCompany(string $vatNumber): SuiteCompany
+    {
+        foreach (['piva', 'vat_number'] as $column) {
+            $matches = SuiteCompany::query()
+                ->where($column, $vatNumber)
+                ->whereNull('deleted_at')
+                ->orderBy('id')
+                ->get();
+
+            if ($matches->count() > 1) {
+                $ids = $matches->pluck('id')->implode(', ');
+
+                throw new RuntimeException("Piu' societa' della suite corrispondono alla partita IVA {$vatNumber} su {$column} (id: {$ids}).");
+            }
+
+            if ($matches->isNotEmpty()) {
+                return $matches->first();
+            }
+        }
+
+        throw new RuntimeException("Societa' con partita IVA {$vatNumber} assente nella suite.");
     }
 }

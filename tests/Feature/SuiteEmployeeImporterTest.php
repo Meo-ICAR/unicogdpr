@@ -30,7 +30,7 @@ class SuiteEmployeeImporterTest extends TestCase
 
         $this->suiteTruncate();
 
-        $this->suiteCompanyId = $this->suiteInsert('companies', ['name' => 'Races Finance S.r.l.', 'vat_number' => '10282211001']);
+        $this->suiteCompanyId = $this->suiteInsert('companies', ['name' => 'Races Finance S.r.l.', 'piva' => '10282211001', 'vat_number' => '05822361007']);
         $this->suite = SuiteCompany::query()->findOrFail($this->suiteCompanyId);
         $this->local = Company::factory()->create(['vat_number' => '10282211001']);
     }

@@ -33,7 +33,7 @@ class SuiteImportCommandTest extends TestCase
 
         $this->suiteTruncate();
 
-        $this->suiteCompanyId = $this->suiteInsert('companies', ['name' => 'Races Finance S.r.l.', 'vat_number' => '10282211001']);
+        $this->suiteCompanyId = $this->suiteInsert('companies', ['name' => 'Races Finance S.r.l.', 'piva' => '10282211001', 'vat_number' => '05822361007']);
         Company::factory()->create(['vat_number' => '10282211001']);
         config(['suite_import.company_vat_numbers' => ['10282211001']]);
     }
@@ -106,7 +106,7 @@ class SuiteImportCommandTest extends TestCase
     public function test_company_column_is_shown_with_ids_when_several_companies(): void
     {
         $this->seedFullSuite();
-        $otherSuiteId = $this->suiteInsert('companies', ['name' => 'Altra S.r.l.', 'vat_number' => '11111111111']);
+        $otherSuiteId = $this->suiteInsert('companies', ['name' => 'Altra S.r.l.', 'piva' => '11111111111', 'vat_number' => '00000000000']);
         $otherLocal = Company::factory()->create(['vat_number' => '11111111111']);
         $this->suiteInsert('clientis', ['company_id' => $otherSuiteId, 'name' => 'Banca Gamma', 'piva' => '05555555555', 'is_active' => 1]);
         $firstLocal = Company::query()->where('vat_number', '10282211001')->firstOrFail();

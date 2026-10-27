@@ -41,7 +41,7 @@ class SuiteClientImporterTest extends TestCase
 
         $this->suiteTruncate();
 
-        $this->suiteCompanyId = $this->suiteInsert('companies', ['name' => 'Races Finance S.r.l.', 'vat_number' => '10282211001']);
+        $this->suiteCompanyId = $this->suiteInsert('companies', ['name' => 'Races Finance S.r.l.', 'piva' => '10282211001', 'vat_number' => '05822361007']);
         $this->suite = SuiteCompany::query()->findOrFail($this->suiteCompanyId);
         $this->local = Company::factory()->create(['vat_number' => '10282211001']);
     }
@@ -213,7 +213,7 @@ class SuiteClientImporterTest extends TestCase
 
     public function test_client_of_another_suite_company_is_not_found(): void
     {
-        $otherCompanyId = $this->suiteInsert('companies', ['name' => 'Altra', 'vat_number' => '99999999999']);
+        $otherCompanyId = $this->suiteInsert('companies', ['name' => 'Altra', 'piva' => '99999999999', 'vat_number' => '00000000000']);
         $id = $this->suiteClient(['company_id' => $otherCompanyId]);
 
         $this->expectException(ModelNotFoundException::class);
@@ -269,7 +269,7 @@ class SuiteClientImporterTest extends TestCase
 
     public function test_command_uses_company_vat_option(): void
     {
-        $otherSuiteId = $this->suiteInsert('companies', ['name' => 'Altra', 'vat_number' => '12345678901']);
+        $otherSuiteId = $this->suiteInsert('companies', ['name' => 'Altra', 'piva' => '12345678901', 'vat_number' => '00000000000']);
         $otherLocal = Company::factory()->create(['vat_number' => '12345678901']);
         $id = $this->suiteClient(['company_id' => $otherSuiteId]);
 

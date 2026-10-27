@@ -164,7 +164,7 @@ class SuiteRoleImporterTest extends TestCase
 
     public function test_resolver_finds_races(): void
     {
-        $suiteId = $this->suiteInsert('companies', ['name' => 'Races Finance S.r.l.', 'vat_number' => self::VAT]);
+        $suiteId = $this->suiteInsert('companies', ['name' => 'Races Finance S.r.l.', 'piva' => self::VAT, 'vat_number' => '05822361007']);
         $local = Company::factory()->create(['vat_number' => self::VAT]);
 
         $resolved = (new SuiteCompanyResolver)->resolve(self::VAT);
@@ -176,7 +176,7 @@ class SuiteRoleImporterTest extends TestCase
 
     public function test_resolver_throws_when_a_side_is_missing(): void
     {
-        $this->suiteInsert('companies', ['name' => 'Races Finance S.r.l.', 'vat_number' => self::VAT]);
+        $this->suiteInsert('companies', ['name' => 'Races Finance S.r.l.', 'piva' => self::VAT, 'vat_number' => '05822361007']);
 
         $this->expectException(RuntimeException::class);
         (new SuiteCompanyResolver)->resolve(self::VAT);
@@ -188,6 +188,47 @@ class SuiteRoleImporterTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         (new SuiteCompanyResolver)->resolve(self::VAT);
+    }
+
+    public function test_resolver_falls_back_to_vat_number_when_no_piva_matches(): void
+    {
+        $suiteId = $this->suiteInsert('companies', ['name' => 'Societa', 'piva' => null, 'vat_number' => self::VAT]);
+        Company::factory()->create(['vat_number' => self::VAT]);
+
+        $this->assertSame($suiteId, (int) (new SuiteCompanyResolver)->resolve(self::VAT)['suite']->id);
+    }
+
+    public function test_resolver_prefers_piva_over_vat_number_of_another_company(): void
+    {
+        $this->suiteInsert('companies', ['name' => 'Altra', 'piva' => '00000000000', 'vat_number' => self::VAT]);
+        $pivaId = $this->suiteInsert('companies', ['name' => 'Races', 'piva' => self::VAT, 'vat_number' => '05822361007']);
+        Company::factory()->create(['vat_number' => self::VAT]);
+
+        $this->assertSame($pivaId, (int) (new SuiteCompanyResolver)->resolve(self::VAT)['suite']->id);
+    }
+
+    public function test_resolver_ignores_deleted_suite_companies(): void
+    {
+        $this->suiteInsert('companies', ['name' => 'Eliminata', 'piva' => self::VAT, 'deleted_at' => now()]);
+        Company::factory()->create(['vat_number' => self::VAT]);
+
+        $this->expectException(RuntimeException::class);
+        (new SuiteCompanyResolver)->resolve(self::VAT);
+    }
+
+    public function test_resolver_throws_with_ids_only_when_ambiguous(): void
+    {
+        $first = $this->suiteInsert('companies', ['name' => 'Riservato Uno', 'piva' => self::VAT]);
+        $second = $this->suiteInsert('companies', ['name' => 'Riservato Due', 'piva' => self::VAT]);
+        Company::factory()->create(['vat_number' => self::VAT]);
+
+        try {
+            (new SuiteCompanyResolver)->resolve(self::VAT);
+            $this->fail('Attesa un\'eccezione');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString("{$first}, {$second}", $exception->getMessage());
+            $this->assertStringNotContainsString('Riservato', $exception->getMessage());
+        }
     }
 
     public function test_report_counts_and_serializes(): void
