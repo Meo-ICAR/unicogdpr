@@ -3,6 +3,7 @@
 namespace App\Models\Suite;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder;
 use LogicException;
 
 /**
@@ -42,6 +43,17 @@ abstract class SuiteModel extends Model
     public function forceDelete(): ?bool
     {
         throw $this->readOnlyException();
+    }
+
+    protected function newBaseQueryBuilder(): Builder
+    {
+        $connection = $this->getConnection();
+
+        return new ReadOnlyQueryBuilder(
+            $connection,
+            $connection->getQueryGrammar(),
+            $connection->getPostProcessor(),
+        );
     }
 
     protected function readOnlyException(): LogicException

@@ -7,8 +7,10 @@ use App\Models\Suite\SuiteClient;
 use App\Models\Suite\SuiteCompany;
 use App\Models\Suite\SuiteEmployee;
 use App\Models\Suite\SuiteFornitore;
+use Closure;
 use Illuminate\Support\Facades\DB;
 use LogicException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\SuiteFixtures;
 use Tests\TestCase;
 
@@ -23,44 +25,73 @@ class SuiteReadOnlyTest extends TestCase
         $this->suiteTruncate();
     }
 
-    public function test_suite_models_refuse_writes(): void
+    /**
+     * @return array<string, array{class-string}>
+     */
+    public static function writableLookingModels(): array
     {
-        foreach ([SuiteEmployee::class, SuiteFornitore::class, SuiteBanca::class, SuiteClient::class] as $model) {
-            try {
-                $model::create(['name' => 'Test']);
-                $this->fail("{$model}::create non ha lanciato eccezioni");
-            } catch (LogicException) {
-                $this->assertTrue(true);
-            }
-        }
+        return [
+            'employee' => [SuiteEmployee::class],
+            'fornitore' => [SuiteFornitore::class],
+            'banca' => [SuiteBanca::class],
+            'client' => [SuiteClient::class],
+        ];
+    }
 
+    #[DataProvider('writableLookingModels')]
+    public function test_suite_models_refuse_create(string $model): void
+    {
         $this->expectException(LogicException::class);
+
+        $model::create(['name' => 'Test']);
+    }
+
+    public function test_suite_models_refuse_save(): void
+    {
+        $this->expectException(LogicException::class);
+
         (new SuiteEmployee)->save();
     }
 
-    public function test_suite_models_refuse_delete_and_update(): void
+    /**
+     * @return array<string, array{Closure(SuiteEmployee): mixed}>
+     */
+    public static function writeAttempts(): array
+    {
+        return [
+            'delete' => [fn (SuiteEmployee $e) => $e->delete()],
+            'forceDelete' => [fn (SuiteEmployee $e) => $e->forceDelete()],
+            'update' => [fn (SuiteEmployee $e) => $e->update(['name' => 'Altro'])],
+            'increment' => [fn (SuiteEmployee $e) => $e->increment('id')],
+            'decrement' => [fn (SuiteEmployee $e) => $e->decrement('id')],
+            'query delete' => [fn () => SuiteEmployee::query()->delete()],
+            'query update' => [fn () => SuiteEmployee::query()->update(['name' => 'Altro'])],
+            'query truncate' => [fn () => SuiteEmployee::query()->truncate()],
+            'insert' => [fn () => SuiteEmployee::insert([['name' => 'Nuovo']])],
+            'insertGetId' => [fn () => SuiteEmployee::query()->insertGetId(['name' => 'Nuovo'])],
+            'insertOrIgnore' => [fn () => SuiteEmployee::query()->insertOrIgnore([['name' => 'Nuovo']])],
+            'upsert' => [fn () => SuiteEmployee::query()->upsert([['id' => 1, 'name' => 'Nuovo']], ['id'])],
+            'updateOrInsert' => [fn () => SuiteEmployee::query()->updateOrInsert(['id' => 1], ['name' => 'Nuovo'])],
+        ];
+    }
+
+    #[DataProvider('writeAttempts')]
+    public function test_suite_writes_are_refused_and_row_is_untouched(Closure $attempt): void
     {
         $id = $this->suiteInsert('employees', ['name' => 'Mario Rossi']);
-
         $employee = SuiteEmployee::findOrFail($id);
 
-        foreach (['delete', 'forceDelete'] as $method) {
-            try {
-                $employee->{$method}();
-                $this->fail("{$method} non ha lanciato eccezioni");
-            } catch (LogicException) {
-                $this->assertTrue(true);
-            }
-        }
-
         try {
-            $employee->update(['name' => 'Altro']);
-            $this->fail('update non ha lanciato eccezioni');
+            $attempt($employee);
+            $this->fail('La scrittura non ha lanciato eccezioni');
         } catch (LogicException) {
-            $this->assertTrue(true);
+            $this->addToAssertionCount(1);
         }
 
-        $this->assertSame(1, DB::connection('unicosuite')->table('employees')->where('id', $id)->count());
+        $rows = DB::connection('unicosuite')->table('employees')->get();
+        $this->assertCount(1, $rows);
+        $this->assertSame($id, (int) $rows->first()->id);
+        $this->assertSame('Mario Rossi', $rows->first()->name);
     }
 
     public function test_suite_models_read_rows(): void

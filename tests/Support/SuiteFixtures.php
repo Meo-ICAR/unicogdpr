@@ -4,6 +4,7 @@ namespace Tests\Support;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 
 /**
  * Fixture per il database di sola lettura `unicosuite_test`: svuota e popola
@@ -26,6 +27,8 @@ trait SuiteFixtures
 
     protected function suiteTruncate(): void
     {
+        $this->assertSuiteIsTestDatabase();
+
         $connection = DB::connection('unicosuite');
         $schema = Schema::connection('unicosuite');
 
@@ -43,6 +46,17 @@ trait SuiteFixtures
      */
     protected function suiteInsert(string $table, array $row): int
     {
+        $this->assertSuiteIsTestDatabase();
+
         return (int) DB::connection('unicosuite')->table($table)->insertGetId($row);
+    }
+
+    protected function assertSuiteIsTestDatabase(): void
+    {
+        $database = (string) DB::connection('unicosuite')->getDatabaseName();
+
+        if (! str_ends_with($database, '_test')) {
+            throw new RuntimeException("Le fixture suite girano solo su database *_test, trovato [{$database}].");
+        }
     }
 }
