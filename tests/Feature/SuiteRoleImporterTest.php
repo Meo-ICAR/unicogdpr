@@ -11,6 +11,7 @@ use App\Services\SuiteImport\ImportReport;
 use App\Services\SuiteImport\RoleImporter;
 use App\Services\SuiteImport\SuiteCompanyResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Tests\Support\SuiteFixtures;
 use Tests\TestCase;
@@ -53,22 +54,124 @@ class SuiteRoleImporterTest extends TestCase
         ]);
     }
 
-    public function test_emits_single_aggregated_warning_when_no_local_resources(): void
+    public function test_no_warning_and_local_permissions_untouched_when_suite_has_none_on_configured_apps(): void
     {
         $cdaId = $this->suiteInsert('employee_types', ['name' => 'cda']);
-        foreach (['employees', 'pratiche', 'altro'] as $key) {
-            $resourceId = $this->suiteInsert('resources', ['app_name' => 'x', 'key' => $key, 'name' => ucfirst($key)]);
-            $this->suitePermission($cdaId, $resourceId, 'viewAny');
-            $this->suiteInsert('employee_type_resource_presets', ['employee_type_id' => $cdaId, 'resource_id' => $resourceId]);
-        }
+        $bpmResourceId = $this->suiteInsert('resources', ['app_name' => 'UnicoBPM', 'key' => 'employees', 'name' => 'Dipendenti']);
+        $this->suitePermission($cdaId, $bpmResourceId, 'viewAny');
+        $this->suiteInsert('employee_type_resource_presets', ['employee_type_id' => $cdaId, 'resource_id' => $bpmResourceId]);
+        $employees = $this->localResource('employees');
+
+        (new RoleImporter)->import();
+
+        $cda = EmployeeType::query()->where('name', 'cda')->firstOrFail();
+        EmployeeTypePermission::query()->create(['employee_type_id' => $cda->id, 'resource_id' => $employees->id, 'action' => 'view']);
+        EmployeeTypeResourcePreset::query()->create(['employee_type_id' => $cda->id, 'resource_id' => $employees->id]);
 
         $report = (new RoleImporter)->import();
 
-        $this->assertCount(1, $report->warnings);
-        $this->assertStringContainsString('nessuna risorsa locale', $report->warnings[0]);
-        $this->assertStringContainsString('permissions:sync-resources', $report->warnings[0]);
+        $this->assertSame([], $report->warnings);
+        $this->assertSame(0, $report->skipped);
+        $this->assertSame(['view'], $cda->permissions()->pluck('action')->all());
+        $this->assertSame([$employees->id], $cda->resourcePresets()->pluck('resource_id')->all());
+    }
+
+    public function test_permission_on_configured_app_without_local_resource_warns_once_per_key(): void
+    {
+        $cdaId = $this->suiteInsert('employee_types', ['name' => 'cda']);
+        $resourceId = $this->suiteInsert('resources', ['app_name' => 'UnicoGDPR', 'key' => 'pratiche', 'name' => 'Pratiche']);
+        $this->suitePermission($cdaId, $resourceId, 'viewAny');
+        $this->suitePermission($cdaId, $resourceId, 'update');
+
+        $report = (new RoleImporter)->import();
+
+        $this->assertSame(['risorsa pratiche assente'], $report->warnings);
+        $this->assertStringNotContainsString('permissions:sync-resources', $report->warnings[0]);
         $this->assertSame(0, EmployeeTypePermission::query()->count());
-        $this->assertSame(0, EmployeeTypeResourcePreset::query()->count());
+    }
+
+    public function test_ignores_permission_on_another_apps_resource_with_same_key(): void
+    {
+        $cdaId = $this->suiteInsert('employee_types', ['name' => 'cda']);
+        $otherAppId = $this->suiteInsert('resources', ['app_name' => 'UnicoBPM', 'key' => 'employees', 'name' => 'Dipendenti BPM']);
+        $gdprId = $this->suiteInsert('resources', ['app_name' => 'UnicoGDPR', 'key' => 'employees', 'name' => 'Dipendenti']);
+        $this->suitePermission($cdaId, $otherAppId, 'delete');
+        $this->suitePermission($cdaId, $gdprId, 'viewAny');
+        $this->localResource('employees');
+
+        (new RoleImporter)->import();
+
+        $cda = EmployeeType::query()->where('name', 'cda')->firstOrFail();
+        $this->assertSame(['viewAny'], $cda->permissions()->pluck('action')->all());
+    }
+
+    public function test_permission_on_configured_app_is_realigned_on_next_run(): void
+    {
+        $cdaId = $this->suiteInsert('employee_types', ['name' => 'cda']);
+        $gdprId = $this->suiteInsert('resources', ['app_name' => 'UnicoGDPR', 'key' => 'employees', 'name' => 'Dipendenti']);
+        $this->suitePermission($cdaId, $gdprId, 'viewAny');
+        $employees = $this->localResource('employees');
+
+        (new RoleImporter)->import();
+
+        $cda = EmployeeType::query()->where('name', 'cda')->firstOrFail();
+        EmployeeTypePermission::query()->create(['employee_type_id' => $cda->id, 'resource_id' => $employees->id, 'action' => 'delete']);
+
+        (new RoleImporter)->import();
+
+        $this->assertSame(['viewAny'], $cda->permissions()->pluck('action')->all());
+    }
+
+    public function test_renamed_suite_role_is_matched_by_source_key_without_error_or_duplicate(): void
+    {
+        $cdaId = $this->suiteInsert('employee_types', ['name' => 'cda', 'icon' => 'a']);
+        (new RoleImporter)->import();
+
+        DB::connection('unicosuite')->table('employee_types')->where('id', $cdaId)->update(['name' => 'consiglio', 'icon' => 'b']);
+
+        $report = (new RoleImporter)->import();
+
+        $this->assertSame(1, EmployeeType::query()->count());
+        $role = EmployeeType::query()->firstOrFail();
+        $this->assertSame('cda', $role->name);
+        $this->assertSame('b', $role->icon);
+        $this->assertSame(0, $report->created);
+        $this->assertSame(1, $report->updated);
+
+        $third = (new RoleImporter)->import();
+        $this->assertSame(1, $third->unchanged);
+        $this->assertSame(0, $third->updated);
+    }
+
+    public function test_role_renamed_locally_keeps_local_name_and_is_unchanged(): void
+    {
+        $this->suiteInsert('employee_types', ['name' => 'cda']);
+        (new RoleImporter)->import();
+        EmployeeType::query()->firstOrFail()->update(['name' => 'Consiglio locale']);
+
+        $report = (new RoleImporter)->import();
+
+        $this->assertSame(1, EmployeeType::query()->count());
+        $this->assertSame('Consiglio locale', EmployeeType::query()->firstOrFail()->name);
+        $this->assertSame(0, $report->created);
+        $this->assertSame(1, $report->unchanged);
+    }
+
+    public function test_second_run_counts_unchanged_for_every_existing_suite_role(): void
+    {
+        $this->suiteInsert('employee_types', ['name' => 'cda']);
+        $this->suiteInsert('employee_types', ['name' => 'legale']);
+        $this->suiteInsert('employee_types', ['name' => 'dipendente']);
+        EmployeeType::query()->create(['name' => 'Dipendente']);
+
+        $first = (new RoleImporter)->import();
+        $second = (new RoleImporter)->import();
+
+        $this->assertSame(2, $first->created);
+        $this->assertSame(1, $first->unchanged);
+        $this->assertSame(0, $second->created);
+        $this->assertSame(0, $second->updated);
+        $this->assertSame(3, $second->unchanged);
     }
 
     public function test_adds_missing_roles_and_keeps_local_ones(): void
@@ -97,8 +200,8 @@ class SuiteRoleImporterTest extends TestCase
     public function test_imports_permissions_only_for_matching_resources(): void
     {
         $cdaId = $this->suiteInsert('employee_types', ['name' => 'cda']);
-        $suiteEmployees = $this->suiteInsert('resources', ['app_name' => 'x', 'key' => 'employees', 'name' => 'Dipendenti']);
-        $suitePratiche = $this->suiteInsert('resources', ['app_name' => 'x', 'key' => 'pratiche', 'name' => 'Pratiche']);
+        $suiteEmployees = $this->suiteInsert('resources', ['app_name' => 'UnicoGDPR', 'key' => 'employees', 'name' => 'Dipendenti']);
+        $suitePratiche = $this->suiteInsert('resources', ['app_name' => 'UnicoGDPR', 'key' => 'pratiche', 'name' => 'Pratiche']);
         foreach ([$suiteEmployees, $suitePratiche] as $resourceId) {
             $this->suitePermission($cdaId, $resourceId, 'viewAny');
             $this->suitePermission($cdaId, $resourceId, 'update');
@@ -121,7 +224,7 @@ class SuiteRoleImporterTest extends TestCase
     public function test_does_not_import_permissions_for_roles_that_already_exist_locally(): void
     {
         $dipendenteId = $this->suiteInsert('employee_types', ['name' => 'dipendente']);
-        $suiteEmployees = $this->suiteInsert('resources', ['app_name' => 'x', 'key' => 'employees', 'name' => 'Dipendenti']);
+        $suiteEmployees = $this->suiteInsert('resources', ['app_name' => 'UnicoGDPR', 'key' => 'employees', 'name' => 'Dipendenti']);
         $this->suitePermission($dipendenteId, $suiteEmployees, 'viewAny');
         $this->suiteInsert('employee_type_resource_presets', ['employee_type_id' => $dipendenteId, 'resource_id' => $suiteEmployees]);
         $employees = $this->localResource('employees');
@@ -138,7 +241,7 @@ class SuiteRoleImporterTest extends TestCase
     public function test_second_run_is_idempotent(): void
     {
         $cdaId = $this->suiteInsert('employee_types', ['name' => 'cda']);
-        $suiteEmployees = $this->suiteInsert('resources', ['app_name' => 'x', 'key' => 'employees', 'name' => 'Dipendenti']);
+        $suiteEmployees = $this->suiteInsert('resources', ['app_name' => 'UnicoGDPR', 'key' => 'employees', 'name' => 'Dipendenti']);
         $this->suitePermission($cdaId, $suiteEmployees, 'viewAny');
         $this->suitePermission($cdaId, $suiteEmployees, 'create');
         $this->suiteInsert('employee_type_resource_presets', ['employee_type_id' => $cdaId, 'resource_id' => $suiteEmployees]);

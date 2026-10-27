@@ -6,12 +6,15 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Models\Suite\SuiteClient;
 use App\Models\Suite\SuiteCompany;
+use App\Services\SuiteImport\Concerns\ImportsBySourceKey;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use InvalidArgumentException;
 use RuntimeException;
 
 class ClientImporter
 {
+    use ImportsBySourceKey;
+
     public const SOURCE_SYSTEM = 'unicosuite:clients';
 
     /** Sotto questa lunghezza un valore di sole cifre e' un id suite; 11 cifre sono una partita IVA. */
@@ -53,8 +56,7 @@ class ClientImporter
         $adoptable = $this->findAdoptable($local, $attributes);
 
         if ($adoptable !== null) {
-            // Un cliente inserito a mano non perde i propri valori a favore di un vuoto della suite.
-            return $this->update($adoptable, array_filter($attributes, fn (mixed $value): bool => $value !== null) + [
+            return $this->update($adoptable, $attributes + [
                 'source_system' => self::SOURCE_SYSTEM,
                 'source_id' => (string) $row->id,
             ]);
@@ -191,7 +193,7 @@ class ClientImporter
      */
     private function update(Client $client, array $attributes): Client
     {
-        $client->fill($attributes);
+        $client->fill($this->withoutBlankValues($attributes));
 
         if ($client->isDirty()) {
             $client->save();

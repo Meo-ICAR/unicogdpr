@@ -382,4 +382,34 @@ class SuiteProcessorAndControllerImporterTest extends TestCase
 
         $this->assertTrue($foreign->refresh()->is_active);
     }
+
+    public function test_agent_suite_null_does_not_erase_local_value_on_source_key_update(): void
+    {
+        $id = $this->suiteAgent(['email' => 'uno@alfa.test', 'tel' => '061111', 'stipulated_at' => '2024-02-01']);
+        $this->importAgents();
+
+        DB::connection('unicosuite')->table('fornitoris')->where('id', $id)->update(['email' => null, 'tel' => '', 'stipulated_at' => null, 'pec' => 'pec@alfa.test']);
+
+        $this->importAgents();
+
+        $processor = ExternalProcessor::query()->firstOrFail();
+        $this->assertSame('uno@alfa.test', $processor->email);
+        $this->assertSame('061111', $processor->phone);
+        $this->assertSame('2024-02-01', $processor->contract_date->toDateString());
+        $this->assertSame('pec@alfa.test', $processor->pec);
+    }
+
+    public function test_bank_suite_null_does_not_erase_local_value_on_source_key_update(): void
+    {
+        $id = $this->suiteBank(['email' => 'info@beta.test', 'stipulated_at' => '2024-03-01']);
+        $this->importBanks();
+
+        DB::connection('unicosuite')->table('clientis')->where('id', $id)->update(['email' => null, 'stipulated_at' => null]);
+
+        $this->importBanks();
+
+        $controller = ClientController::query()->firstOrFail();
+        $this->assertSame('info@beta.test', $controller->email);
+        $this->assertSame('2024-03-01', $controller->agreement_date->toDateString());
+    }
 }

@@ -444,4 +444,19 @@ class SuiteClientImporterTest extends TestCase
                     ->danger()
             );
     }
+
+    public function test_suite_null_does_not_erase_local_value_on_source_key_update(): void
+    {
+        $id = $this->suiteClient(['city' => 'Roma', 'phone' => '0612345']);
+        $client = $this->importOne((string) $id);
+
+        DB::connection('unicosuite')->table('clients')->where('id', $id)->update(['city' => null, 'phone' => '  ', 'email' => 'nuova@example.test']);
+
+        $updated = $this->importOne((string) $id);
+
+        $this->assertSame($client->id, $updated->id);
+        $this->assertSame('Roma', $updated->city);
+        $this->assertSame('0612345', $updated->phone);
+        $this->assertSame('nuova@example.test', $updated->email);
+    }
 }

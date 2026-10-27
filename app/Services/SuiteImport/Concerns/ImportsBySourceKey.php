@@ -12,6 +12,13 @@ use Throwable;
 /**
  * Logica condivisa "adotta o crea per chiave di origine" per gli importer che
  * abbinano i record locali per `source_*` e, in subordine, per `vat_number`.
+ *
+ * Regola sui valori vuoti, uguale per tutti gli importer: un valore nullo o vuoto della
+ * suite non cancella mai un valore locale esistente, ne' all'adozione ne' negli
+ * aggiornamenti successivi (vedi `withoutBlankValues`). Un valore non nullo della suite
+ * vince sui campi mappati non privacy; i campi privacy (`$fillOnlyIfEmpty`) non vengono mai
+ * sovrascritti. Fanno eccezione i booleani e le date che hanno un significato proprio
+ * (`is_active`, `terminated_at` nel passaggio di cessazione).
  */
 trait ImportsBySourceKey
 {
@@ -51,11 +58,8 @@ trait ImportsBySourceKey
             return null;
         }
 
-        $adopted = false;
-
         if ($model === null) {
             $model = $this->findAdoptableByVatNumber($modelClass, $attributes, $claimedIds);
-            $adopted = $model !== null;
         }
 
         $attributes['source_system'] = $sourceSystem;
@@ -76,12 +80,7 @@ trait ImportsBySourceKey
             }
         }
 
-        if ($adopted) {
-            // Un record inserito a mano non perde i propri valori a favore di un vuoto della suite.
-            $attributes = array_filter($attributes, fn (mixed $value): bool => $value !== null);
-        }
-
-        $model->fill($attributes);
+        $model->fill($this->withoutBlankValues($attributes));
 
         if (! $model->isDirty()) {
             return ['model' => $model, 'status' => 'unchanged'];
@@ -112,6 +111,17 @@ trait ImportsBySourceKey
             ->whereNotIn('id', array_keys($claimedIds))
             ->orderBy('id')
             ->first();
+    }
+
+    /**
+     * Toglie i valori nulli, stringhe vuote e array vuoti: un vuoto della suite non cancella il valore locale.
+     *
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    protected function withoutBlankValues(array $attributes): array
+    {
+        return array_filter($attributes, fn (mixed $value): bool => $value !== null && $value !== '' && $value !== []);
     }
 
     protected function countStatus(ImportReport $report, string $status): void

@@ -17,10 +17,11 @@ class RoleImporter
     public const SOURCE_SYSTEM = 'unicosuite:employee_types';
 
     /**
-     * Aggiunge i ruoli mancanti e riallinea permessi e preset dei ruoli importati.
+     * Aggiunge i ruoli mancanti, aggiorna le icone dei ruoli importati e riallinea i permessi.
      *
-     * Tutto in una transazione: i permessi devono arrivare insieme ai ruoli,
-     * altrimenti gli utenti non admin perderebbero l'accesso.
+     * Abbinamento: prima per chiave di origine (il nome locale vince, anche se il ruolo e' stato
+     * rinominato in suite o in locale), poi per nome normalizzato. Tutto in una transazione:
+     * i permessi devono arrivare insieme ai ruoli, altrimenti gli utenti non admin perderebbero l'accesso.
      */
     public function import(): ImportReport
     {
@@ -29,8 +30,12 @@ class RoleImporter
         DB::transaction(function () use ($report): void {
             $localTypeIdsByName = $this->localTypeIdsByName();
 
-            /** @var array<int, int> $importedTypeIds suite id => local id */
-            $importedTypeIds = [];
+            /** @var array<string, EmployeeType> $localTypesBySourceId */
+            $localTypesBySourceId = EmployeeType::query()
+                ->where('source_system', self::SOURCE_SYSTEM)
+                ->get()
+                ->keyBy(fn (EmployeeType $type): string => (string) $type->source_id)
+                ->all();
 
             foreach (SuiteEmployeeType::query()->orderBy('id')->get() as $suiteType) {
                 $normalizedName = $this->normalizeName((string) $suiteType->name);
@@ -39,12 +44,27 @@ class RoleImporter
                     continue;
                 }
 
-                if (isset($localTypeIdsByName[$normalizedName])) {
-                    $existing = EmployeeType::query()->find($localTypeIdsByName[$normalizedName]);
+                $bySource = $localTypesBySourceId[(string) $suiteType->id] ?? null;
 
-                    if ($existing !== null && $existing->source_system === self::SOURCE_SYSTEM) {
-                        $importedTypeIds[(int) $suiteType->id] = (int) $existing->id;
+                if ($bySource !== null) {
+                    $bySource->fill([
+                        'icon' => $suiteType->icon,
+                        'companytype' => $suiteType->companytype,
+                        'is_external' => (bool) $suiteType->is_external,
+                    ]);
+
+                    if ($bySource->isDirty()) {
+                        $bySource->save();
+                        $report->updated();
+                    } else {
+                        $report->unchanged();
                     }
+
+                    continue;
+                }
+
+                if (isset($localTypeIdsByName[$normalizedName])) {
+                    $report->unchanged();
 
                     continue;
                 }
@@ -59,11 +79,10 @@ class RoleImporter
                 ]);
 
                 $localTypeIdsByName[$normalizedName] = (int) $created->id;
-                $importedTypeIds[(int) $suiteType->id] = (int) $created->id;
                 $report->created();
             }
 
-            $this->alignPermissionsAndPresets($importedTypeIds, $report);
+            $this->alignPermissionsAndPresets($report);
         });
 
         return $report;
@@ -89,30 +108,33 @@ class RoleImporter
     }
 
     /**
-     * Riallinea (delete + insert) permessi e preset di tutti i tipi locali con `source_system`.
+     * Riallinea (delete + insert) permessi e preset dei ruoli importati.
      *
-     * @param  array<int, int>  $importedTypeIds  suite id => id locale (solo tipi con source_system)
+     * Un ruolo viene riallineato solo se la suite fornisce almeno una riga che corrisponde a una
+     * risorsa locale: altrimenti i permessi configurati in locale restano intatti. Le risorse
+     * suite sono limitate alle app di `suite_import.resource_app_names`.
      */
-    private function alignPermissionsAndPresets(array $importedTypeIds, ImportReport $report): void
+    private function alignPermissionsAndPresets(ImportReport $report): void
     {
-        $managedTypes = EmployeeType::query()
-            ->whereNotNull('source_system')
-            ->get(['id', 'source_system', 'source_id']);
+        /** @var array<int, int> $suiteToLocal suite id => id locale */
+        $suiteToLocal = [];
 
-        $suiteToLocal = $importedTypeIds;
-
-        foreach ($managedTypes as $type) {
-            if ($type->source_system === self::SOURCE_SYSTEM && is_numeric($type->source_id)) {
+        foreach (EmployeeType::query()->where('source_system', self::SOURCE_SYSTEM)->get(['id', 'source_id']) as $type) {
+            if (is_numeric($type->source_id)) {
                 $suiteToLocal[(int) $type->source_id] = (int) $type->id;
             }
         }
 
-        $managedIds = $managedTypes->pluck('id')->map(fn ($id): int => (int) $id)->all();
-
-        EmployeeTypePermission::query()->whereIn('employee_type_id', $managedIds)->delete();
-        EmployeeTypeResourcePreset::query()->whereIn('employee_type_id', $managedIds)->delete();
-
         if ($suiteToLocal === []) {
+            return;
+        }
+
+        $suiteResourceKeys = SuiteResource::query()
+            ->whereIn('app_name', (array) config('suite_import.resource_app_names', []))
+            ->pluck('key', 'id')
+            ->all();
+
+        if ($suiteResourceKeys === []) {
             return;
         }
 
@@ -122,35 +144,23 @@ class RoleImporter
             ->map(fn ($id): int => (int) $id)
             ->all();
 
-        $suiteResourceKeys = SuiteResource::query()->pluck('key', 'id')->all();
-
         $missingKeys = [];
-        $noLocalResourcesWarned = false;
         $now = now();
-        $permissionRows = [];
-        $presetRows = [];
 
-        $resolveLocalResourceId = function (mixed $suiteResourceId) use ($suiteResourceKeys, $localResourceIdsByKey, &$missingKeys, &$noLocalResourcesWarned, $report): ?int {
-            if ($suiteResourceId === null) {
-                return null;
-            }
+        /** @var array<int, list<array<string, mixed>>> $permissionRowsByType */
+        $permissionRowsByType = [];
 
-            $key = $suiteResourceKeys[$suiteResourceId] ?? null;
+        /** @var array<int, array<string, array<string, mixed>>> $presetRowsByType */
+        $presetRowsByType = [];
+
+        $resolveLocalResourceId = function (mixed $suiteResourceId) use ($suiteResourceKeys, $localResourceIdsByKey, &$missingKeys, $report): ?int {
+            $key = $suiteResourceId === null ? null : ($suiteResourceKeys[$suiteResourceId] ?? null);
 
             if ($key === null) {
                 return null;
             }
 
             if (! isset($localResourceIdsByKey[$key])) {
-                if ($localResourceIdsByKey === []) {
-                    if (! $noLocalResourcesWarned) {
-                        $noLocalResourcesWarned = true;
-                        $report->skipped('nessuna risorsa locale: permessi dei ruoli non importati; eseguire permissions:sync-resources e poi suite:import');
-                    }
-
-                    return null;
-                }
-
                 if (! isset($missingKeys[$key])) {
                     $missingKeys[$key] = true;
                     $report->skipped("risorsa {$key} assente");
@@ -174,8 +184,9 @@ class RoleImporter
                 continue;
             }
 
-            $permissionRows[] = [
-                'employee_type_id' => $suiteToLocal[(int) $permission->employee_type_id],
+            $localTypeId = $suiteToLocal[(int) $permission->employee_type_id];
+            $permissionRowsByType[$localTypeId][] = [
+                'employee_type_id' => $localTypeId,
                 'resource_id' => $localResourceId,
                 'resource' => $permission->resource,
                 'action' => $permission->action,
@@ -197,7 +208,7 @@ class RoleImporter
             }
 
             $localTypeId = $suiteToLocal[(int) $preset->employee_type_id];
-            $presetRows["{$localTypeId}:{$localResourceId}"] = [
+            $presetRowsByType[$localTypeId]["{$localResourceId}"] = [
                 'employee_type_id' => $localTypeId,
                 'resource_id' => $localResourceId,
                 'created_at' => $now,
@@ -205,11 +216,20 @@ class RoleImporter
             ];
         }
 
-        foreach (array_chunk($permissionRows, 500) as $chunk) {
+        $alignedTypeIds = array_values(array_unique([...array_keys($permissionRowsByType), ...array_keys($presetRowsByType)]));
+
+        if ($alignedTypeIds === []) {
+            return;
+        }
+
+        EmployeeTypePermission::query()->whereIn('employee_type_id', $alignedTypeIds)->delete();
+        EmployeeTypeResourcePreset::query()->whereIn('employee_type_id', $alignedTypeIds)->delete();
+
+        foreach (array_chunk(array_merge([], ...array_values($permissionRowsByType)), 500) as $chunk) {
             EmployeeTypePermission::query()->insert($chunk);
         }
 
-        foreach (array_chunk(array_values($presetRows), 500) as $chunk) {
+        foreach (array_chunk(array_merge([], ...array_map('array_values', array_values($presetRowsByType))), 500) as $chunk) {
             EmployeeTypeResourcePreset::query()->insert($chunk);
         }
     }

@@ -10,6 +10,8 @@ use App\Services\SuiteImport\EmployeeImporter;
 use App\Services\SuiteImport\ImportReport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Spatie\Activitylog\Models\Activity;
 use Tests\Support\SuiteFixtures;
 use Tests\TestCase;
 
@@ -278,5 +280,213 @@ class SuiteEmployeeImporterTest extends TestCase
         $this->assertSame(0, $second->updated);
         $this->assertSame(3, $second->unchanged);
         $this->assertSame(0, $second->deactivated);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function snapshot(Employee $employee): array
+    {
+        $fresh = $employee->fresh();
+
+        return $fresh->only(['first_name', 'last_name', 'email', 'tax_code', 'is_active'])
+            + ['terminated_at' => (string) $fresh->terminated_at, 'anonymized_at' => (string) $fresh->anonymized_at];
+    }
+
+    public function test_anonymized_employee_is_skipped_and_stays_anonymized(): void
+    {
+        $suiteId = $this->suiteEmployee(['first_name' => 'Mario', 'last_name' => 'Rossi', 'email' => 'mario@example.test', 'tax_code' => 'RSSMRA80A01H501U', 'is_active' => 1]);
+        $this->importNow();
+
+        $employee = Employee::query()->where('source_id', (string) $suiteId)->firstOrFail();
+        $employee->update(['is_active' => false, 'terminated_at' => '2024-01-01']);
+        $employee->anonymize();
+        $before = $this->snapshot($employee);
+        $activities = Activity::query()->count();
+
+        $report = $this->importNow();
+
+        $this->assertSame($before, $this->snapshot($employee));
+        $this->assertSame('Ex Dipendente', $employee->fresh()->first_name);
+        $this->assertSame(1, $report->skipped);
+        $this->assertStringContainsString("dipendente locale {$employee->id} anonimizzato", $report->warnings[0]);
+        $this->assertStringNotContainsString('Rossi', $report->warnings[0]);
+        $this->assertSame(0, $report->created);
+        $this->assertSame($activities, Activity::query()->count());
+    }
+
+    public function test_anonymized_employee_missing_from_suite_is_not_touched_by_termination(): void
+    {
+        $employee = $this->localEmployee([
+            'company_id' => $this->local->id,
+            'source_system' => 'unicosuite:employees',
+            'source_id' => '777',
+            'is_active' => true,
+        ]);
+        $employee->anonymize();
+        $activities = Activity::query()->count();
+
+        $report = $this->importNow();
+
+        $this->assertTrue($employee->fresh()->is_active);
+        $this->assertNull($employee->fresh()->terminated_at);
+        $this->assertSame(0, $report->deactivated);
+        $this->assertSame($activities, Activity::query()->count());
+    }
+
+    public function test_local_coordinator_survives_when_suite_has_no_manager(): void
+    {
+        $suiteId = $this->suiteEmployee();
+        $this->importNow();
+        $employee = Employee::query()->where('source_id', (string) $suiteId)->firstOrFail();
+        $coordinator = $this->localEmployee(['company_id' => $this->local->id]);
+        $employee->update(['coordinated_by_id' => $coordinator->id]);
+
+        $this->importNow();
+
+        $this->assertSame($coordinator->id, $employee->fresh()->coordinated_by_id);
+    }
+
+    public function test_suite_manager_overrides_local_coordinator(): void
+    {
+        $managerId = $this->suiteEmployee(['last_name' => 'Capo']);
+        $suiteId = $this->suiteEmployee(['last_name' => 'Sub']);
+        $this->importNow();
+        $employee = Employee::query()->where('source_id', (string) $suiteId)->firstOrFail();
+        $employee->update(['coordinated_by_id' => $this->localEmployee(['company_id' => $this->local->id])->id]);
+        DB::connection('unicosuite')->table('employees')->where('id', $suiteId)->update(['coordinated_by_id' => $managerId]);
+
+        $this->importNow();
+
+        $manager = Employee::query()->where('source_id', (string) $managerId)->firstOrFail();
+        $this->assertSame($manager->id, $employee->fresh()->coordinated_by_id);
+    }
+
+    public function test_split_name_is_set_only_on_create_and_local_correction_survives(): void
+    {
+        $suiteId = $this->suiteEmployee(['name' => 'Rossi Mario', 'first_name' => null, 'last_name' => null]);
+        $this->importNow();
+        $employee = Employee::query()->where('source_id', (string) $suiteId)->firstOrFail();
+        $this->assertSame('Rossi', $employee->first_name);
+
+        $employee->update(['first_name' => 'Mario', 'last_name' => 'Rossi']);
+        DB::connection('unicosuite')->table('employees')->where('id', $suiteId)->update(['email' => 'mario@example.test']);
+
+        $report = $this->importNow();
+
+        $employee->refresh();
+        $this->assertSame('Mario', $employee->first_name);
+        $this->assertSame('Rossi', $employee->last_name);
+        $this->assertSame('mario@example.test', $employee->email);
+        $this->assertSame(1, $report->updated);
+    }
+
+    public function test_adopted_employee_keeps_local_names_when_suite_names_are_split(): void
+    {
+        $existing = $this->localEmployee([
+            'company_id' => $this->local->id,
+            'first_name' => 'Mario',
+            'last_name' => 'Rossi',
+            'tax_code' => 'RSSMRA80A01H501U',
+        ]);
+        $this->suiteEmployee(['name' => 'Rossi Mario', 'first_name' => null, 'last_name' => null, 'tax_code' => 'RSSMRA80A01H501U']);
+
+        $this->importNow();
+
+        $this->assertSame('Mario', $existing->fresh()->first_name);
+        $this->assertSame('Rossi', $existing->fresh()->last_name);
+    }
+
+    public function test_real_suite_names_win_on_update(): void
+    {
+        $suiteId = $this->suiteEmployee(['first_name' => 'Mario', 'last_name' => 'Rossi']);
+        $this->importNow();
+        $employee = Employee::query()->where('source_id', (string) $suiteId)->firstOrFail();
+        $employee->update(['first_name' => 'Sbagliato', 'last_name' => 'Nome']);
+
+        $this->importNow();
+
+        $this->assertSame('Mario', $employee->fresh()->first_name);
+        $this->assertSame('Rossi', $employee->fresh()->last_name);
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: array<string, mixed>}>
+     */
+    public static function companyConsultantProvider(): array
+    {
+        return [
+            'not a person' => ['Bianchi Giorgio', ['is_person' => 0]],
+            'srl marker' => ['Bianchi Consulting S.r.l.', ['is_person' => 1]],
+            'studio marker' => ['Studio Bianchi', ['is_person' => 1]],
+            'associati marker' => ['Bianchi e Verdi Associati', ['is_person' => 1]],
+            'ampersand c' => ['Bianchi & C.', ['is_person' => 1]],
+            'societa marker' => ['Societa Bianchi', ['is_person' => 1]],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    #[DataProvider('companyConsultantProvider')]
+    public function test_consultant_company_name_is_kept_whole(string $name, array $overrides): void
+    {
+        $this->suiteConsultant(array_merge(['name' => $name, 'first_name' => null, 'last_name' => null], $overrides));
+
+        $this->importNow();
+
+        $consultant = Employee::query()->firstOrFail();
+        $this->assertSame($name, $consultant->last_name);
+        $this->assertSame('-', $consultant->first_name);
+    }
+
+    public function test_consultant_person_name_is_split(): void
+    {
+        $this->suiteConsultant(['name' => 'Giorgio Bianchi', 'first_name' => null, 'last_name' => null, 'is_person' => 1]);
+
+        $this->importNow();
+
+        $consultant = Employee::query()->firstOrFail();
+        $this->assertSame('Giorgio', $consultant->first_name);
+        $this->assertSame('Bianchi', $consultant->last_name);
+    }
+
+    public function test_suite_null_does_not_erase_local_value_on_source_key_update(): void
+    {
+        $suiteId = $this->suiteEmployee(['email' => 'mario@example.test', 'phone' => '061111', 'department' => 'Legale', 'employee_roles' => json_encode(['cda'])]);
+        $this->importNow();
+
+        DB::connection('unicosuite')->table('employees')->where('id', $suiteId)->update([
+            'email' => null, 'phone' => '', 'department' => null, 'employee_roles' => null, 'job_title' => 'Capo',
+        ]);
+
+        $this->importNow();
+
+        $employee = Employee::query()->firstOrFail();
+        $this->assertSame('mario@example.test', $employee->email);
+        $this->assertSame('061111', $employee->phone);
+        $this->assertSame('Legale', $employee->department);
+        $this->assertSame(['cda'], $employee->employee_roles);
+        $this->assertSame('Capo', $employee->job_title);
+    }
+
+    public function test_returning_employee_and_consultant_get_terminated_at_cleared(): void
+    {
+        $employeeId = $this->suiteEmployee();
+        $consultantId = $this->suiteConsultant();
+        $this->importNow();
+
+        DB::connection('unicosuite')->table('employees')->where('id', $employeeId)->update(['deleted_at' => now()]);
+        DB::connection('unicosuite')->table('clients')->where('id', $consultantId)->update(['employee_roles' => json_encode([])]);
+        $this->importNow();
+        $this->assertSame(0, Employee::query()->where('is_active', true)->count());
+        $this->assertSame(2, Employee::query()->whereNotNull('terminated_at')->count());
+
+        DB::connection('unicosuite')->table('employees')->where('id', $employeeId)->update(['deleted_at' => null]);
+        DB::connection('unicosuite')->table('clients')->where('id', $consultantId)->update(['employee_roles' => json_encode(['dpo'])]);
+        $this->importNow();
+
+        $this->assertSame(2, Employee::query()->where('is_active', true)->count());
+        $this->assertSame(0, Employee::query()->whereNotNull('terminated_at')->count());
     }
 }

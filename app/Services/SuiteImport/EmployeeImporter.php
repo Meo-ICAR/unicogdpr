@@ -8,12 +8,13 @@ use App\Models\EmployeeType;
 use App\Models\Suite\SuiteClient;
 use App\Models\Suite\SuiteCompany;
 use App\Models\Suite\SuiteEmployee;
-use Illuminate\Support\Carbon;
+use App\Services\SuiteImport\Concerns\ImportsBySourceKey;
 use Illuminate\Support\Facades\DB;
-use Throwable;
 
 class EmployeeImporter
 {
+    use ImportsBySourceKey;
+
     public const SOURCE_EMPLOYEES = 'unicosuite:employees';
 
     public const SOURCE_CLIENTS = 'unicosuite:clients';
@@ -21,10 +22,16 @@ class EmployeeImporter
     /** Segnaposto per il nome quando la suite fornisce un solo token. */
     private const MISSING_FIRST_NAME = '-';
 
+    /** Sigle e parole che indicano una ragione sociale e non una persona. */
+    private const COMPANY_NAME_PATTERN = '/(?<![\p{L}\p{N}])(?:s\.?r\.?l\.?s?\.?|s\.?p\.?a\.?|s\.?a\.?s\.?|s\.?n\.?c\.?|ltd|studio|associati|societ[àa]|soc\.?)(?![\p{L}\p{N}])|&\s*c\.?(?![\p{L}\p{N}])/iu';
+
     /**
      * Importa organigramma e consulenti della societa' indicata.
      *
      * Chi non e' piu' presente nell'insieme importato viene disattivato, mai cancellato.
+     * I dipendenti locali anonimizzati o eliminati non vengono mai toccati.
+     * Valori vuoti, responsabile assente e nomi ricavati dallo split di `name` non sovrascrivono
+     * mai quanto gia' presente in locale (vedi `ImportsBySourceKey`).
      */
     public function import(Company $local, SuiteCompany $suite): ImportReport
     {
@@ -52,18 +59,24 @@ class EmployeeImporter
                 ->get();
 
             foreach ($employees as $row) {
-                $attributes = $this->attributesFor($row, false, $local, $typeIdsByName);
+                $prepared = $this->attributesFor($row, false, $local, $typeIdsByName);
 
-                if ($attributes === null) {
+                if ($prepared === null) {
                     $report->skipped("dipendente suite {$row->id} senza nome");
 
                     continue;
                 }
 
-                $result = $this->upsert(self::SOURCE_EMPLOYEES, (string) $row->id, $attributes, $claimedIds);
+                $result = $this->upsert(self::SOURCE_EMPLOYEES, (string) $row->id, $prepared['attributes'], $prepared['namesFromSplit'], $claimedIds);
 
-                if ($result === null) {
+                if ($result['status'] === 'trashed') {
                     $report->skipped("dipendente suite {$row->id} eliminato in locale");
+
+                    continue;
+                }
+
+                if ($result['status'] === 'anonymized') {
+                    $report->skipped("dipendente locale {$result['model']->id} anonimizzato");
 
                     continue;
                 }
@@ -89,18 +102,24 @@ class EmployeeImporter
                     continue;
                 }
 
-                $attributes = $this->attributesFor($row, true, $local, $typeIdsByName);
+                $prepared = $this->attributesFor($row, true, $local, $typeIdsByName);
 
-                if ($attributes === null) {
+                if ($prepared === null) {
                     $report->skipped("consulente suite {$row->id} senza nome");
 
                     continue;
                 }
 
-                $result = $this->upsert(self::SOURCE_CLIENTS, (string) $row->id, $attributes, $claimedIds);
+                $result = $this->upsert(self::SOURCE_CLIENTS, (string) $row->id, $prepared['attributes'], $prepared['namesFromSplit'], $claimedIds);
 
-                if ($result === null) {
+                if ($result['status'] === 'trashed') {
                     $report->skipped("consulente suite {$row->id} eliminato in locale");
+
+                    continue;
+                }
+
+                if ($result['status'] === 'anonymized') {
+                    $report->skipped("dipendente locale {$result['model']->id} anonimizzato");
 
                     continue;
                 }
@@ -112,14 +131,14 @@ class EmployeeImporter
                 $model = $record['model'];
                 $suiteManagerId = $managerSuiteIds[(int) $model->id] ?? null;
 
-                if ($suiteManagerId === null && $model->source_system !== self::SOURCE_EMPLOYEES) {
+                if ($suiteManagerId === null) {
                     continue;
                 }
 
-                $managerLocalId = $suiteManagerId === null ? null : ($localIdsBySuiteEmployeeId[$suiteManagerId] ?? null);
+                $managerLocalId = $localIdsBySuiteEmployeeId[$suiteManagerId] ?? null;
 
-                if ($managerLocalId === (int) $model->id) {
-                    $managerLocalId = null;
+                if ($managerLocalId === null || $managerLocalId === (int) $model->id) {
+                    continue;
                 }
 
                 $model->coordinated_by_id = $managerLocalId;
@@ -134,11 +153,7 @@ class EmployeeImporter
             }
 
             foreach ($records as $record) {
-                match ($record['status']) {
-                    'created' => $report->created(),
-                    'updated' => $report->updated(),
-                    default => $report->unchanged(),
-                };
+                $this->countStatus($report, $record['status']);
             }
 
             $this->deactivateMissing($local, array_keys($claimedIds), $report);
@@ -150,9 +165,9 @@ class EmployeeImporter
     /**
      * @param  array<string, mixed>  $attributes
      * @param  array<int, true>  $claimedIds
-     * @return array{model: Employee, status: string}|null
+     * @return array{model: Employee, status: string} status: created, updated, unchanged, trashed, anonymized
      */
-    private function upsert(string $sourceSystem, string $sourceId, array $attributes, array &$claimedIds): ?array
+    private function upsert(string $sourceSystem, string $sourceId, array $attributes, bool $namesFromSplit, array &$claimedIds): array
     {
         $model = Employee::withTrashed()
             ->where('source_system', $sourceSystem)
@@ -160,11 +175,17 @@ class EmployeeImporter
             ->first();
 
         if ($model !== null && $model->trashed()) {
-            return null;
+            return ['model' => $model, 'status' => 'trashed'];
         }
 
         if ($model === null) {
             $model = $this->findAdoptable($attributes, $claimedIds);
+        }
+
+        if ($model !== null && $model->isAnonymized()) {
+            $claimedIds[(int) $model->id] = true;
+
+            return ['model' => $model, 'status' => 'anonymized'];
         }
 
         $attributes['source_system'] = $sourceSystem;
@@ -178,7 +199,16 @@ class EmployeeImporter
         }
 
         $claimedIds[(int) $model->id] = true;
-        $model->fill($attributes);
+
+        if ($namesFromSplit) {
+            unset($attributes['first_name'], $attributes['last_name']);
+        }
+
+        $model->fill($this->withoutBlankValues($attributes));
+
+        if ($model->isDirty('is_active') && $model->is_active) {
+            $model->terminated_at = null;
+        }
 
         if (! $model->isDirty()) {
             return ['model' => $model, 'status' => 'unchanged'];
@@ -222,12 +252,13 @@ class EmployeeImporter
 
     /**
      * @param  array<string, int>  $typeIdsByName
-     * @return array<string, mixed>|null null se la riga non ha nome
+     * @return array{attributes: array<string, mixed>, namesFromSplit: bool}|null null se la riga non ha nome
      */
     private function attributesFor(SuiteEmployee|SuiteClient $row, bool $isConsultant, Company $local, array $typeIdsByName): ?array
     {
         $firstName = trim((string) $row->first_name);
         $lastName = trim((string) $row->last_name);
+        $namesFromSplit = false;
 
         if ($firstName === '' && $lastName === '') {
             $fullName = trim((string) $row->name);
@@ -236,7 +267,11 @@ class EmployeeImporter
                 return null;
             }
 
-            [$firstName, $lastName] = $this->splitName($fullName);
+            $namesFromSplit = true;
+
+            [$firstName, $lastName] = $isConsultant && $this->isCompanyName($row, $fullName)
+                ? [self::MISSING_FIRST_NAME, $fullName]
+                : $this->splitName($fullName);
         } elseif ($firstName === '') {
             $firstName = self::MISSING_FIRST_NAME;
         } elseif ($lastName === '') {
@@ -273,7 +308,16 @@ class EmployeeImporter
             ];
         }
 
-        return $attributes;
+        return ['attributes' => $attributes, 'namesFromSplit' => $namesFromSplit];
+    }
+
+    /**
+     * Un consulente non persona fisica o con sigla societaria nel nome tiene il nome intero.
+     */
+    private function isCompanyName(SuiteEmployee|SuiteClient $row, string $fullName): bool
+    {
+        return ((string) ($row->is_person ?? '1')) === '0'
+            || preg_match(self::COMPANY_NAME_PATTERN, $fullName) === 1;
     }
 
     /**
@@ -313,32 +357,6 @@ class EmployeeImporter
         return $roles;
     }
 
-    private function firstFilled(mixed ...$values): ?string
-    {
-        foreach ($values as $value) {
-            if ($value !== null && trim((string) $value) !== '') {
-                return trim((string) $value);
-            }
-        }
-
-        return null;
-    }
-
-    private function dateOrNull(mixed ...$values): ?string
-    {
-        $value = $this->firstFilled(...$values);
-
-        if ($value === null) {
-            return null;
-        }
-
-        try {
-            return Carbon::parse($value)->toDateString();
-        } catch (Throwable) {
-            return null;
-        }
-    }
-
     /**
      * @return array<string, int> nome minuscolo => id locale
      */
@@ -365,6 +383,10 @@ class EmployeeImporter
             ->get();
 
         foreach ($missing as $employee) {
+            if ($employee->isAnonymized()) {
+                continue;
+            }
+
             if (! $employee->is_active) {
                 $report->unchanged();
 
