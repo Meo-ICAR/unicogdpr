@@ -34,6 +34,10 @@ class ImportSuite extends Command
     /** @var list<string> */
     private const AREAS = [self::AREA_ROLES, self::AREA_EMPLOYEES, self::AREA_AGENTS, self::AREA_BANKS];
 
+    /**
+     * Un errore in un'area interrompe le aree successive solo per quella società:
+     * le altre società vengono comunque elaborate e il comando termina con codice 1.
+     */
     public function handle(SuiteCompanyResolver $resolver): int
     {
         /** @var list<string> $requested */
@@ -41,7 +45,7 @@ class ImportSuite extends Command
         $invalid = array_values(array_diff($requested, self::AREAS));
 
         if ($invalid !== []) {
-            $this->error('Area non valida: '.implode(', ', $invalid).'.');
+            $this->error('Area non valida: '.implode(', ', array_map(fn (string $area): string => $area === '' ? '(vuota)' : $area, $invalid)).'.');
             $this->line('Aree disponibili: '.implode(', ', self::AREAS).'.');
 
             return self::FAILURE;
@@ -72,10 +76,13 @@ class ImportSuite extends Command
 
         if ($companyAreas !== []) {
             foreach ($vatNumbers as $vatNumber) {
+                $currentArea = 'società';
+
                 try {
                     $companies = $resolver->resolve($vatNumber);
 
                     foreach ($companyAreas as $area) {
+                        $currentArea = $area;
                         $results[] = [
                             'area' => $area,
                             'company' => (string) $companies['local']->id,
@@ -84,11 +91,11 @@ class ImportSuite extends Command
                     }
                 } catch (QueryException) {
                     // Mai il messaggio SQL: i binding contengono dati personali.
-                    $this->error("Errore del database durante l'importazione: nessun dato salvato per l'area in corso. Verificare i log (nessun dato personale riportato).");
-                    Log::error('Import suite: errore del database.', ['company_vat' => $vatNumber]);
+                    $this->error("Errore del database nell'area {$currentArea}: nessun dato salvato per quell'area. Verificare i log (nessun dato personale riportato).");
+                    Log::error('Import suite: errore del database.', ['company_vat' => $vatNumber, 'area' => $currentArea]);
                     $failed = true;
                 } catch (RuntimeException $exception) {
-                    $this->error($exception->getMessage());
+                    $this->error("Area {$currentArea}: {$exception->getMessage()}");
                     $failed = true;
                 }
             }
