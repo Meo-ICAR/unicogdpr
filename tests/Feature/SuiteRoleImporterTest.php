@@ -53,6 +53,24 @@ class SuiteRoleImporterTest extends TestCase
         ]);
     }
 
+    public function test_emits_single_aggregated_warning_when_no_local_resources(): void
+    {
+        $cdaId = $this->suiteInsert('employee_types', ['name' => 'cda']);
+        foreach (['employees', 'pratiche', 'altro'] as $key) {
+            $resourceId = $this->suiteInsert('resources', ['app_name' => 'x', 'key' => $key, 'name' => ucfirst($key)]);
+            $this->suitePermission($cdaId, $resourceId, 'viewAny');
+            $this->suiteInsert('employee_type_resource_presets', ['employee_type_id' => $cdaId, 'resource_id' => $resourceId]);
+        }
+
+        $report = (new RoleImporter)->import();
+
+        $this->assertCount(1, $report->warnings);
+        $this->assertStringContainsString('nessuna risorsa locale', $report->warnings[0]);
+        $this->assertStringContainsString('permissions:sync-resources', $report->warnings[0]);
+        $this->assertSame(0, EmployeeTypePermission::query()->count());
+        $this->assertSame(0, EmployeeTypeResourcePreset::query()->count());
+    }
+
     public function test_adds_missing_roles_and_keeps_local_ones(): void
     {
         $this->suiteInsert('employee_types', ['name' => 'dipendente', 'icon' => 'x', 'companytype' => 'FINANCE', 'is_external' => 0]);

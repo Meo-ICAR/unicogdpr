@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\ClientController;
 use App\Models\Company;
 use App\Models\Employee;
+use App\Models\EmployeeType;
 use App\Models\ExternalProcessor;
 use App\Models\Resource;
 use App\Models\Suite\SuiteCompany;
+use App\Models\User;
 use App\Services\SuiteImport\ClientControllerImporter;
 use App\Services\SuiteImport\EmployeeImporter;
 use App\Services\SuiteImport\ExternalProcessorImporter;
@@ -136,7 +139,7 @@ class SuiteImportCommandTest extends TestCase
         $this->assertSame(0, Employee::query()->count());
         $this->assertSame(0, ExternalProcessor::query()->count());
         $this->assertSame(1, ClientController::query()->count());
-        $this->assertSame(0, Resource::query()->count());
+        $this->assertSame(0, EmployeeType::query()->where('name', 'ruolo suite nuovo')->count());
     }
 
     public function test_only_option_is_repeatable(): void
@@ -179,14 +182,16 @@ class SuiteImportCommandTest extends TestCase
             ->assertExitCode(0);
     }
 
-    public function test_role_phase_is_atomic_with_resource_sync(): void
+    public function test_role_phase_is_atomic(): void
     {
-        $this->assertSame(0, Resource::query()->count());
+        $before = EmployeeType::query()->count();
 
         $this->app->bind(RoleImporter::class, fn () => new class extends RoleImporter
         {
             public function import(): ImportReport
             {
+                EmployeeType::query()->create(['name' => 'ruolo a meta']);
+
                 throw new RuntimeException('boom');
             }
         });
@@ -195,14 +200,37 @@ class SuiteImportCommandTest extends TestCase
             ->expectsOutputToContain('nessun dato dei ruoli salvato')
             ->assertExitCode(1);
 
-        $this->assertSame(0, Resource::query()->count());
+        $this->assertSame($before, EmployeeType::query()->count());
     }
 
-    public function test_role_phase_persists_resources_when_successful(): void
+    public function test_import_never_creates_local_resources(): void
     {
-        $this->artisan('suite:import', ['--only' => ['ruoli']])->assertExitCode(0);
+        $this->seedFullSuite();
 
-        $this->assertGreaterThan(0, Resource::query()->count());
+        $this->artisan('suite:import')->assertExitCode(0);
+
+        $this->assertSame(0, Resource::query()->count());
+        $this->assertSame(1, EmployeeType::query()->where('name', 'ruolo suite nuovo')->count());
+    }
+
+    public function test_non_admin_user_with_imported_role_keeps_plan_access_after_import(): void
+    {
+        $this->seedFullSuite();
+        $this->artisan('suite:import')->assertExitCode(0);
+
+        $user = User::factory()->create(['role' => UserRole::USER]);
+        $employee = Employee::query()->create([
+            'company_id' => Company::query()->value('id'),
+            'user_id' => $user->id,
+            'first_name' => 'Luca',
+            'last_name' => 'Bianchi',
+            'employee_roles' => ['ruolo suite nuovo'],
+        ]);
+        $this->assertNotEmpty(resolveUserEmployeeTypeIds($user->fresh()));
+        config(['plan.type' => 'FULL']);
+        $this->actingAs($user);
+
+        $this->assertTrue(checkPiano('employees'));
     }
 
     public function test_second_run_is_idempotent(): void

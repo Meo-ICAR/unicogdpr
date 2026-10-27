@@ -125,11 +125,12 @@ class RoleImporter
         $suiteResourceKeys = SuiteResource::query()->pluck('key', 'id')->all();
 
         $missingKeys = [];
+        $noLocalResourcesWarned = false;
         $now = now();
         $permissionRows = [];
         $presetRows = [];
 
-        $resolveLocalResourceId = function (mixed $suiteResourceId) use ($suiteResourceKeys, $localResourceIdsByKey, &$missingKeys, $report): ?int {
+        $resolveLocalResourceId = function (mixed $suiteResourceId) use ($suiteResourceKeys, $localResourceIdsByKey, &$missingKeys, &$noLocalResourcesWarned, $report): ?int {
             if ($suiteResourceId === null) {
                 return null;
             }
@@ -141,6 +142,15 @@ class RoleImporter
             }
 
             if (! isset($localResourceIdsByKey[$key])) {
+                if ($localResourceIdsByKey === []) {
+                    if (! $noLocalResourcesWarned) {
+                        $noLocalResourcesWarned = true;
+                        $report->skipped('nessuna risorsa locale: permessi dei ruoli non importati; eseguire permissions:sync-resources e poi suite:import');
+                    }
+
+                    return null;
+                }
+
                 if (! isset($missingKeys[$key])) {
                     $missingKeys[$key] = true;
                     $report->skipped("risorsa {$key} assente");

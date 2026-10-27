@@ -12,13 +12,12 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 #[Signature('suite:import {--only=* : Aree da importare (ruoli, organigramma, agenti, banche); default tutte}')]
-#[Description('Importa dalla suite ruoli, organigramma, agenti e banche delle società configurate')]
+#[Description('Importa dalla suite ruoli (senza creare risorse locali), organigramma, agenti e banche delle società configurate')]
 class ImportSuite extends Command
 {
     private const MAX_PRINTED_WARNINGS = 50;
@@ -108,17 +107,13 @@ class ImportSuite extends Command
     }
 
     /**
-     * I permessi devono arrivare insieme alle risorse locali: in una sola transazione.
+     * Solo i ruoli: le risorse locali restano un'azione manuale dell'amministratore
+     * (permissions:sync-resources), altrimenti i ruoli senza permessi bloccherebbero gli utenti.
+     * Tipi, permessi e preset vengono scritti insieme in una sola transazione.
      */
     private function importRoles(): ImportReport
     {
-        return DB::transaction(function (): ImportReport {
-            if (Artisan::call('permissions:sync-resources') !== self::SUCCESS) {
-                throw new RuntimeException('Sincronizzazione delle risorse non riuscita.');
-            }
-
-            return app(RoleImporter::class)->import();
-        });
+        return DB::transaction(fn (): ImportReport => app(RoleImporter::class)->import());
     }
 
     private function importerFor(string $area): EmployeeImporter|ExternalProcessorImporter|ClientControllerImporter
