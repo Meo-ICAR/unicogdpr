@@ -28,13 +28,14 @@ class Employee extends Model implements Anonymizable
         // Designazione privacy per dipendente (Art. 29/32 GDPR), come in unicobpm/unicooam.
         'privacy_role', 'purpose', 'data_subjects', 'data_categories', 'retention_period',
         'extra_eu_transfer', 'security_measures', 'privacy_data',
-        'is_structure', 'is_ghost', 'created_by', 'updated_by', 'deleted_by',
+        'is_structure', 'is_ghost', 'is_external', 'source_system', 'source_id', 'created_by', 'updated_by', 'deleted_by',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'is_structure' => 'boolean',
         'is_ghost' => 'boolean',
+        'is_external' => 'boolean',
         'smart_working_mode' => SmartWorkingMode::class,
         'oam_at' => 'date',
         'oam_dismissed_at' => 'date',
