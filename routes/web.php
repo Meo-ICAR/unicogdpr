@@ -7,10 +7,16 @@ use App\Http\Controllers\CompanyPortal\DocumentDownloadController;
 use App\Http\Controllers\CompanyPortal\DpiaReportController;
 use App\Http\Controllers\GoogleDriveController;
 use App\Http\Controllers\IncomingEmailAttachmentController;
+use App\Http\Controllers\MicrosoftMailOAuthController;
 use App\Http\Controllers\VendorAuditQuestionnaireController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/admin');
+
+// Collegamento di una casella Microsoft 365 con OAuth 2.0. L'indirizzo di ritorno va registrato nell'app su Azure.
+// Il ritorno è fuori dal gruppo `auth` perché serve anche al consenso dell'amministratore del tenant (che non ha accesso qui).
+Route::get('/mail-oauth/microsoft/callback', [MicrosoftMailOAuthController::class, 'callback'])->name('mail-oauth.microsoft.callback');
+Route::get('/mail-oauth/microsoft/{account}', [MicrosoftMailOAuthController::class, 'redirect'])->middleware('auth')->whereNumber('account')->name('mail-oauth.microsoft.redirect');
 
 Route::get('/drive/files', [GoogleDriveController::class, 'listFiles']);
 // La rotta riceve l'ID del soggetto (es: l'agente) e il token di sicurezza nei parametri.

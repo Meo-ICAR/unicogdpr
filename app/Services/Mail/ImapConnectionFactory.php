@@ -64,6 +64,12 @@ class ImapConnectionFactory implements ImapConnector
 
         $provider = $account->provider ?: 'google';
 
+        if ($provider === 'microsoft') {
+            app(MicrosoftMailOAuth::class)->refresh($account);
+
+            return;
+        }
+
         /** @var Token $token */
         $token = Socialite::driver($provider)
             ->stateless()

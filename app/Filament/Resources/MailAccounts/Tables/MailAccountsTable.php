@@ -7,6 +7,7 @@ use App\Jobs\FetchMailAccountJob;
 use App\Models\Company;
 use App\Models\IncomingEmail;
 use App\Models\MailAccount;
+use App\Services\Mail\MicrosoftMailOAuth;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -19,6 +20,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\HtmlString;
 
 class MailAccountsTable
 {
@@ -79,6 +81,8 @@ class MailAccountsTable
                     ->options([1 => 'Attive', 0 => 'Disattivate']),
             ])
             ->recordActions([
+                self::connectMicrosoftAction(),
+                self::adminConsentLinkAction(),
                 Action::make('test')
                     ->label('Testa connessione')
                     ->icon('heroicon-o-signal')
@@ -224,5 +228,38 @@ class MailAccountsTable
 
             return ['imported' => 0, 'error' => $e->getMessage()];
         }
+    }
+
+    private static function isMicrosoftAccount(MailAccount $record): bool
+    {
+        return $record->provider === 'microsoft' || str_contains((string) $record->imap_host, 'office365') || str_contains((string) $record->imap_host, 'outlook');
+    }
+
+    /** Collega una casella Microsoft 365 con OAuth 2.0 (l'accesso IMAP con password è disattivato da Microsoft). */
+    public static function connectMicrosoftAction(): Action
+    {
+        return Action::make('collega_microsoft')
+            ->label(fn (MailAccount $record) => $record->auth_type === 'oauth2' && $record->provider === 'microsoft' ? 'Ricollega account Microsoft' : 'Collega account Microsoft')
+            ->icon('heroicon-o-link')
+            ->color('info')
+            ->visible(fn (MailAccount $record) => self::isMicrosoftAccount($record))
+            ->url(fn (MailAccount $record) => route('mail-oauth.microsoft.redirect', $record));
+    }
+
+    /** Mostra il link di consenso da inviare all'amministratore del tenant Microsoft 365 che ospita la casella. */
+    public static function adminConsentLinkAction(): Action
+    {
+        return Action::make('link_consenso_admin')
+            ->label('Link consenso amministratore')
+            ->icon('heroicon-o-shield-check')
+            ->color('gray')
+            ->visible(fn (MailAccount $record) => self::isMicrosoftAccount($record))
+            ->action(function (): void {
+                $url = app(MicrosoftMailOAuth::class)->adminConsentUrl();
+
+                Notification::make()->info()->persistent()->title('Link per l\'amministratore del tenant Microsoft 365')
+                    ->body(new HtmlString('Invia questo indirizzo a un amministratore globale del tenant che ospita la casella: approvando, l\'app può collegare le caselle.<br><br><a href="'.e($url).'" target="_blank" style="word-break:break-all;text-decoration:underline">'.e($url).'</a>'))
+                    ->send();
+            });
     }
 }
