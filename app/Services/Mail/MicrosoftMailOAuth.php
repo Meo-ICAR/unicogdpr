@@ -23,7 +23,7 @@ class MicrosoftMailOAuth
 
     public function authorizationUrl(MailAccount $account, string $state): string
     {
-        return "https://login.microsoftonline.com/{$this->tenant()}/oauth2/v2.0/authorize?".http_build_query([
+        return "https://login.microsoftonline.com/{$this->tenant($account)}/oauth2/v2.0/authorize?".http_build_query([
             'client_id' => $this->clientId(),
             'response_type' => 'code',
             'redirect_uri' => self::redirectUri(),
@@ -39,9 +39,9 @@ class MicrosoftMailOAuth
      * Link da inviare all'amministratore del tenant che ospita la casella: approva l'app per tutto il tenant (consenso amministratore),
      * così la casella si collega anche se l'app è registrata in un altro tenant. Ritorna alla stessa pagina di ritorno, che mostra solo l'esito.
      */
-    public function adminConsentUrl(): string
+    public function adminConsentUrl(MailAccount $account): string
     {
-        return "https://login.microsoftonline.com/{$this->tenant()}/v2.0/adminconsent?".http_build_query([
+        return "https://login.microsoftonline.com/{$this->tenant($account)}/v2.0/adminconsent?".http_build_query([
             'client_id' => $this->clientId(),
             'scope' => 'https://outlook.office.com/IMAP.AccessAsUser.All offline_access',
             'redirect_uri' => self::redirectUri(),
@@ -57,7 +57,7 @@ class MicrosoftMailOAuth
     /** Scambia il codice con i token e li salva sulla casella; rifiuta se l'utente ha acceduto con un altro indirizzo. */
     public function complete(MailAccount $account, string $code): void
     {
-        $response = Http::asForm()->timeout(20)->post("https://login.microsoftonline.com/{$this->tenant()}/oauth2/v2.0/token", [
+        $response = Http::asForm()->timeout(20)->post("https://login.microsoftonline.com/{$this->tenant($account)}/oauth2/v2.0/token", [
             'client_id' => $this->clientId(),
             'client_secret' => $this->clientSecret(),
             'grant_type' => 'authorization_code',
@@ -92,7 +92,7 @@ class MicrosoftMailOAuth
     /** Rinnova l'access token con il refresh token e lo salva sulla casella. */
     public function refresh(MailAccount $account): void
     {
-        $response = Http::asForm()->timeout(20)->post("https://login.microsoftonline.com/{$this->tenant()}/oauth2/v2.0/token", [
+        $response = Http::asForm()->timeout(20)->post("https://login.microsoftonline.com/{$this->tenant($account)}/oauth2/v2.0/token", [
             'client_id' => $this->clientId(),
             'client_secret' => $this->clientSecret(),
             'grant_type' => 'refresh_token',
@@ -119,9 +119,41 @@ class MicrosoftMailOAuth
         return $payload['email'] ?? $payload['preferred_username'] ?? null;
     }
 
-    private function tenant(): string
+    /**
+     * Tenant che ospita la casella: quello dell'azienda; se vuoto lo ricava dal dominio della casella e lo memorizza;
+     * in mancanza, quello di configurazione.
+     */
+    public function tenant(MailAccount $account): string
     {
-        return (string) (config('services.microsoft.mail_tenant') ?: config('services.microsoft.tenant') ?: 'common');
+        $company = $account->company;
+
+        if ($company && blank($company->microsoft_tenant_id)) {
+            $discovered = $this->discoverTenant((string) Str::after((string) $account->email_address, '@'));
+
+            if ($discovered !== null) {
+                $company->forceFill(['microsoft_tenant_id' => $discovered])->save();
+            }
+        }
+
+        return (string) ($company?->microsoft_tenant_id ?: config('services.microsoft.mail_tenant') ?: config('services.microsoft.tenant') ?: 'common');
+    }
+
+    /** GUID del tenant a cui appartiene un dominio, dalla pagina pubblica di Microsoft; null se il dominio non è in un tenant. */
+    public function discoverTenant(string $domain): ?string
+    {
+        if ($domain === '') {
+            return null;
+        }
+
+        $response = Http::timeout(10)->get('https://login.microsoftonline.com/'.rawurlencode($domain).'/v2.0/.well-known/openid-configuration');
+
+        if ($response->failed()) {
+            return null;
+        }
+
+        preg_match('~login\.microsoftonline\.com/([0-9a-f-]{36})/~i', (string) $response->json('token_endpoint'), $matches);
+
+        return $matches[1] ?? null;
     }
 
     /** App registrata nel tenant che ospita le caselle (MICROSOFT_MAIL_CLIENT_ID); in mancanza, quella del login. */

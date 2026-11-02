@@ -254,8 +254,8 @@ class MailAccountsTable
             ->icon('heroicon-o-shield-check')
             ->color('gray')
             ->visible(fn (MailAccount $record) => self::isMicrosoftAccount($record))
-            ->action(function (): void {
-                $url = app(MicrosoftMailOAuth::class)->adminConsentUrl();
+            ->action(function (MailAccount $record): void {
+                $url = app(MicrosoftMailOAuth::class)->adminConsentUrl($record);
 
                 Notification::make()->info()->persistent()->title('Link per l\'amministratore del tenant Microsoft 365')
                     ->body(new HtmlString('Invia questo indirizzo a un amministratore globale del tenant che ospita la casella: approvando, l\'app può collegare le caselle.<br><br><a href="'.e($url).'" target="_blank" style="word-break:break-all;text-decoration:underline">'.e($url).'</a>'))

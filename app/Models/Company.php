@@ -53,6 +53,7 @@ class Company extends Model implements HasAvatar
         'name',
         'is_active',
         'drive_folder_id',
+        'microsoft_tenant_id',
         'vat_number',
         'tax_code',
         'address',

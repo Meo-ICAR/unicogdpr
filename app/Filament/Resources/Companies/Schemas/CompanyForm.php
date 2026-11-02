@@ -46,6 +46,12 @@ class CompanyForm
                             ->placeholder('Es. IT12345678901')
                             ->maxLength(50),
 
+                        TextInput::make('microsoft_tenant_id')
+                            ->label('Tenant Microsoft 365')
+                            ->placeholder('GUID del tenant o dominio, es. azienda.onmicrosoft.com')
+                            ->helperText('Serve a collegare le caselle Microsoft 365 con OAuth. Se vuoto, si ricava dal dominio della casella.')
+                            ->maxLength(255),
+
                         TextInput::make('tax_code')
                             ->label('Codice Fiscale')
                             ->placeholder('Es. 12345678901 o RSSMRA80A01H501U')
