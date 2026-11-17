@@ -65,7 +65,7 @@ class ProfessioneCreditoComplaintSeeder extends Seeder
         // deve quindi essere una riga reale in quella tabella, con lo stesso
         // id della Company di questa app per restare tracciabile tra le due
         // connessioni pur senza un vincolo FK cross-database.
-        DB::connection('mysql_unicooam')->table('companies')->updateOrInsert(
+        DB::table('companies')->updateOrInsert(
             ['id' => $team2com->id],
             ['name' => $team2com->name, 'created_at' => now(), 'updated_at' => now()]
         );

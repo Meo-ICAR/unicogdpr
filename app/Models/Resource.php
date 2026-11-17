@@ -11,8 +11,6 @@ class Resource extends Model
 {
     use HasFactory;
 
-    protected $connection = 'mysql_unicobpm';
-
     public const PLAN_BASE = 'BASE';
 
     public const PLAN_MEDIUM = 'MEDIUM';

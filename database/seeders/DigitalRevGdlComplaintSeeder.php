@@ -90,7 +90,7 @@ class DigitalRevGdlComplaintSeeder extends Seeder
         $protocolNumber = 'REG-2026-008';
 
         // audits.company_id ha un vincolo FK reale verso unicooam.companies.
-        DB::connection('mysql_unicooam')->table('companies')->updateOrInsert(
+        DB::table('companies')->updateOrInsert(
             ['id' => $digitalRev->id],
             ['name' => $digitalRev->name, 'created_at' => now(), 'updated_at' => now()]
         );

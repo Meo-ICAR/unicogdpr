@@ -36,9 +36,7 @@ class Clienti extends Model
      *
      * @var string
      */
-    protected $connection = 'proforma';
-
-    protected $table = 'proforma.clientis';
+    protected $table = 'clientis';
 
     /**
      * The primary key for the model.

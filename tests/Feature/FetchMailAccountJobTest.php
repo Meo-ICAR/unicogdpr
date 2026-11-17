@@ -35,12 +35,12 @@ class FetchMailAccountJobTest extends TestCase
     {
         parent::setUp();
         Storage::fake('private');
-        DB::connection('mysql_unicooam')->beginTransaction();
+        DB::beginTransaction();
     }
 
     protected function tearDown(): void
     {
-        DB::connection('mysql_unicooam')->rollBack();
+        DB::rollBack();
 
         parent::tearDown();
     }

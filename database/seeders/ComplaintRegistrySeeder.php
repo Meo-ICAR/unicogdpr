@@ -23,7 +23,7 @@ class ComplaintRegistrySeeder extends Seeder
 {
     public function run(): void
     {
-        if (! Schema::connection('mysql_unicooam')->hasColumn('complaint_registry', 'event_sequence')) {
+        if (! Schema::hasColumn('complaint_registry', 'event_sequence')) {
             $this->command->warn('complaint_registry non ha ancora i campi della cronologia eventi: esegui prima la migration 2026_09_23_130000_add_event_timeline_fields_to_complaint_registry_table.');
 
             return;

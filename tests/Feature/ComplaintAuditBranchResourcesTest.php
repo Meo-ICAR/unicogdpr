@@ -29,12 +29,8 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * ComplaintRegistry, Audit e Branch vivono sulla connessione condivisa
- * 'mysql_unicooam' (non coperta da RefreshDatabase, che gestisce solo la
- * connessione di default): i record di test creati qui vengono avvolti in
- * una transazione esplicita su quella connessione e sempre annullati in
- * tearDown, per non lasciare dati di test nel database reale condiviso con
- * le altre app della suite.
+ * ComplaintRegistry, Audit e Branch vivono nel database dell'app (unicogdpr): i record di test sono avvolti in una transazione
+ * esplicita sempre annullata in tearDown.
  */
 class ComplaintAuditBranchResourcesTest extends TestCase
 {
@@ -44,28 +40,20 @@ class ComplaintAuditBranchResourcesTest extends TestCase
     {
         parent::setUp();
 
-        DB::connection('mysql_unicooam')->beginTransaction();
+        DB::beginTransaction();
     }
 
     protected function tearDown(): void
     {
-        DB::connection('mysql_unicooam')->rollBack();
+        DB::rollBack();
 
         parent::tearDown();
     }
 
-    /**
-     * complaint_registry/audits/branches vivono sulla connessione condivisa
-     * e referenziano, per company_id/branchable_id, la tabella
-     * "unicooam.companies" (distinta dalla tabella companies dell'app,
-     * sulla connessione di default) — qui ne creiamo una temporanea,
-     * anch'essa dentro la transazione annullata in tearDown.
-     */
+    /** Seconda company di test (stessa tabella companies dell'app), annullata in tearDown con la transazione. */
     private function makeUnicooamCompanyId(): string
     {
-        return (string) DB::connection('mysql_unicooam')->table('companies')->insertGetId([
-            'name' => 'Azienda Test Unicooam',
-        ]);
+        return (string) Company::factory()->create(['name' => 'Azienda Test Unicooam'])->id;
     }
 
     public function test_dpo_can_open_the_complaint_registry_edit_page_with_the_documents_relation_manager(): void

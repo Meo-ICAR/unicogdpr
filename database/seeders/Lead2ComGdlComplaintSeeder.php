@@ -110,7 +110,7 @@ class Lead2ComGdlComplaintSeeder extends Seeder
         $protocolNumber = 'REG-2026-007';
 
         // audits.company_id ha un vincolo FK reale verso unicooam.companies.
-        DB::connection('mysql_unicooam')->table('companies')->updateOrInsert(
+        DB::table('companies')->updateOrInsert(
             ['id' => $lead2com->id],
             ['name' => $lead2com->name, 'created_at' => now(), 'updated_at' => now()]
         );

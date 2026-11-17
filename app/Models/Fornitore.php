@@ -16,8 +16,6 @@ class Fornitore extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $connection = 'proforma';
-
     protected $table = 'fornitoris';
 
     protected $primaryKey = 'id';

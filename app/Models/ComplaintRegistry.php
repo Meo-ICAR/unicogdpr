@@ -6,8 +6,6 @@ use App\Enums\ComplaintCategory;
 use App\Enums\ComplaintMacroCategory;
 use App\Enums\ComplaintStatus;
 use App\Enums\ReceptionChannel;
-use App\Models\PROFORMA\Clienti;
-use App\Models\PROFORMA\Fornitore;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;

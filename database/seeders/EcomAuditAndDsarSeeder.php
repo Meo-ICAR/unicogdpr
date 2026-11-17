@@ -40,7 +40,7 @@ class EcomAuditAndDsarSeeder extends Seeder
             // creiamo con lo stesso id della Company "PALK S.R.L." di questa
             // app, per restare tracciabile tra le due connessioni pur senza
             // un vincolo FK cross-database.
-            DB::connection('mysql_unicooam')->table('companies')->updateOrInsert(
+            DB::table('companies')->updateOrInsert(
                 ['id' => $palk->id],
                 ['name' => 'PALK S.R.L.', 'created_at' => now(), 'updated_at' => now()]
             );

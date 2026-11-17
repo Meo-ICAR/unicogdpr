@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EmployeeTypeResourcePreset extends Model
 {
-    protected $connection = 'mysql_unicobpm';
-
     protected $fillable = [
         'employee_type_id',
         'resource_id',

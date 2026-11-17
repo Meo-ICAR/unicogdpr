@@ -24,12 +24,12 @@ class SenderIdentificationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        DB::connection('mysql_unicooam')->beginTransaction();
+        DB::beginTransaction();
     }
 
     protected function tearDown(): void
     {
-        DB::connection('mysql_unicooam')->rollBack();
+        DB::rollBack();
 
         parent::tearDown();
     }

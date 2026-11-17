@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EmployeeType extends Model
 {
-    protected $connection = 'mysql_unicobpm';
-
     /*
       'dipendente' => 'Dipendente',
                                 'istruttore' => 'Istruttore',

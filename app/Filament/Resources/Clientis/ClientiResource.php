@@ -20,7 +20,7 @@ class ClientiResource extends Resource
     protected static ?string $model = Clienti::class;
 
     /**
-     * Clienti vive sulla connessione condivisa 'proforma' (mandati OAM/IVASS),
+     * Clienti (mandati OAM/IVASS) vive in questo database,
      * senza legame diretto con il tenant scoping Filament basato su Company.
      */
     protected static bool $isScopedToTenant = false;

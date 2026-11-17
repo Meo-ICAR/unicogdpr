@@ -48,13 +48,10 @@ class ClientisTable
                     ->color(fn ($record) => $record?->end_date?->isPast() ? 'danger' : null),
             ])
             ->filters([
-                // clientis.company_id fa riferimento a proforma.companies
-                // (stessa connessione 'proforma'), non alle Company di questa
-                // app: le opzioni vanno quindi lette con una query dedicata.
+                // clientis.company_id arriva dalla vecchia anagrafica proforma: può non coincidere con le Company di questa app.
                 SelectFilter::make('company_id')
                     ->label('Azienda')
-                    ->options(fn (): array => DB::connection('proforma')
-                        ->table('companies')
+                    ->options(fn (): array => DB::table('companies')
                         ->orderBy('name')
                         ->pluck('name', 'id')
                         ->all())
